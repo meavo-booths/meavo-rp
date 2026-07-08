@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
+  "framework": "nextjs",
+  "crons": [
+    { "path": "/api/cron/sheet-sync", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/unbriefed-panels", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/kaz-panel-slack", "schedule": "0 */2 * * *" }
+  ]
+}

@@ -1,0 +1,34 @@
+Environment: Google Apps Script (GAS) web app.
+
+Rules:
+- Do not use ES module syntax such as `import` or `export`.
+- Server-side code must use GAS globals like `HtmlService`, `SpreadsheetApp`, `Session`, `ScriptApp`, and `Utilities`.
+- Client-side HTML must call server functions via `google.script.run`.
+- Assume templated HTML values use GAS scriptlets like `<?= userEmail ?>`.
+- Keep files compatible with Apps Script runtime and browser execution without bundling.
+- Spreadsheet column mapping is fixed:
+  - A: RP Num
+  - D: Market
+  - E: User ID
+  - F: Issue Type
+  - G: Urgency
+  - H: Model
+  - I: Booth ID
+  - J: Color
+  - K: Part/Module
+  - L: Quantity
+  - M: Part RP Code
+  - N: Part Description
+  - O: Clarifications
+  - P: Notes
+  - Q: Client
+  - R: Address
+  - S: Recipient
+  - T: Phone
+  - U: Email
+  - W: Ship Method
+  - X: Status
+  - Y: Tracking
+  - AD: Workshop note (Бележка Цех)
+  - AE: Order sent (Изпратена Поръчка) — empty = not sent; date or any value = sent
+  - Internal Production U: Order sent (Изпратена Поръчка) for IP rows — same rule

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    :root {
+      --mv-font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mv-bg: #FAF9F7;
+      --mv-surface: #ffffff;
+      --mv-secondary: #ECE8E1;
+      --mv-ink: #212121;
+      --mv-muted: #727272;
+      --mv-border: #F2F0EB;
+      --mv-border-strong: #D7D3CD;
+      --mv-accent: #0C8F61;
+      --mv-accent-hover: #0a7a53;
+      --mv-accent-soft: rgba(12, 143, 97, 0.12);
+      --mv-pastel-blue: #E1E9EC;
+      --mv-pastel-pink: #EEDCDC;
+      --mv-success: #0C8F61;
+      --mv-radius: 12px;
+      --mv-radius-sm: 8px;
+      --mv-shadow: 0 4px 24px rgba(33, 33, 33, 0.06);
+      --mv-shadow-lg: 0 20px 56px rgba(33, 33, 33, 0.1);
+      --mv-transition: 0.15s ease;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--mv-font);
+      background: var(--mv-bg);
+      color: var(--mv-ink);
+      padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: clip;
+    }
+
+    .ip-shell {
+      background: var(--mv-surface);
+      padding: 26px;
+      border-radius: var(--mv-radius);
+      box-shadow: var(--mv-shadow);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      border: 1px solid var(--mv-border);
+    }
+
+    .ip-shell::before {
+      content: "";
+      display: block;
+      height: 4px;
+      margin: -26px -26px 22px;
+      border-radius: var(--mv-radius) var(--mv-radius) 0 0;
+      background: var(--mv-accent);
+    }
+
+    .ip-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .ip-title { font-weight: 800; letter-spacing: -0.02em; font-size: 1.2rem; }
+    .ip-subtitle { color: var(--mv-muted); font-size: 0.85rem; margin-top: 2px; }
+
+    .form-label { font-weight: 600; color: var(--mv-ink); font-size: 0.875rem; margin-bottom: 0.4rem; }
+
+    .form-control, .form-select {
+      border-radius: var(--mv-radius-sm);
+      border-color: var(--mv-border-strong);
+      transition: border-color var(--mv-transition), box-shadow var(--mv-transition);
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--mv-accent);
+      box-shadow: 0 0 0 4px var(--mv-accent-soft);
+    }
+
+    .panel-row {
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius-sm);
+      padding: 14px;
+      margin-bottom: 12px;
+      background: var(--mv-bg);
+      box-shadow: 0 2px 10px rgba(33, 33, 33, 0.04);
+    }
+
+    .panel-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .panel-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--mv-accent-soft);
+      color: var(--mv-accent);
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+    }
+
+    .hidden-field { display: none !important; }
+
+    #overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(250, 249, 247, 0.92);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      border-radius: var(--mv-radius);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay .spinner-border { width: 2.5rem; height: 2.5rem; border-width: 0.2rem; color: var(--mv-accent); }
+    #overlayMessage { color: var(--mv-ink); font-weight: 700; font-size: 0.95rem; margin-top: 12px; }
+
+    .ip-success {
+      text-align: center;
+      padding: 18px 6px 4px;
+    }
+    .ip-success-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--mv-accent);
+      color: var(--mv-bg);
+      font-size: 32px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(12, 143, 97, 0.28);
+    }
+
+    .btn-back {
+      background: var(--mv-surface);
+      border: 1px solid var(--mv-border-strong);
+      color: var(--mv-muted);
+      border-radius: var(--mv-radius-sm);
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .btn-back:hover { color: var(--mv-ink); border-color: var(--mv-accent); }
+
+    .urgency-group .btn { font-weight: 600; }
+
+    .btn-primary {
+      background-color: var(--mv-accent);
+      border-color: var(--mv-accent);
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background-color: var(--mv-accent-hover);
+      border-color: var(--mv-accent-hover);
+    }
+    .btn-outline-primary {
+      color: var(--mv-accent);
+      border-color: var(--mv-accent);
+    }
+    .btn-outline-primary:hover,
+    .btn-check:checked + .btn-outline-primary {
+      background: var(--mv-accent-soft);
+      color: var(--mv-accent-hover);
+      border-color: var(--mv-accent-hover);
+    }
+    .btn-success {
+      background-color: var(--mv-accent);
+      border-color: var(--mv-accent);
+      font-weight: 600;
+    }
+    .btn-success:hover {
+      background-color: var(--mv-accent-hover);
+      border-color: var(--mv-accent-hover);
+    }
+
+    .btn-outline-danger {
+      color: #b42318;
+      border-color: var(--mv-pastel-pink, #EEDCDC);
+    }
+
+    .btn-outline-danger:hover,
+    .btn-check:checked + .btn-outline-danger {
+      background: var(--mv-pastel-pink, #EEDCDC);
+      border-color: #b42318;
+      color: #b42318;
+    }
+
+    .text-muted { color: var(--mv-muted) !important; }
+  </style>
+</head>
+<body>
+  <div class="ip-shell">
+    <div id="overlay">
+      <div class="spinner-border" role="status"></div>
+      <div id="overlayMessage">Зареждане...</div>
+    </div>
+
+    <div id="formScreen">
+      <div class="ip-header">
+        <div>
+          <div class="ip-title">Нов IP запис</div>
+          <div class="ip-subtitle">Производство Аксаково — добавяне към Internal Production</div>
+        </div>
+        <button type="button" class="btn-back" onclick="goToDashboard()">&larr; Към таблото</button>
+      </div>
+
+      <form id="ipForm" autocomplete="off" onsubmit="event.preventDefault(); submitIpForm();">
+        <div class="mb-3">
+          <label class="form-label">Спешност</label>
+          <div class="btn-group w-100 urgency-group">
+            <input type="radio" class="btn-check" name="ipUrgency" id="ipUrgStandard" value="Standard" checked>
+            <label class="btn btn-outline-primary" for="ipUrgStandard">Стандартна</label>
+            <input type="radio" class="btn-check" name="ipUrgency" id="ipUrgUrgent" value="Urgent">
+            <label class="btn btn-outline-danger" for="ipUrgUrgent">Спешна</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Причина</label>
+          <select id="ipReason" class="form-select" onchange="onReasonChange()">
+            <option value="">Изберете...</option>
+            <option value="Stock Replacement">Stock Replacement</option>
+            <option value="Panel with Foil">Panel with Foil</option>
+            <option value="Reversed Hinges">Reversed Hinges</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div id="reasonOtherWrap" class="mb-3 hidden-field">
+          <label class="form-label">Описание на причината</label>
+          <input type="text" id="ipReasonOther" class="form-control" placeholder="Въведете причина...">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Модел на кабина</label>
+          <select id="ipModel" class="form-select" onchange="onModelChange()">
+            <option value="">Изберете...</option>
+            <option>Soho</option>
+            <option>Workstation</option>
+            <option>Camden 2</option>
+            <option>Camden 4</option>
+            <option>Haven One</option>
+            <option>Haven Focus</option>
+            <option>Haven Two</option>
+            <option>Haven Four</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Партида</label>
+          <input type="text" id="ipBatch" class="form-control" placeholder="напр. AB123">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Цвят</label>
+          <select id="ipColor" class="form-select" onchange="onColorChange()">
+            <option value="">Изберете...</option>
+            <option>White Stock</option>
+            <option>Black Stock</option>
+            <option>Natural Oak</option>
+            <option>Stone Green</option>
+            <option>Antique Rose</option>
+            <option>Sandy Yellow</option>
+            <option>Indigo Blue</option>
+            <option>Custom RAL</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div id="customColorContainer" class="mb-3 hidden-field">
+          <label id="customColorLabel" class="form-label">Въведете RAL / Цвят</label>
+          <input type="text" id="customColor" class="form-control" autocomplete="off">
+          <div id="customColorHelp" class="text-muted small hidden-field" style="margin-top:4px;">Записва се като RAL, последвано от кода (напр. RAL 9010).</div>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Панел(и)</label>
+          <div id="panelsContainer"></div>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPanelRow()">+ Добави още един панел</button>
+          <div class="text-muted small mt-2">Всеки добавен панел създава отделен IP запис.</div>
+        </div>
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-success py-3 fw-bold">Запиши IP запис(и)</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="successScreen" class="ip-success" style="display:none;">
+      <div class="ip-success-icon" aria-hidden="true">&#10003;</div>
+      <h4 class="mb-2">Успешно записано</h4>
+      <p class="text-muted mb-3">IP номер(а): <strong id="successIpList" class="text-dark">-</strong></p>
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <button type="button" class="btn btn-primary px-4" onclick="startAnotherIpEntry()">Нов запис</button>
+        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToDashboard()">Към таблото</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  var userEmail = "<?= userEmail ?>";
+  var scriptUrl = "<?= scriptUrl ?>";
+
+  var PANEL_OPTIONS_FALLBACK_ = [
+    "Door (D)", "Floor (F)", "Ceiling (C)", "Shelf / Table (S)", "Right (R)", "Left (L)",
+    "Back (B)", "Back Left (X)", "Back Right (Y)", "Front Left (E)", "Front Right (H)",
+    "Pillar / Console (P)", "Floor Left (A)", "Floor Right (B)", "Ceiling Left (G)",
+    "Ceiling Right (T)", "Front Pillar (W)", "Back Pillar (Z)",
+    "Other (Specify in Notes)"
+  ];
+  var PANEL_OPTIONS_BY_MODEL_ = {};
+  var PANEL_OPTIONS_ALL_ = PANEL_OPTIONS_FALLBACK_.slice();
+  var CUSTOM_RAL_PREFIX_ = "RAL ";
+  var panelCounter = 0;
+
+  /** Keep ?view=ipLogger on the deployment URL so refresh hits doGet with the same view. */
+  (function preserveIpLoggerViewOnRefresh_() {
+    var targetWin = window;
+    try {
+      if (window.top && window.top !== window) {
+        var topHref = String(window.top.location.href || "");
+        if (
+          topHref.indexOf("script.google.com") !== -1 ||
+          topHref.indexOf("/exec") !== -1 ||
+          topHref.indexOf("/dev") !== -1
+        ) {
+          targetWin = window.top;
+        }
+      }
+    } catch (eTop) {
+      targetWin = window;
+    }
+    try {
+      var href = String(targetWin.location.href || "");
+      if (!href || href.toLowerCase().indexOf("view=iplogger") !== -1) return;
+      if (href.indexOf("/exec") === -1 && href.indexOf("/dev") === -1) return;
+      var join = href.indexOf("?") >= 0 ? "&" : "?";
+      targetWin.history.replaceState(targetWin.history.state || {}, document.title, href + join + "view=ipLogger");
+    } catch (e) {}
+  })();
+
+  window.onload = function() {
+    setOverlayMessage_("Зареждане...");
+    showOverlay_(true);
+    google.script.run.primeUserAuthorizations();
+    initCustomColorInput_();
+    fetchPanelOptionsByModel_(function() {
+      addPanelRow();
+      showOverlay_(false);
+    });
+  };
+
+  function showOverlay_(show) {
+    document.getElementById("overlay").style.display = show ? "flex" : "none";
+  }
+  function setOverlayMessage_(text) {
+    document.getElementById("overlayMessage").textContent = String(text || "");
+  }
+
+  function fetchPanelOptionsByModel_(done) {
+    google.script.run
+      .withSuccessHandler(function(payload) {
+        var modelOptions = payload && payload.modelOptions ? payload.modelOptions : {};
+        PANEL_OPTIONS_BY_MODEL_ = modelOptions;
+        var allOptions = payload && Array.isArray(payload.allOptions) ? payload.allOptions.slice() : [];
+        PANEL_OPTIONS_ALL_ = allOptions.length ? allOptions : PANEL_OPTIONS_FALLBACK_.slice();
+        refreshPanelOptionsForAllRows_();
+        if (typeof done === "function") done();
+      })
+      .withFailureHandler(function() {
+        PANEL_OPTIONS_BY_MODEL_ = {};
+        PANEL_OPTIONS_ALL_ = PANEL_OPTIONS_FALLBACK_.slice();
+        refreshPanelOptionsForAllRows_();
+        if (typeof done === "function") done();
+      })
+      .getPanelOptionsByBoothModel();
+  }
+
+  function normalizeModelKey_(value) {
+    var flat = String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (flat === "workstation" || flat === "workstaiton" || flat === "worksation") return "workstation";
+    return flat;
+  }
+
+  function getPanelOptionsForCurrentModel_() {
+    var modelValue = document.getElementById("ipModel") ? document.getElementById("ipModel").value : "";
+    var modelKey = normalizeModelKey_(modelValue);
+    if (modelKey && PANEL_OPTIONS_BY_MODEL_[modelKey] && PANEL_OPTIONS_BY_MODEL_[modelKey].length) {
+      return PANEL_OPTIONS_BY_MODEL_[modelKey].slice();
+    }
+    return PANEL_OPTIONS_ALL_.slice();
+  }
+
+  function buildPanelOptions_() {
+    var options = getPanelOptionsForCurrentModel_();
+    var html = '<option value="">-- Изберете --</option>';
+    options.forEach(function(option) {
+      if (option === "Other (Specify in Notes)") return;
+      html += '<option value="' + escapeHtml_(option) + '">' + escapeHtml_(option) + '</option>';
+    });
+    html += '<option value="Other (Specify in Notes)">Other (Specify in Notes)</option>';
+    return html;
+  }
+
+  function refreshPanelOptionsForAllRows_() {
+    var selects = document.querySelectorAll(".panel-select");
+    Array.prototype.forEach.call(selects, function(sel) { refreshPanelSelectOptions_(sel); });
+  }
+
+  function refreshPanelSelectOptions_(panelSelect) {
+    if (!panelSelect) return;
+    var currentValue = String(panelSelect.value || "");
+    panelSelect.innerHTML = buildPanelOptions_();
+    var hasOption = Array.prototype.some.call(panelSelect.options, function(opt) {
+      return String(opt.value || "") === currentValue;
+    });
+    if (hasOption) {
+      panelSelect.value = currentValue;
+    } else if (currentValue) {
+      panelSelect.value = "Other (Specify in Notes)";
+      var row = panelSelect.closest(".panel-row");
+      if (row) {
+        row.querySelector(".panel-other-wrap").style.display = "block";
+        var otherInput = row.querySelector(".panel-other");
+        if (otherInput && !otherInput.value) otherInput.value = currentValue;
+      }
+    }
+  }
+
+  function onModelChange() {
+    refreshPanelOptionsForAllRows_();
+  }
+
+  function addPanelRow() {
+    panelCounter += 1;
+    var rowId = "panel-row-" + panelCounter;
+    var container = document.getElementById("panelsContainer");
+    var row = document.createElement("div");
+    row.className = "panel-row";
+    row.id = rowId;
+    row.innerHTML =
+      '<div class="panel-row-header">' +
+        '<span class="panel-badge">Панел ' + panelCounter + '</span>' +
+        (container.children.length
+          ? '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePanelRow(\'' + rowId + '\')">Премахни</button>'
+          : '') +
+      '</div>' +
+      '<div class="mb-2">' +
+        '<label class="form-label">Панел</label>' +
+        '<select class="form-select panel-select" onchange="onPanelSelectChange(this)">' +
+          buildPanelOptions_() +
+        '</select>' +
+      '</div>' +
+      '<div class="mb-2 panel-other-wrap hidden-field">' +
+        '<label class="form-label">Описание на панел (по избор)</label>' +
+        '<input type="text" class="form-control panel-other" placeholder="Опишете панела...">' +
+      '</div>' +
+      '<div>' +
+        '<label class="form-label">Забележки</label>' +
+        '<input type="text" class="form-control panel-clarification" placeholder="Забележки за този панел...">' +
+      '</div>';
+    container.appendChild(row);
+    refreshPanelSelectOptions_(row.querySelector(".panel-select"));
+  }
+
+  function removePanelRow(rowId) {
+    var container = document.getElementById("panelsContainer");
+    if (container.children.length <= 1) {
+      alert("Поне един панел е задължителен.");
+      return;
+    }
+    var row = document.getElementById(rowId);
+    if (row) row.remove();
+  }
+
+  function onPanelSelectChange(selectEl) {
+    var row = selectEl.closest(".panel-row");
+    if (!row) return;
+    var otherWrap = row.querySelector(".panel-other-wrap");
+    if (!otherWrap) return;
+    otherWrap.style.display = selectEl.value === "Other (Specify in Notes)" ? "block" : "none";
+  }
+
+  function onReasonChange() {
+    var value = document.getElementById("ipReason").value;
+    var wrap = document.getElementById("reasonOtherWrap");
+    var input = document.getElementById("ipReasonOther");
+    var showOther = value === "Other";
+    wrap.style.display = showOther ? "block" : "none";
+    if (!showOther && input) input.value = "";
+  }
+
+  function onColorChange() {
+    var value = document.getElementById("ipColor").value;
+    var isCustomRal = value === "Custom RAL";
+    var isOther = value === "Other";
+    var showCustom = isCustomRal || isOther;
+    document.getElementById("customColorContainer").style.display = showCustom ? "block" : "none";
+
+    var label = document.getElementById("customColorLabel");
+    var input = document.getElementById("customColor");
+    var help = document.getElementById("customColorHelp");
+    if (label) label.textContent = isCustomRal ? "Въведете RAL код" : "Въведете RAL / Цвят";
+    if (help) help.style.display = isCustomRal ? "block" : "none";
+    if (input) input.placeholder = isCustomRal ? "напр. 9010" : "";
+
+    if (isCustomRal) {
+      if (!String(input.value || "").trim() || !/^RAL\s/i.test(input.value)) {
+        input.value = CUSTOM_RAL_PREFIX_;
+      } else {
+        ensureCustomRalInputPrefix_();
+      }
+    } else if (!showCustom && input) {
+      input.value = "";
+    }
+  }
+
+  function isCustomRalColorSelected_() {
+    return document.getElementById("ipColor").value === "Custom RAL";
+  }
+
+  function formatCustomRalColor_(raw) {
+    var code = String(raw || "").replace(/^RAL[\s-]*/i, "").trim();
+    if (!code) return "";
+    return CUSTOM_RAL_PREFIX_ + code;
+  }
+
+  function ensureCustomRalInputPrefix_() {
+    var input = document.getElementById("customColor");
+    if (!input || !isCustomRalColorSelected_()) return;
+    var raw = String(input.value || "");
+    if (!/^RAL\s/i.test(raw)) {
+      input.value = CUSTOM_RAL_PREFIX_ + raw.replace(/^RAL[\s-]*/i, "").trim();
+      return;
+    }
+    var code = raw.replace(/^RAL[\s-]*/i, "");
+    input.value = CUSTOM_RAL_PREFIX_ + code;
+  }
+
+  function initCustomColorInput_() {
+    var input = document.getElementById("customColor");
+    if (!input) return;
+    input.addEventListener("input", function() {
+      if (!isCustomRalColorSelected_()) return;
+      ensureCustomRalInputPrefix_();
+    });
+    input.addEventListener("blur", function() {
+      if (!isCustomRalColorSelected_()) return;
+      var formatted = formatCustomRalColor_(input.value);
+      input.value = formatted || CUSTOM_RAL_PREFIX_;
+    });
+  }
+
+  function resolveColorForSubmission_() {
+    var selectedColor = document.getElementById("ipColor").value;
+    if (selectedColor === "Custom RAL") {
+      return formatCustomRalColor_(document.getElementById("customColor").value);
+    }
+    if (selectedColor === "Other") {
+      return String(document.getElementById("customColor").value || "").trim();
+    }
+    return selectedColor;
+  }
+
+  function collectPanelEntries_() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".panel-row"));
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var sel = row.querySelector(".panel-select");
+      var clarInput = row.querySelector(".panel-clarification");
+      var otherInput = row.querySelector(".panel-other");
+      var selectedValue = sel ? String(sel.value || "").trim() : "";
+      var panelName = selectedValue === "Other (Specify in Notes)"
+        ? String((otherInput && otherInput.value) || "").trim()
+        : selectedValue;
+      if (!panelName) {
+        return { ok: false, error: "Панел " + (i + 1) + ": изберете панел или въведете описание." };
+      }
+      out.push({
+        panel: panelName,
+        clarification: clarInput ? String(clarInput.value || "").trim() : ""
+      });
+    }
+    return { ok: true, panels: out };
+  }
+
+  function validateAndBuildPayload_() {
+    var urgencyEl = document.querySelector('input[name="ipUrgency"]:checked');
+    if (!urgencyEl) { alert("Спешност е задължителна."); return null; }
+    var urgency = urgencyEl.value;
+
+    var reason = document.getElementById("ipReason").value;
+    if (!reason) { alert("Причина е задължителна."); return null; }
+    var reasonOther = "";
+    if (reason === "Other") {
+      reasonOther = document.getElementById("ipReasonOther").value.trim();
+      if (!reasonOther) { alert("Моля въведете описание на причината."); return null; }
+    }
+
+    var model = document.getElementById("ipModel").value.trim();
+    if (!model) { alert("Модел на кабина е задължителен."); return null; }
+
+    var batch = document.getElementById("ipBatch").value.trim();
+    if (!batch) { alert("Партида е задължителна."); return null; }
+
+    var selectedColor = document.getElementById("ipColor").value;
+    if (!selectedColor) { alert("Цвят е задължителен."); return null; }
+    if (selectedColor === "Custom RAL") {
+      if (!formatCustomRalColor_(document.getElementById("customColor").value)) {
+        alert("Моля въведете RAL код след RAL (напр. 9010)."); return null;
+      }
+    } else if (selectedColor === "Other" && !document.getElementById("customColor").value.trim()) {
+      alert("Моля въведете описание на цвета."); return null;
+    }
+    var color = resolveColorForSubmission_();
+
+    var panelsResult = collectPanelEntries_();
+    if (!panelsResult.ok) { alert(panelsResult.error); return null; }
+
+    return {
+      urgency: urgency,
+      reason: reason,
+      reasonOther: reasonOther,
+      model: model,
+      batch: batch,
+      color: color,
+      panels: panelsResult.panels
+    };
+  }
+
+  function submitIpForm() {
+    var payload = validateAndBuildPayload_();
+    if (!payload) return;
+
+    setOverlayMessage_("Записване...");
+    showOverlay_(true);
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        showOverlay_(false);
+        var ipNums = (response && Array.isArray(response.ipNums)) ? response.ipNums : [];
+        showSuccessScreen_(ipNums);
+      })
+      .withFailureHandler(function(error) {
+        showOverlay_(false);
+        alert((error && error.message) ? error.message : "Възникна грешка при записването.");
+      })
+      .processNewIpEntry(payload);
+  }
+
+  function showSuccessScreen_(ipNums) {
+    document.getElementById("formScreen").style.display = "none";
+    document.getElementById("successScreen").style.display = "block";
+    var listEl = document.getElementById("successIpList");
+    listEl.textContent = ipNums.length ? ipNums.join(", ") : "-";
+    window.scrollTo(0, 0);
+  }
+
+  function resetForm_() {
+    document.getElementById("ipForm").reset();
+    document.getElementById("panelsContainer").innerHTML = "";
+    panelCounter = 0;
+    onColorChange();
+    onReasonChange();
+    addPanelRow();
+  }
+
+  function startAnotherIpEntry() {
+    document.getElementById("successScreen").style.display = "none";
+    document.getElementById("formScreen").style.display = "block";
+    resetForm_();
+  }
+
+  function goToDashboard() {
+    window.top.location.href = scriptUrl;
+  }
+
+  function escapeHtml_(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+</script>
+</body>
+</html>

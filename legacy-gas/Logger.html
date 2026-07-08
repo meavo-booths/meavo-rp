@@ -1,0 +1,3421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    :root {
+      --mv-font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mv-bg: #FAF9F7;
+      --mv-surface: #ffffff;
+      --mv-secondary: #ECE8E1;
+      --mv-ink: #212121;
+      --mv-muted: #727272;
+      --mv-border: #F2F0EB;
+      --mv-border-strong: #D7D3CD;
+      --mv-grey-50: #EAEAEA;
+      --mv-accent: #0C8F61;
+      --mv-accent-hover: #0a7a53;
+      --mv-accent-soft: rgba(12, 143, 97, 0.12);
+      --mv-accent-ring: rgba(12, 143, 97, 0.35);
+      --mv-pastel-pink: #EEDCDC;
+      --mv-pastel-yellow: #F4E3B1;
+      --mv-pastel-blue: #E1E9EC;
+      --mv-success: #0C8F61;
+      --mv-radius: 12px;
+      --mv-radius-sm: 8px;
+      --mv-shadow: 0 4px 24px rgba(33, 33, 33, 0.06);
+      --mv-shadow-lg: 0 20px 56px rgba(33, 33, 33, 0.1);
+      --mv-transition: 0.15s ease;
+    }
+
+    .meavo-logger {
+      font-family: var(--mv-font);
+      background: var(--mv-bg);
+      color: var(--mv-ink);
+      padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: clip;
+    }
+
+    .step-container {
+      --logger-pad-x: 26px;
+      --logger-pad-top: 26px;
+      --logger-pad-bottom: 30px;
+      background: var(--mv-surface);
+      padding: var(--logger-pad-top) var(--logger-pad-x) var(--logger-pad-bottom);
+      border-radius: var(--mv-radius);
+      box-shadow: var(--mv-shadow);
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      border: 1px solid var(--mv-border);
+    }
+
+    .step-container::before {
+      content: "";
+      display: block;
+      height: 4px;
+      margin: calc(-1 * var(--logger-pad-top)) calc(-1 * var(--logger-pad-x)) 22px calc(-1 * var(--logger-pad-x));
+      border-radius: var(--mv-radius) var(--mv-radius) 0 0;
+      background: var(--mv-accent);
+    }
+
+    .step { display: none; }
+    .step.active { display: block; animation: stepFadeIn 0.22s ease; }
+
+    @keyframes stepFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .step.active { animation: none; }
+    }
+
+    .hidden-field { display: none; }
+
+    .logger-section-head {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 1.35rem;
+    }
+
+    .logger-step-pill {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--mv-accent);
+      color: var(--mv-bg);
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(12, 143, 97, 0.28);
+    }
+
+    .logger-section-title {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--mv-ink);
+      font-size: 1.15rem;
+    }
+
+    .logger-section-desc {
+      font-size: 0.84rem;
+      color: var(--mv-muted);
+      margin: 4px 0 0;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .form-label { font-weight: 600; color: var(--mv-ink); font-size: 0.875rem; margin-bottom: 0.4rem; }
+
+    .meavo-logger .form-control,
+    .meavo-logger .form-select {
+      border-radius: var(--mv-radius-sm);
+      border-color: var(--mv-border-strong);
+      transition: border-color var(--mv-transition), box-shadow var(--mv-transition);
+    }
+
+    .meavo-logger .form-control:focus,
+    .meavo-logger .form-select:focus {
+      border-color: var(--mv-accent);
+      box-shadow: 0 0 0 4px var(--mv-accent-soft);
+    }
+
+    #overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(250, 249, 247, 0.92);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      border-radius: var(--mv-radius);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #overlay .spinner-border {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-width: 0.2rem;
+      color: var(--mv-accent);
+    }
+
+    #overlayMessage { color: var(--mv-ink); font-weight: 700; font-size: 0.95rem; }
+
+    .logger-progress-wrap { margin-bottom: 1.5rem; }
+
+    .logger-progress {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--mv-grey-50);
+      overflow: hidden;
+    }
+
+    .logger-progress-bar {
+      background: var(--mv-accent);
+      border-radius: 999px;
+    }
+
+    .logger-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--mv-muted);
+    }
+
+    .item-row {
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius-sm);
+      padding: 16px;
+      margin-bottom: 14px;
+      background: var(--mv-bg);
+      box-shadow: 0 2px 10px rgba(33, 33, 33, 0.04);
+      transition: border-color var(--mv-transition), box-shadow var(--mv-transition);
+      overflow: visible;
+    }
+
+    .item-row:hover {
+      border-color: var(--mv-accent);
+      box-shadow: 0 6px 20px rgba(33, 33, 33, 0.06);
+    }
+
+    .item-row-header { display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px; }
+
+    .item-row-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--mv-border);
+    }
+    .item-photo-wrap {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-right: auto;
+    }
+    .item-photo-wrap.is-visible {
+      display: flex;
+    }
+    .item-photo-status.is-ok {
+      color: var(--mv-accent);
+      font-weight: 600;
+    }
+    .rp-drive-banner {
+      display: none;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .rp-drive-banner.is-visible {
+      display: flex;
+    }
+    .rp-drive-banner.is-ready {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+    .rp-drive-banner.is-error {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+    .rp-drive-banner-text {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+    .rp-drive-banner-text strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+    .item-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--mv-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--mv-accent-soft);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .market-autocomplete, .address-autocomplete { position: relative; }
+
+    .market-suggestions, .address-suggestions {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--mv-surface);
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius-sm);
+      box-shadow: var(--mv-shadow-lg);
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 1050;
+      display: none;
+      padding: 6px 0;
+    }
+
+    .market-suggestion-item, .address-suggestion-item {
+      padding: 10px 14px;
+      font-size: 0.9375rem;
+      color: var(--mv-ink);
+      cursor: pointer;
+      transition: background-color var(--mv-transition);
+    }
+
+    .market-suggestion-item:hover,
+    .market-suggestion-item.active,
+    .address-suggestion-item:hover,
+    .address-suggestion-item.active {
+      background: var(--mv-accent-soft);
+      color: var(--mv-accent-hover);
+    }
+
+    .market-no-results, .address-no-results {
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      color: var(--mv-muted);
+    }
+
+    .code-help-text { font-size: 0.8rem; margin-top: 6px; color: var(--mv-muted); }
+    .code-help-text.error { color: #dc2626; }
+
+    .reason-for-rp-label-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 12px;
+      margin-bottom: 0.4rem;
+    }
+    .reason-for-rp-label-row .form-label { margin-bottom: 0; }
+    .reason-for-rp-help {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--mv-muted);
+      line-height: 1.35;
+      flex: 1;
+      min-width: min(100%, 280px);
+    }
+    .item-rp-code.invalid-code { color: #dc2626; border-color: rgba(220, 38, 38, 0.45); }
+
+    .part-code-wrap {
+      position: relative;
+      overflow: visible;
+    }
+    .item-standard-partner-warning {
+      display: none;
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 2;
+      width: max-content;
+      max-width: none;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      text-align: right;
+      color: #ea580c;
+      background: none;
+      border: none;
+      padding: 0;
+      box-sizing: border-box;
+      transform: translateY(0);
+      pointer-events: none;
+    }
+    .item-standard-partner-warning.is-visible {
+      display: block;
+      transform: translateY(calc(-100% - 14px));
+    }
+
+    .type-toggle .btn {
+      min-width: 92px;
+      border-radius: var(--mv-radius-sm);
+      font-weight: 600;
+    }
+
+    .btn-catalogue {
+      border-radius: 999px;
+      font-weight: 600;
+      border-color: var(--mv-accent);
+      color: var(--mv-accent);
+      background: var(--mv-accent-soft);
+    }
+
+    .btn-catalogue:hover {
+      background: var(--mv-pastel-blue);
+      border-color: var(--mv-accent-hover);
+      color: var(--mv-accent-hover);
+    }
+
+    .meavo-logger .btn-primary {
+      font-weight: 600;
+      border-radius: var(--mv-radius-sm);
+      padding-top: 0.65rem;
+      padding-bottom: 0.65rem;
+      background: var(--mv-accent);
+      border: none;
+      box-shadow: 0 4px 14px rgba(12, 143, 97, 0.28);
+    }
+
+    .meavo-logger .btn-primary:hover {
+      background: var(--mv-accent-hover);
+      box-shadow: 0 6px 18px rgba(12, 143, 97, 0.35);
+    }
+
+    .meavo-logger .btn-success {
+      font-weight: 600;
+      border-radius: var(--mv-radius-sm);
+      background: var(--mv-accent);
+      border: none;
+      box-shadow: 0 4px 14px rgba(12, 143, 97, 0.28);
+    }
+
+    .meavo-logger .btn-success:hover {
+      background: var(--mv-accent-hover);
+    }
+
+    .meavo-logger .btn-outline-primary {
+      color: var(--mv-accent);
+      border-color: var(--mv-accent);
+    }
+
+    .meavo-logger .btn-outline-primary:hover,
+    .meavo-logger .btn-check:checked + .btn-outline-primary {
+      background: var(--mv-accent-soft);
+      color: var(--mv-accent-hover);
+      border-color: var(--mv-accent-hover);
+    }
+
+    .meavo-logger .btn-secondary {
+      font-weight: 600;
+      border-radius: var(--mv-radius-sm);
+    }
+
+    .logger-back-link {
+      font-weight: 600;
+      color: var(--mv-accent);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .logger-back-link:hover { color: var(--mv-accent-hover); text-decoration: underline; }
+
+    .logger-success-panel {
+      text-align: center;
+      padding: 2rem 1.25rem;
+      border-radius: var(--mv-radius);
+      border: 1px solid var(--mv-border-strong);
+      background: linear-gradient(165deg, var(--mv-pastel-blue) 0%, var(--mv-surface) 55%);
+      box-shadow: var(--mv-shadow);
+    }
+
+    .logger-success-panel h4 { font-weight: 600; letter-spacing: -0.02em; color: var(--mv-ink); }
+
+    .logger-success-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      background: var(--mv-accent);
+      color: var(--mv-bg);
+      font-size: 1.75rem;
+      line-height: 56px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(12, 143, 97, 0.28);
+    }
+
+    .catalogue-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(33, 33, 33, 0.5);
+      backdrop-filter: blur(6px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .catalogue-modal {
+      width: min(1000px, 100%);
+      max-height: 92vh;
+      background: var(--mv-surface);
+      border-radius: var(--mv-radius);
+      box-shadow: var(--mv-shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--mv-border);
+    }
+
+    .catalogue-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--mv-border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--mv-secondary);
+    }
+
+    .catalogue-brand { flex: 1 1 200px; min-width: 0; }
+
+    .catalogue-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--mv-ink);
+    }
+
+    .catalogue-subtitle {
+      font-size: 0.8rem;
+      color: var(--mv-muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .catalogue-search {
+      flex: 1 1 260px;
+      min-width: 200px;
+      border-radius: 999px;
+      padding-left: 2.5rem;
+      background-color: #fff;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 12px center;
+      background-size: 18px 18px;
+    }
+
+    .catalogue-close-btn {
+      border-radius: 999px;
+      font-weight: 600;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .catalogue-tabs {
+      padding: 12px 18px 0;
+      border-bottom: 1px solid var(--mv-border);
+      background: var(--mv-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .catalogue-tabs .btn {
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      padding: 0.4rem 0.95rem;
+    }
+
+    .catalogue-tabs .btn-primary {
+      background: var(--mv-accent);
+      border-color: var(--mv-accent);
+      box-shadow: 0 2px 10px rgba(12, 143, 97, 0.28);
+    }
+
+    .catalogue-tabs-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+    .catalogue-custom-entry { display: none; gap: 10px; align-items: center; padding-bottom: 10px; flex-wrap: wrap; }
+    .catalogue-custom-entry input { min-width: min(320px, 100%); border-radius: var(--mv-radius-sm); }
+
+    .catalogue-content {
+      padding: 16px 18px;
+      overflow: auto;
+      flex: 1;
+      background: var(--mv-bg);
+    }
+
+    .catalogue-subcategory {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--mv-muted);
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--mv-border-strong);
+    }
+
+    .catalogue-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 640px) {
+      .catalogue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .catalogue-item {
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius-sm);
+      padding: 12px;
+      background: var(--mv-surface);
+      cursor: pointer;
+      transition: border-color var(--mv-transition), box-shadow var(--mv-transition), transform var(--mv-transition);
+      display: grid;
+      grid-template-columns: minmax(0, 132px) 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .catalogue-item:hover {
+        border-color: var(--mv-accent);
+        box-shadow: 0 8px 28px rgba(33, 33, 33, 0.08);
+        transform: translateY(-2px);
+      }
+    }
+
+    .catalogue-item:focus-visible {
+      outline: 3px solid var(--mv-accent-ring);
+      outline-offset: 2px;
+    }
+
+    .catalogue-item-code {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--mv-accent);
+      margin-top: auto;
+      padding-top: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .catalogue-item-desc {
+      font-size: 0.94rem;
+      color: var(--mv-ink);
+      margin-bottom: 8px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .catalogue-item-meta {
+      font-size: 0.78rem;
+      color: var(--mv-muted);
+      margin-bottom: 3px;
+      font-weight: 500;
+    }
+
+    .catalogue-photo {
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius-sm);
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      min-height: 0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--mv-muted);
+      overflow: hidden;
+      align-self: start;
+    }
+
+    .catalogue-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+
+    .catalogue-photo-pending {
+      opacity: 0.92;
+      background: linear-gradient(90deg, var(--mv-grey-50) 0%, #fff 50%, var(--mv-grey-50) 100%);
+      background-size: 200% 100%;
+      animation: catalogue-photo-shimmer 1.1s ease-in-out infinite;
+    }
+
+    @keyframes catalogue-photo-shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .catalogue-photo-pending { animation: none; }
+    }
+
+    .catalogue-photo-missing {
+      padding: 8px;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .catalogue-item-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .catalogue-category-heading {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--mv-accent);
+      margin: 20px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    #adminBack { margin-bottom: 1rem !important; }
+
+    .logger-action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .logger-action-row .btn {
+      min-height: 48px;
+      font-weight: 700;
+    }
+
+    @media screen and (max-width: 576px) {
+      .step-container {
+        --logger-pad-x: 14px;
+        --logger-pad-top: 18px;
+        --logger-pad-bottom: 22px;
+        border-radius: 12px;
+      }
+
+      .logger-section-head {
+        gap: 10px;
+      }
+
+      .logger-step-pill {
+        width: 34px;
+        height: 34px;
+        font-size: 0.88rem;
+      }
+
+      .logger-section-title {
+        font-size: 1.05rem;
+      }
+
+      .logger-progress-labels {
+        font-size: 0.65rem;
+        letter-spacing: 0.04em;
+      }
+
+      .logger-action-row {
+        flex-direction: column;
+      }
+
+      .logger-action-row .btn {
+        width: 100%;
+      }
+
+      .meavo-logger .btn-group.type-toggle,
+      .meavo-logger .type-toggle {
+        width: 100%;
+      }
+
+      .meavo-logger .type-toggle .btn {
+        min-height: 48px;
+        flex: 1;
+      }
+
+      .item-row-footer .btn {
+        min-height: 44px;
+      }
+
+      .meavo-logger input.form-control,
+      .meavo-logger textarea.form-control,
+      .meavo-logger select.form-select {
+        font-size: 16px;
+      }
+
+      .catalogue-backdrop {
+        padding: 0;
+        align-items: stretch;
+      }
+
+      .catalogue-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: none;
+        height: min(100dvh, 100vh);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+
+      .catalogue-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-left: max(14px, env(safe-area-inset-left));
+        padding-right: max(14px, env(safe-area-inset-right));
+      }
+
+      .catalogue-brand {
+        order: 0;
+      }
+
+      .catalogue-search {
+        min-width: 0;
+        width: 100%;
+        order: 1;
+      }
+
+      .catalogue-close-btn {
+        order: 2;
+        align-self: flex-start;
+      }
+
+      .catalogue-tabs {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+      }
+
+      .catalogue-tabs-top {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding-bottom: 6px;
+        margin-bottom: -4px;
+      }
+
+      .catalogue-tabs-top .btn {
+        flex-shrink: 0;
+      }
+
+      .catalogue-content {
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+      }
+
+      .catalogue-item {
+        grid-template-columns: minmax(0, 100px) 1fr;
+        gap: 10px;
+      }
+
+      .catalogue-grid {
+        gap: 10px;
+      }
+
+      .logger-success-panel .d-flex {
+        flex-direction: column;
+      }
+
+      .logger-success-panel .btn {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .meavo-logger label.btn[for="urgStandard"],
+      .meavo-logger label.btn[for="urgUrgent"] {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .meavo-logger button.btn-outline-primary.mb-3 {
+        width: 100%;
+        min-height: 48px;
+      }
+    }
+
+    .meavo-logger .btn-outline-danger {
+      color: #b42318;
+      border-color: var(--mv-pastel-pink);
+    }
+
+    .meavo-logger .btn-outline-danger:hover,
+    .meavo-logger .btn-check:checked + .btn-outline-danger {
+      background: var(--mv-pastel-pink);
+      border-color: #b42318;
+      color: #b42318;
+    }
+
+    .meavo-logger .text-muted { color: var(--mv-muted) !important; }
+  </style>
+</head>
+<body class="meavo-logger">
+
+<div id="loggerEntryCard" class="step-container">
+  <div id="overlay">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div id="overlayMessage" class="fw-bold mt-3">Sending...</div>
+  </div>
+
+  <div id="adminBack" style="display: none;" class="text-end">
+    <button type="button" class="btn btn-link btn-sm logger-back-link p-0" onclick="goToManager()">&larr; Back to Manager Dashboard</button>
+  </div>
+
+  <div class="logger-progress-wrap">
+    <div class="progress logger-progress">
+      <div id="progressBar" class="progress-bar logger-progress-bar" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div class="logger-progress-labels">
+      <span>Info</span><span>Items</span><span>Shipping</span>
+    </div>
+  </div>
+
+  <form id="orderForm">
+    <div id="step1" class="step active">
+      <div class="logger-section-head">
+        <span class="logger-step-pill">1</span>
+        <div>
+          <h5 class="logger-section-title mb-0">General info</h5>
+          <p class="logger-section-desc">Market, urgency, booth model and colour</p>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Market</label>
+        <div class="market-autocomplete">
+          <input type="text" id="market" class="form-control" autocomplete="off" placeholder="Start typing market...">
+          <div id="marketSuggestions" class="market-suggestions" role="listbox"></div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Urgency</label>
+        <div class="btn-group w-100">
+          <input type="radio" class="btn-check" name="urgency" id="urgStandard" value="Standard" checked>
+          <label class="btn btn-outline-primary" for="urgStandard">Standard</label>
+          <input type="radio" class="btn-check" name="urgency" id="urgUrgent" value="Urgent">
+          <label class="btn btn-outline-danger" for="urgUrgent">Urgent</label>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Booth Model</label>
+        <select id="model" class="form-select" onchange="toggleModelDependentFields()">
+          <option value="">Select...</option>
+          <option>Soho</option>
+          <option>Workstation</option>
+          <option>Camden 2</option>
+          <option>Camden 4</option>
+          <option>Haven One</option>
+          <option>Haven Focus</option>
+          <option>Haven Two</option>
+          <option>Haven Four</option>
+          <option>STOCK</option>
+        </select>
+      </div>
+      <div id="boothIdWrap" class="mb-3">
+        <label class="form-label">Booth ID</label>
+        <input type="text" id="boothId" class="form-control">
+      </div>
+      <div id="colorWrap" class="mb-3">
+        <label class="form-label">Color / RAL Code</label>
+        <select id="color" class="form-select" onchange="toggleColorField()">
+          <option value="" selected>Select...</option>
+          <option>White Stock</option>
+          <option>Black Stock</option>
+          <option>Natural Oak</option>
+          <option>Stone Green</option>
+          <option>Antique Rose</option>
+          <option>Sandy Yellow</option>
+          <option>Indigo Blue</option>
+          <option>Custom RAL</option>
+          <option>Other</option>
+        </select>
+        <div class="code-help-text">Select colour</div>
+      </div>
+      <div id="customColorContainer" class="mb-3 hidden-field">
+        <label id="customColorLabel" class="form-label">Enter RAL / Color</label>
+        <input type="text" id="customColor" class="form-control" autocomplete="off">
+        <div id="customColorHelp" class="code-help-text hidden-field">Saved as RAL followed by your code (e.g. RAL 9010).</div>
+      </div>
+      <button type="button" class="btn btn-primary w-100 py-3" onclick="showStep(2)">Next</button>
+    </div>
+
+    <div id="step2" class="step">
+      <div class="logger-section-head">
+        <span class="logger-step-pill">2</span>
+        <div>
+          <h5 class="logger-section-title mb-0">Item details</h5>
+          <p class="logger-section-desc">Add parts and/or panels. Multiple parts are combined into one RP. Each panel is logged as its own RP. If you mix parts and panels, each item becomes its own RP.</p>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Issue Type</label>
+        <select id="issueType" class="form-select">
+          <option value="">Select...</option>
+          <option value="Factory Mistake">Factory Mistake</option>
+          <option value="Faulty Unit">Faulty Unit</option>
+          <option value="Missing Part">Missing Part</option>
+          <option value="Transport">Transport</option>
+          <option value="Assembly">Assembly</option>
+          <option value="Warranty">Warranty</option>
+          <option value="Usage">Usage</option>
+          <option value="Other">Other</option>
+          <option value="STOCK">STOCK</option>
+        </select>
+      </div>
+      <div id="rpPhotosDriveBanner" class="rp-drive-banner" role="status" aria-live="polite">
+        <div class="rp-drive-banner-text">
+          <strong id="rpPhotosDriveBannerTitle">Google Drive for panel photos</strong>
+          <span id="rpPhotosDriveStatusText">Checking Drive access...</span>
+        </div>
+        <button type="button" id="rpPhotosDriveConnectBtn" class="btn btn-outline-primary btn-sm" onclick="connectRpPhotosDrive_(true)">
+          Connect Google Drive
+        </button>
+      </div>
+      <div id="itemsContainer"></div>
+
+      <button type="button" class="btn btn-outline-primary btn-sm mb-3" onclick="addItemRow()">+ Add Another Item</button>
+
+      <div class="mb-4">
+        <div class="reason-for-rp-label-row">
+          <label class="form-label" for="notes">Reason for RP</label>
+          <span id="reasonForRpHelp" class="reason-for-rp-help hidden-field" role="note">
+            Please state the reason for the RP in detail, as this will be used for accounting purposes
+          </span>
+        </div>
+        <textarea id="notes" class="form-control" rows="2" aria-describedby="reasonForRpHelp"></textarea>
+      </div>
+
+      <div class="d-flex gap-2 logger-action-row">
+        <button type="button" class="btn btn-secondary w-100" onclick="showStep(1)">Back</button>
+        <button type="button" class="btn btn-primary w-100" onclick="showStep(3)">Next</button>
+      </div>
+    </div>
+
+    <div id="step3" class="step">
+      <div class="logger-section-head">
+        <span class="logger-step-pill">3</span>
+        <div>
+          <h5 class="logger-section-title mb-0">Shipping</h5>
+          <p class="logger-section-desc">Where to send the replacement</p>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Client</label>
+        <input type="text" id="client" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Address</label>
+        <div class="address-autocomplete">
+          <textarea id="address" class="form-control" rows="2" autocomplete="off" placeholder="Start typing address..."></textarea>
+          <div id="addressSuggestions" class="address-suggestions" role="listbox"></div>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Recipient</label>
+        <input type="text" id="recipient" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <input type="tel" id="phone" class="form-control">
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-control">
+      </div>
+      <div class="d-flex gap-2 logger-action-row">
+        <button type="button" class="btn btn-secondary w-100" onclick="showStep(2)">Back</button>
+        <button type="button" id="submitOrderBtn" class="btn btn-success w-100 fw-bold" onclick="submitForm()">Submit Order</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div id="successScreen" class="step-container" style="display: none; max-width: 620px; margin: 14px auto 0;">
+  <div class="logger-success-panel">
+    <div class="logger-success-icon" aria-hidden="true">&#10003;</div>
+    <h4 id="successTitle" class="mb-2">Successfully logged</h4>
+    <p id="successDetail" class="text-muted mb-4" style="font-size: 0.95rem;">RP number(s): <strong id="successRpCode" class="text-dark">-</strong></p>
+    <div class="d-flex flex-wrap gap-2 justify-content-center">
+      <button type="button" id="successStartAnotherBtn" class="btn btn-primary px-4" onclick="startAnotherEntry()">Start another entry</button>
+      <button type="button" id="successDashboardBtn" class="btn btn-outline-secondary px-4" onclick="goToManager()">Go to dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div id="catalogueBackdrop" class="catalogue-backdrop" onclick="closeCatalogueModal(event)">
+  <div class="catalogue-modal" onclick="event.stopPropagation()">
+    <div class="catalogue-header">
+      <div class="catalogue-brand">
+        <div class="catalogue-title">Spare parts catalogue</div>
+        <div class="catalogue-subtitle">Search or browse by category, then tap an item to select</div>
+      </div>
+      <input id="catalogueSearch" type="text" class="form-control form-control-sm catalogue-search" placeholder="Search by description..." autocomplete="off">
+      <button type="button" class="btn btn-outline-secondary btn-sm catalogue-close-btn" onclick="closeCatalogueModal()">Close</button>
+    </div>
+    <div id="catalogueTabs" class="catalogue-tabs"></div>
+    <div id="catalogueContent" class="catalogue-content">
+      <div class="text-muted">Loading catalogue...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /** Keep ?view=logger on the deployment URL so refresh hits doGet with the same view (not the default dashboard). */
+  (function preserveLoggerViewOnRefresh_() {
+    var targetWin = window;
+    try {
+      if (window.top && window.top !== window) {
+        var topHref = String(window.top.location.href || "");
+        if (
+          topHref.indexOf("script.google.com") !== -1 ||
+          topHref.indexOf("/exec") !== -1 ||
+          topHref.indexOf("/dev") !== -1
+        ) {
+          targetWin = window.top;
+        }
+      }
+    } catch (eTop) {
+      targetWin = window;
+    }
+    try {
+      var href = String(targetWin.location.href || "");
+      if (!href || href.indexOf("view=logger") !== -1) return;
+      if (href.indexOf("/exec") === -1 && href.indexOf("/dev") === -1) return;
+      var join = href.indexOf("?") >= 0 ? "&" : "?";
+      targetWin.history.replaceState(targetWin.history.state || {}, document.title, href + join + "view=logger");
+    } catch (e) {}
+  })();
+
+  var PANEL_OPTIONS_FALLBACK_ = [
+    "Door (D)",
+    "Floor (F)",
+    "Ceiling (C)",
+    "Shelf / Table (S)",
+    "Right (R)",
+    "Left (L)",
+    "Back (B)",
+    "Back Left (X)",
+    "Back Right (Y)",
+    "Front Left (E)",
+    "Front Right (H)",
+    "Pillar / Console (P)",
+    "Floor Left (A)",
+    "Floor Right (B)",
+    "Ceiling Left (G)",
+    "Ceiling Right (T)",
+    "Front Pillar (W)",
+    "Back Pillar (Z)",
+    "Other (Specify in Notes)"
+  ];
+  var PANEL_OPTIONS_BY_MODEL_ = {};
+  var PANEL_OPTIONS_ALL_ = PANEL_OPTIONS_FALLBACK_.slice();
+  var PRIORITY_MARKETS = ["UK", "USA", "Germany", "France", "SWISS"];
+  var MARKET_OPTIONS = [];
+  var ADDRESS_PRESETS = [];
+  var ADDRESS_LOOKUP = {};
+  var ALL_COUNTRIES = [
+    "Afghanistan",
+    "Albania",
+    "Algeria",
+    "Andorra",
+    "Angola",
+    "Antigua and Barbuda",
+    "Argentina",
+    "Armenia",
+    "Australia",
+    "Austria",
+    "Azerbaijan",
+    "Bahamas",
+    "Bahrain",
+    "Bangladesh",
+    "Barbados",
+    "Belarus",
+    "Belgium",
+    "Belize",
+    "Benin",
+    "Bhutan",
+    "Bolivia",
+    "Bosnia and Herzegovina",
+    "Botswana",
+    "Brazil",
+    "Brunei",
+    "Bulgaria",
+    "Burkina Faso",
+    "Burundi",
+    "Cabo Verde",
+    "Cambodia",
+    "Cameroon",
+    "Canada",
+    "Central African Republic",
+    "Chad",
+    "Chile",
+    "China",
+    "Colombia",
+    "Comoros",
+    "Congo",
+    "Costa Rica",
+    "Cote d'Ivoire",
+    "Croatia",
+    "Cuba",
+    "Cyprus",
+    "Czechia",
+    "Democratic Republic of the Congo",
+    "Denmark",
+    "Djibouti",
+    "Dominica",
+    "Dominican Republic",
+    "Ecuador",
+    "Egypt",
+    "El Salvador",
+    "Equatorial Guinea",
+    "Eritrea",
+    "Estonia",
+    "Eswatini",
+    "Ethiopia",
+    "Fiji",
+    "Finland",
+    "Gabon",
+    "Gambia",
+    "Georgia",
+    "Ghana",
+    "Greece",
+    "Grenada",
+    "Guatemala",
+    "Guinea",
+    "Guinea-Bissau",
+    "Guyana",
+    "Haiti",
+    "Honduras",
+    "Hungary",
+    "Iceland",
+    "India",
+    "Indonesia",
+    "Iran",
+    "Iraq",
+    "Ireland",
+    "Israel",
+    "Italy",
+    "Jamaica",
+    "Japan",
+    "Jordan",
+    "Kazakhstan",
+    "Kenya",
+    "Kiribati",
+    "Kosovo",
+    "Kuwait",
+    "Kyrgyzstan",
+    "Laos",
+    "Latvia",
+    "Lebanon",
+    "Lesotho",
+    "Liberia",
+    "Libya",
+    "Liechtenstein",
+    "Lithuania",
+    "Luxembourg",
+    "Madagascar",
+    "Malawi",
+    "Malaysia",
+    "Maldives",
+    "Mali",
+    "Malta",
+    "Marshall Islands",
+    "Mauritania",
+    "Mauritius",
+    "Mexico",
+    "Micronesia",
+    "Moldova",
+    "Monaco",
+    "Mongolia",
+    "Montenegro",
+    "Morocco",
+    "Mozambique",
+    "Myanmar",
+    "Namibia",
+    "Nauru",
+    "Nepal",
+    "Netherlands",
+    "New Zealand",
+    "Nicaragua",
+    "Niger",
+    "Nigeria",
+    "North Korea",
+    "North Macedonia",
+    "Norway",
+    "Oman",
+    "Pakistan",
+    "Palau",
+    "Palestine",
+    "Panama",
+    "Papua New Guinea",
+    "Paraguay",
+    "Peru",
+    "Philippines",
+    "Poland",
+    "Portugal",
+    "Qatar",
+    "Romania",
+    "Russia",
+    "Rwanda",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Vincent and the Grenadines",
+    "Samoa",
+    "San Marino",
+    "Sao Tome and Principe",
+    "Saudi Arabia",
+    "Senegal",
+    "Serbia",
+    "Seychelles",
+    "Sierra Leone",
+    "Singapore",
+    "Slovakia",
+    "Slovenia",
+    "Solomon Islands",
+    "Somalia",
+    "South Africa",
+    "South Korea",
+    "South Sudan",
+    "Spain",
+    "Sri Lanka",
+    "Sudan",
+    "Suriname",
+    "Sweden",
+    "SWISS",
+    "Syria",
+    "Taiwan",
+    "Tajikistan",
+    "Tanzania",
+    "Thailand",
+    "Timor-Leste",
+    "Togo",
+    "Tonga",
+    "Trinidad and Tobago",
+    "Tunisia",
+    "Turkey",
+    "Turkmenistan",
+    "Tuvalu",
+    "Uganda",
+    "Ukraine",
+    "United Arab Emirates",
+    "Uruguay",
+    "USA",
+    "Uzbekistan",
+    "Vanuatu",
+    "Vatican City",
+    "Venezuela",
+    "Vietnam",
+    "Yemen",
+    "Zambia",
+    "Zimbabwe"
+  ];
+
+  var userEmail = "<?= userEmail ?>";
+  var scriptUrl = "<?= scriptUrl ?>";
+  var initialEditRpParam = "<?= editRp ?>";
+  var initialSimilarRpParam = "<?= similarRp ?>";
+  var editRpNum = "";
+  var similarRpNum = "";
+  var isEditMode = false;
+  var itemCounter = 0;
+  var selectedMarketSuggestionIndex = -1;
+  var selectedAddressSuggestionIndex = -1;
+  var partLookupClientCache = {};
+  var partLookupTimers = {};
+  var cataloguePayload = null;
+  var catalogueActiveCategory = "";
+  var catalogueTargetRowId = "";
+  /** In-memory data URLs for Drive part photos — survives tab/search changes while modal is open. */
+  var catalogueDriveImageMemory_ = {};
+  var CATALOGUE_1PX_GIF =
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+  /** Keep small: google.script.run struggles with multi‑MB base64 objects (silent failure). */
+  var CATALOGUE_DRIVE_BATCH_CHUNK = 3;
+  var catalogueDriveTransferBusy_ = false;
+  var catalogueDriveTransferQueue_ = [];
+  var catalogueItemClickDelegated_ = false;
+  var isSubmittingForm_ = false;
+  var rpPhotosDriveReady_ = null;
+  var rpPhotosDriveStatusMessage_ = "";
+  var rpPhotosDriveCheckBusy_ = false;
+
+  if (userEmail === "boyan@meavo.com" || userEmail === "todor@meavo.com") {
+    document.getElementById("adminBack").style.display = "block";
+  }
+
+  window.onload = function() {
+    setOverlayMessage_("Loading...");
+    document.getElementById("overlay").style.display = "flex";
+    google.script.run.primeUserAuthorizations();
+    initMarketAutocomplete();
+    initAddressAutocomplete();
+    initCustomColorInput_();
+    fetchAddressPresets_();
+    document.getElementById("issueType").addEventListener("change", onIssueTypeChange_);
+    document.getElementById("catalogueSearch").addEventListener("input", renderCatalogueContent_);
+    fetchPanelOptionsByModel_(function() {
+      addItemRow();
+      toggleModelDependentFields();
+      refreshRpPhotosDriveStatus_(false);
+      initEditOrSimilarModeIfNeeded_(function() {
+        setOverlayMessage_("Sending...");
+        document.getElementById("overlay").style.display = "none";
+      });
+    });
+  };
+
+  function setOverlayMessage_(text) {
+    var el = document.getElementById("overlayMessage");
+    if (!el) return;
+    el.textContent = String(text || "");
+  }
+
+  function fetchPanelOptionsByModel_(done) {
+    google.script.run
+      .withSuccessHandler(function(payload) {
+        var modelOptions = payload && payload.modelOptions ? payload.modelOptions : {};
+        PANEL_OPTIONS_BY_MODEL_ = modelOptions;
+        var allOptions = payload && Array.isArray(payload.allOptions) ? payload.allOptions.slice() : [];
+        PANEL_OPTIONS_ALL_ = allOptions.length ? allOptions : PANEL_OPTIONS_FALLBACK_.slice();
+        refreshPanelOptionsForAllRows_();
+        if (typeof done === "function") done();
+      })
+      .withFailureHandler(function() {
+        PANEL_OPTIONS_BY_MODEL_ = {};
+        PANEL_OPTIONS_ALL_ = PANEL_OPTIONS_FALLBACK_.slice();
+        refreshPanelOptionsForAllRows_();
+        if (typeof done === "function") done();
+      })
+      .getPanelOptionsByBoothModel();
+  }
+
+  function getPendingSimilarPayload_() {
+    try {
+      if (!window.sessionStorage) return null;
+      var raw = window.sessionStorage.getItem("loggerSimilarPayload");
+      if (!raw) return null;
+      window.sessionStorage.removeItem("loggerSimilarPayload");
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function initEditOrSimilarModeIfNeeded_(done) {
+    function finish_() {
+      if (typeof done === "function") done();
+    }
+    var params = new URLSearchParams(window.location.search || "");
+    var rp = String(initialEditRpParam || params.get("editRp") || "").trim();
+    var similarRp = String(initialSimilarRpParam || params.get("similarRp") || "").trim();
+
+    if (!rp && !similarRp) {
+      var pendingPayload = getPendingSimilarPayload_();
+      if (pendingPayload) {
+        applyEditPayload_(pendingPayload);
+      }
+      finish_();
+      return;
+    }
+
+    if (rp) {
+      editRpNum = rp;
+      isEditMode = true;
+      google.script.run
+        .withSuccessHandler(function(payload) {
+          applyEditPayload_(payload || {});
+          finish_();
+        })
+        .withFailureHandler(function(error) {
+          alert((error && error.message) ? error.message : "Unable to load RP data.");
+          finish_();
+          goToManager();
+        })
+        .getEditableRpData(editRpNum);
+      return;
+    }
+
+    similarRpNum = similarRp;
+    isEditMode = false;
+
+    var cachedSimilarPayload = getPendingSimilarPayload_();
+    if (cachedSimilarPayload) {
+      applyEditPayload_(cachedSimilarPayload);
+      finish_();
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(payload) {
+        applyEditPayload_(payload || {});
+        finish_();
+      })
+      .withFailureHandler(function(error) {
+        alert((error && error.message) ? error.message : "Unable to load RP data.");
+        finish_();
+        goToManager();
+      })
+      .getSimilarRpData(similarRpNum);
+  }
+
+  function applyEditPayload_(payload) {
+    document.getElementById("market").value = payload.market || "";
+    if (String(payload.urgency || "").toLowerCase() === "urgent") {
+      document.getElementById("urgUrgent").checked = true;
+    } else {
+      document.getElementById("urgStandard").checked = true;
+    }
+    document.getElementById("model").value = payload.model || "";
+    toggleModelDependentFields();
+    document.getElementById("boothId").value = payload.boothId || "";
+    applyColorForEdit_(payload.color || "");
+    applyIssueTypeForEdit_(payload.issueType || "");
+    document.getElementById("notes").value = payload.notes || "";
+    document.getElementById("client").value = payload.client || "";
+    document.getElementById("address").value = payload.address || "";
+    document.getElementById("recipient").value = payload.recipient || "";
+    document.getElementById("phone").value = payload.phone || "";
+    document.getElementById("email").value = payload.email || "";
+
+    document.getElementById("itemsContainer").innerHTML = "";
+    itemCounter = 0;
+    var items = Array.isArray(payload.items) && payload.items.length ? payload.items : [{ itemType: "Part", qty: "1" }];
+    items.forEach(function(item) {
+      addItemRow();
+      var row = document.getElementById("item-row-" + itemCounter);
+      applyItemEditToRow_(row, item || {});
+    });
+  }
+
+  function applyColorForEdit_(value) {
+    var colorSelect = document.getElementById("color");
+    var customColor = document.getElementById("customColor");
+    var desired = String(value || "").trim();
+    var hasMatch = Array.prototype.some.call(colorSelect.options, function(opt) {
+      return String(opt.value || "") === desired;
+    });
+    if (hasMatch) {
+      colorSelect.value = desired;
+      customColor.value = "";
+    } else if (/^RAL\s+\S/i.test(desired)) {
+      colorSelect.value = "Custom RAL";
+      customColor.value = formatCustomRalColor_(desired);
+    } else if (desired) {
+      colorSelect.value = "Other";
+      customColor.value = desired;
+    } else {
+      colorSelect.value = "";
+      customColor.value = "";
+    }
+    toggleColorField();
+  }
+
+  function applyIssueTypeForEdit_(value) {
+    var issueType = String(value || "").trim();
+    var issueSelect = document.getElementById("issueType");
+    var otherPrefix = "Other:";
+    if (issueType.indexOf(otherPrefix) === 0) {
+      issueSelect.value = "Other";
+      var legacyDetail = issueType.substring(otherPrefix.length).trim();
+      var notesEl = document.getElementById("notes");
+      if (legacyDetail && notesEl && !notesEl.value.trim()) {
+        notesEl.value = legacyDetail;
+      }
+    } else {
+      issueSelect.value = issueType;
+    }
+    onIssueTypeChange_();
+  }
+
+  function applyItemEditToRow_(row, item) {
+    if (!row) return;
+    var qty = String(item.qty || "1").trim();
+    row.querySelector(".item-qty").value = qty || "1";
+    var type = String(item.itemType || "Part");
+    var targetBtn = type === "Panel" ? row.querySelector(".item-type-panel-btn") : row.querySelector(".item-type-part-btn");
+    if (targetBtn) setItemTypeForRow(targetBtn, type === "Panel" ? "Panel" : "Part");
+
+    row.querySelector(".item-note").value = String(item.itemNotes || "");
+    if (type === "Panel") {
+      var desc = String(item.description || "").trim();
+      var panelSelect = row.querySelector(".item-panel");
+      var hasOption = Array.prototype.some.call(panelSelect.options, function(opt) { return String(opt.value || "") === desc; });
+      if (hasOption) {
+        panelSelect.value = desc;
+      } else {
+        panelSelect.value = "Other (Specify in Notes)";
+        row.querySelector(".item-panel-other").value = desc;
+        row.querySelector(".panel-other-wrap").style.display = "block";
+      }
+    } else {
+      var rpCode = String(item.rpCode || "").trim();
+      var codeInput = row.querySelector(".item-rp-code");
+      codeInput.value = rpCode;
+      row.dataset.partDescription = String(item.description || "");
+      var helpText = row.querySelector(".code-help-text");
+      helpText.textContent = row.dataset.partDescription ? ("Part: " + row.dataset.partDescription) : "";
+      if (/^\d{4}$/.test(rpCode)) {
+        handlePartCodeInput(codeInput);
+      } else {
+        setStandardPartnerDatasetForRow_(row, false);
+      }
+    }
+    if (item.existingPhotoUrl && type === "Panel") {
+      row.dataset.existingPhotoUrl = String(item.existingPhotoUrl);
+      row.dataset.keepExistingPhoto = "1";
+      delete row.dataset.photoBase64;
+    }
+    syncItemRowPhotoRequirement_(row);
+  }
+
+  function goToManager() {
+    window.top.location.href = scriptUrl;
+  }
+
+  var CUSTOM_RAL_PREFIX_ = "RAL ";
+
+  function isCustomRalColorSelected_() {
+    return document.getElementById("color").value === "Custom RAL";
+  }
+
+  function formatCustomRalColor_(raw) {
+    var code = String(raw || "").replace(/^RAL[\s-]*/i, "").trim();
+    if (!code) return "";
+    return CUSTOM_RAL_PREFIX_ + code;
+  }
+
+  function ensureCustomRalInputPrefix_() {
+    var input = document.getElementById("customColor");
+    if (!input || !isCustomRalColorSelected_()) return;
+    var raw = String(input.value || "");
+    if (!/^RAL\s/i.test(raw)) {
+      input.value = CUSTOM_RAL_PREFIX_ + raw.replace(/^RAL[\s-]*/i, "").trim();
+      return;
+    }
+    var code = raw.replace(/^RAL[\s-]*/i, "");
+    input.value = CUSTOM_RAL_PREFIX_ + code;
+  }
+
+  function initCustomColorInput_() {
+    var input = document.getElementById("customColor");
+    if (!input) return;
+    input.addEventListener("input", function() {
+      if (!isCustomRalColorSelected_()) return;
+      ensureCustomRalInputPrefix_();
+    });
+    input.addEventListener("blur", function() {
+      if (!isCustomRalColorSelected_()) return;
+      var formatted = formatCustomRalColor_(input.value);
+      input.value = formatted || CUSTOM_RAL_PREFIX_;
+    });
+  }
+
+  function toggleColorField() {
+    var selectedModel = String(document.getElementById("model").value || "").trim().toUpperCase();
+    if (selectedModel === "STOCK") {
+      document.getElementById("customColorContainer").style.display = "none";
+      return;
+    }
+    var value = document.getElementById("color").value;
+    var isCustomRal = value === "Custom RAL";
+    var isOther = value === "Other";
+    var showCustom = isCustomRal || isOther;
+    document.getElementById("customColorContainer").style.display = showCustom ? "block" : "none";
+
+    var label = document.getElementById("customColorLabel");
+    var input = document.getElementById("customColor");
+    var help = document.getElementById("customColorHelp");
+    if (label) label.textContent = isCustomRal ? "Enter RAL code" : "Enter RAL / Color";
+    if (help) help.style.display = isCustomRal ? "block" : "none";
+    if (input) input.placeholder = isCustomRal ? "e.g. 9010" : "";
+
+    if (isCustomRal) {
+      if (!String(input.value || "").trim() || !/^RAL\s/i.test(input.value)) {
+        input.value = CUSTOM_RAL_PREFIX_;
+      } else {
+        ensureCustomRalInputPrefix_();
+      }
+    } else if (!showCustom && input) {
+      input.value = "";
+    }
+  }
+
+  function toggleModelDependentFields() {
+    var selectedModel = String(document.getElementById("model").value || "").trim().toUpperCase();
+    var isStockModel = selectedModel === "STOCK";
+    var boothWrap = document.getElementById("boothIdWrap");
+    var colorWrap = document.getElementById("colorWrap");
+
+    boothWrap.style.display = isStockModel ? "none" : "block";
+    colorWrap.style.display = isStockModel ? "none" : "block";
+
+    if (isStockModel) {
+      document.getElementById("boothId").value = "";
+      document.getElementById("customColor").value = "";
+      document.getElementById("customColorContainer").style.display = "none";
+    } else {
+      toggleColorField();
+    }
+    refreshPanelOptionsForAllRows_();
+  }
+
+  function showStep(step) {
+    var currentStep = getCurrentStep_();
+    if (step > currentStep && !validateStep_(currentStep)) {
+      return;
+    }
+    document.querySelectorAll(".step").forEach(function(section) {
+      section.classList.remove("active");
+    });
+    document.getElementById("step" + step).classList.add("active");
+    var pct = step === 1 ? 33 : (step === 2 ? 66 : 100);
+    var bar = document.getElementById("progressBar");
+    bar.style.width = pct + "%";
+    bar.setAttribute("aria-valuenow", String(pct));
+    window.scrollTo(0, 0);
+  }
+
+  function getCurrentStep_() {
+    var active = document.querySelector(".step.active");
+    if (!active || !active.id) return 1;
+    return Number(active.id.replace("step", "")) || 1;
+  }
+
+  function validateStep_(step) {
+    if (step === 1) {
+      var marketValue = document.getElementById("market").value.trim();
+      if (!marketValue) return alertAndFail_("Market is required.");
+      if (!isValidMarket_(marketValue)) return alertAndFail_("Please select a valid country from the Market suggestions.");
+      if (!document.querySelector('input[name="urgency"]:checked')) return alertAndFail_("Urgency is required.");
+      var selectedModel = document.getElementById("model").value.trim();
+      if (!selectedModel) return alertAndFail_("Booth Model is required.");
+      var isStockModel = selectedModel.toUpperCase() === "STOCK";
+      if (!isStockModel && !document.getElementById("boothId").value.trim()) {
+        return alertAndFail_("Booth ID is required.");
+      }
+      if (!isStockModel) {
+        var selectedColor = document.getElementById("color").value;
+        if (!selectedColor) return alertAndFail_("Color / RAL Code is required.");
+        if (selectedColor === "Custom RAL") {
+          if (!formatCustomRalColor_(document.getElementById("customColor").value)) {
+            return alertAndFail_("Please enter a RAL code after RAL (e.g. 9010).");
+          }
+        } else if (selectedColor === "Other" && !document.getElementById("customColor").value.trim()) {
+          return alertAndFail_("Please enter a color description.");
+        }
+      }
+    }
+
+    if (step === 2) {
+      if (!buildIssueTypeValue_()) return false;
+      if (!validateItems_()) return false;
+      if (!validateReasonForRp_()) return false;
+    }
+
+    if (step === 3) {
+      if (!document.getElementById("client").value.trim()) return alertAndFail_("Client is required.");
+      if (!document.getElementById("address").value.trim()) return alertAndFail_("Address is required.");
+      if (!document.getElementById("recipient").value.trim()) return alertAndFail_("Recipient is required.");
+    }
+
+    return true;
+  }
+
+  function alertAndFail_(message) {
+    alert(message);
+    return false;
+  }
+
+  function isValidMarket_(value) {
+    var normalized = String(value || "").trim().toLowerCase();
+    if (!normalized) return false;
+    return MARKET_OPTIONS.some(function(country) {
+      return String(country).trim().toLowerCase() === normalized;
+    });
+  }
+
+  function initMarketAutocomplete() {
+    MARKET_OPTIONS = buildMarketOptions_();
+    var input = document.getElementById("market");
+    var suggestions = document.getElementById("marketSuggestions");
+
+    renderMarketSuggestions_("", false);
+
+    input.addEventListener("input", function() {
+      selectedMarketSuggestionIndex = -1;
+      renderMarketSuggestions_(input.value, true);
+    });
+
+    input.addEventListener("focus", function() {
+      renderMarketSuggestions_(input.value, true);
+    });
+
+    input.addEventListener("keydown", function(event) {
+      var visibleSuggestions = suggestions.querySelectorAll(".market-suggestion-item");
+      if (!visibleSuggestions.length) return;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        selectedMarketSuggestionIndex = (selectedMarketSuggestionIndex + 1) % visibleSuggestions.length;
+        highlightMarketSuggestion_(visibleSuggestions);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        selectedMarketSuggestionIndex = (selectedMarketSuggestionIndex - 1 + visibleSuggestions.length) % visibleSuggestions.length;
+        highlightMarketSuggestion_(visibleSuggestions);
+      } else if (event.key === "Enter" && selectedMarketSuggestionIndex >= 0) {
+        event.preventDefault();
+        selectMarketSuggestion_(visibleSuggestions[selectedMarketSuggestionIndex].dataset.value);
+      } else if (event.key === "Escape") {
+        closeMarketSuggestions_();
+      }
+    });
+
+    document.addEventListener("click", function(event) {
+      if (!event.target.closest(".market-autocomplete")) {
+        closeMarketSuggestions_();
+      }
+    });
+  }
+
+  function initAddressAutocomplete() {
+    var input = document.getElementById("address");
+    var suggestions = document.getElementById("addressSuggestions");
+
+    renderAddressSuggestions_("", false);
+
+    input.addEventListener("input", function() {
+      selectedAddressSuggestionIndex = -1;
+      renderAddressSuggestions_(input.value, true);
+    });
+
+    input.addEventListener("focus", function() {
+      renderAddressSuggestions_(input.value, true);
+    });
+
+    input.addEventListener("keydown", function(event) {
+      var visibleSuggestions = suggestions.querySelectorAll(".address-suggestion-item");
+      if (!visibleSuggestions.length) return;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        selectedAddressSuggestionIndex = (selectedAddressSuggestionIndex + 1) % visibleSuggestions.length;
+        highlightAddressSuggestion_(visibleSuggestions);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        selectedAddressSuggestionIndex = (selectedAddressSuggestionIndex - 1 + visibleSuggestions.length) % visibleSuggestions.length;
+        highlightAddressSuggestion_(visibleSuggestions);
+      } else if (event.key === "Enter" && selectedAddressSuggestionIndex >= 0) {
+        event.preventDefault();
+        selectAddressSuggestion_(visibleSuggestions[selectedAddressSuggestionIndex].dataset.value);
+      } else if (event.key === "Escape") {
+        closeAddressSuggestions_();
+      }
+    });
+
+    document.addEventListener("click", function(event) {
+      if (!event.target.closest(".address-autocomplete")) {
+        closeAddressSuggestions_();
+      }
+    });
+  }
+
+  function fetchAddressPresets_() {
+    google.script.run
+      .withSuccessHandler(function(entries) {
+        var safeEntries = Array.isArray(entries) ? entries : [];
+        ADDRESS_PRESETS = safeEntries.map(function(entry) {
+          return {
+            address: String(entry && entry.address || "").trim(),
+            recipient: String(entry && entry.recipient || "").trim(),
+            phone: String(entry && entry.phone || "").trim(),
+            email: String(entry && entry.email || "").trim()
+          };
+        }).filter(function(entry) {
+          return !!entry.address;
+        });
+        ADDRESS_LOOKUP = {};
+        ADDRESS_PRESETS.forEach(function(entry) {
+          ADDRESS_LOOKUP[entry.address.toLowerCase()] = entry;
+        });
+        renderAddressSuggestions_(document.getElementById("address").value, false);
+      })
+      .withFailureHandler(function() {
+        ADDRESS_PRESETS = [];
+        ADDRESS_LOOKUP = {};
+      })
+      .getAddressBookEntries();
+  }
+
+  function renderAddressSuggestions_(query, shouldOpen) {
+    var suggestions = document.getElementById("addressSuggestions");
+    var safeQuery = String(query || "").trim().toLowerCase();
+
+    var filtered = ADDRESS_PRESETS.filter(function(entry) {
+      return !safeQuery || entry.address.toLowerCase().indexOf(safeQuery) !== -1;
+    }).slice(0, 20);
+
+    if (!filtered.length) {
+      suggestions.innerHTML = '<div class="address-no-results">No matching addresses found</div>';
+      suggestions.style.display = shouldOpen ? "block" : "none";
+      return;
+    }
+
+    suggestions.innerHTML = filtered.map(function(entry) {
+      return '<div class="address-suggestion-item" role="option" data-value="' + escapeHtml_(entry.address) + '">' + escapeHtml_(entry.address) + '</div>';
+    }).join("");
+
+    Array.prototype.forEach.call(suggestions.querySelectorAll(".address-suggestion-item"), function(item) {
+      item.addEventListener("mousedown", function(event) {
+        event.preventDefault();
+        selectAddressSuggestion_(item.dataset.value);
+      });
+    });
+
+    suggestions.style.display = shouldOpen ? "block" : "none";
+  }
+
+  function highlightAddressSuggestion_(items) {
+    Array.prototype.forEach.call(items, function(item, index) {
+      if (index === selectedAddressSuggestionIndex) {
+        item.classList.add("active");
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+
+  function selectAddressSuggestion_(address) {
+    document.getElementById("address").value = address;
+    populateAddressContacts_(address);
+    closeAddressSuggestions_();
+  }
+
+  function populateAddressContacts_(address) {
+    var key = String(address || "").trim().toLowerCase();
+    if (!key) return;
+    var entry = ADDRESS_LOOKUP[key];
+    if (!entry) return;
+    if (entry.recipient) document.getElementById("recipient").value = entry.recipient;
+    if (entry.phone) document.getElementById("phone").value = entry.phone;
+    if (entry.email) document.getElementById("email").value = entry.email;
+  }
+
+  function closeAddressSuggestions_() {
+    selectedAddressSuggestionIndex = -1;
+    document.getElementById("addressSuggestions").style.display = "none";
+  }
+
+  function buildMarketOptions_() {
+    var sourcePriority = Array.isArray(PRIORITY_MARKETS) ? PRIORITY_MARKETS : [];
+    var sourceCountries = Array.isArray(ALL_COUNTRIES) ? ALL_COUNTRIES : [];
+
+    var normalizedPriority = sourcePriority.map(function(country) {
+      return String(country).trim();
+    });
+    var priorityLookup = {};
+    normalizedPriority.forEach(function(country) {
+      priorityLookup[country.toLowerCase()] = true;
+    });
+
+    var uniqueCountries = {};
+    sourceCountries.forEach(function(country) {
+      var trimmed = String(country || "").trim();
+      if (!trimmed) return;
+      uniqueCountries[trimmed.toLowerCase()] = trimmed;
+    });
+
+    normalizedPriority.forEach(function(country) {
+      uniqueCountries[country.toLowerCase()] = country;
+    });
+
+    var rest = Object.keys(uniqueCountries).map(function(key) {
+      return uniqueCountries[key];
+    }).filter(function(country) {
+      return !priorityLookup[country.toLowerCase()];
+    }).sort(function(a, b) {
+      return a.localeCompare(b);
+    });
+
+    return normalizedPriority.concat(rest);
+  }
+
+  function renderMarketSuggestions_(query, shouldOpen) {
+    var suggestions = document.getElementById("marketSuggestions");
+    var safeQuery = String(query || "").trim().toLowerCase();
+
+    if (safeQuery === "") {
+      var topMarkets = PRIORITY_MARKETS.filter(function(market) {
+        return MARKET_OPTIONS.indexOf(market) !== -1;
+      });
+
+      suggestions.innerHTML = topMarkets.map(function(market) {
+        return '<div class="market-suggestion-item" role="option" data-value="' + escapeHtml_(market) + '">' + escapeHtml_(market) + '</div>';
+      }).join("") + '<div class="market-no-results">Start typing for suggestions</div>';
+
+      Array.prototype.forEach.call(suggestions.querySelectorAll(".market-suggestion-item"), function(item) {
+        item.addEventListener("mousedown", function(event) {
+          event.preventDefault();
+          selectMarketSuggestion_(item.dataset.value);
+        });
+      });
+
+      suggestions.style.display = shouldOpen ? "block" : "none";
+      return;
+    }
+
+    var filtered = MARKET_OPTIONS.filter(function(market) {
+      return market.toLowerCase().indexOf(safeQuery) !== -1;
+    }).slice(0, 12);
+
+    if (!filtered.length) {
+      suggestions.innerHTML = '<div class="market-no-results">No matching markets found</div>';
+      suggestions.style.display = shouldOpen ? "block" : "none";
+      return;
+    }
+
+    suggestions.innerHTML = filtered.map(function(market) {
+      return '<div class="market-suggestion-item" role="option" data-value="' + escapeHtml_(market) + '">' + escapeHtml_(market) + '</div>';
+    }).join("");
+
+    Array.prototype.forEach.call(suggestions.querySelectorAll(".market-suggestion-item"), function(item) {
+      item.addEventListener("mousedown", function(event) {
+        event.preventDefault();
+        selectMarketSuggestion_(item.dataset.value);
+      });
+    });
+
+    suggestions.style.display = shouldOpen ? "block" : "none";
+  }
+
+  function highlightMarketSuggestion_(items) {
+    Array.prototype.forEach.call(items, function(item, index) {
+      if (index === selectedMarketSuggestionIndex) {
+        item.classList.add("active");
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+
+  function selectMarketSuggestion_(market) {
+    document.getElementById("market").value = market;
+    closeMarketSuggestions_();
+  }
+
+  function closeMarketSuggestions_() {
+    selectedMarketSuggestionIndex = -1;
+    document.getElementById("marketSuggestions").style.display = "none";
+  }
+
+  var RP_PHOTO_MAX_BYTES_ = 10 * 1024 * 1024;
+
+  function onIssueTypeChange_() {
+    syncIssueTypePhotoRequirement_();
+    syncIssueTypeReasonRequirement_();
+    syncRpPhotosDriveBanner_();
+    if (issueTypeRequiresPhoto_()) {
+      refreshRpPhotosDriveStatus_(false);
+    }
+  }
+
+  function syncRpPhotosDriveBanner_() {
+    var banner = document.getElementById("rpPhotosDriveBanner");
+    if (!banner) return;
+    var show = issueTypeRequiresPhoto_();
+    banner.classList.toggle("is-visible", show);
+    if (!show) return;
+
+    banner.classList.remove("is-ready", "is-error");
+    var statusEl = document.getElementById("rpPhotosDriveStatusText");
+    var btn = document.getElementById("rpPhotosDriveConnectBtn");
+    if (rpPhotosDriveCheckBusy_) {
+      if (statusEl) statusEl.textContent = "Checking Google Drive access...";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Checking...";
+      }
+      return;
+    }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = rpPhotosDriveReady_ ? "Recheck Drive access" : "Connect Google Drive";
+    }
+    if (rpPhotosDriveReady_ === true) {
+      banner.classList.add("is-ready");
+      if (statusEl) {
+        statusEl.textContent = "Drive is connected. Panel photos will upload when you submit.";
+      }
+      return;
+    }
+    if (rpPhotosDriveReady_ === false) {
+      banner.classList.add("is-error");
+      if (statusEl) {
+        statusEl.textContent =
+          "Drive is not connected yet. You can still submit your RP without photos. " +
+          "Click Connect Google Drive and approve permissions when Google prompts you.";
+        if (rpPhotosDriveStatusMessage_) {
+          statusEl.textContent += " Last error: " + rpPhotosDriveStatusMessage_;
+        }
+      }
+      return;
+    }
+    if (statusEl) statusEl.textContent = "Checking Google Drive access...";
+  }
+
+  function refreshRpPhotosDriveStatus_(showAlertOnFail) {
+    if (rpPhotosDriveCheckBusy_) return;
+    rpPhotosDriveCheckBusy_ = true;
+    syncRpPhotosDriveBanner_();
+    google.script.run
+      .withSuccessHandler(function(result) {
+        rpPhotosDriveCheckBusy_ = false;
+        rpPhotosDriveReady_ = !!(result && result.ok);
+        rpPhotosDriveStatusMessage_ = (result && !result.ok && result.message) ? result.message : "";
+        syncRpPhotosDriveBanner_();
+        if (showAlertOnFail && !rpPhotosDriveReady_) {
+          alert(buildRpPhotosDriveFailureAlert_(rpPhotosDriveStatusMessage_, false));
+        }
+      })
+      .withFailureHandler(function(error) {
+        rpPhotosDriveCheckBusy_ = false;
+        rpPhotosDriveReady_ = false;
+        rpPhotosDriveStatusMessage_ = (error && error.message) ? error.message : String(error || "Unknown error");
+        syncRpPhotosDriveBanner_();
+        if (showAlertOnFail) {
+          alert(buildRpPhotosDriveFailureAlert_(rpPhotosDriveStatusMessage_, false));
+        }
+      })
+      .warmRpPhotosDriveScopeForClient();
+  }
+
+  function connectRpPhotosDrive_(showAlert) {
+    refreshRpPhotosDriveStatus_(!!showAlert);
+  }
+
+  function buildRpPhotosDriveFailureAlert_(errorMessage, orderSaved) {
+    var msg = String(errorMessage || "Google Drive access is not available.").trim();
+    var body =
+      "Panel photos could not be uploaded to Google Drive.\n\n" +
+      "Please notify your admin with this exact error:\n\n" +
+      msg;
+    if (orderSaved) {
+      body +=
+        "\n\nYour RP order was saved without photos. You can submit now even without Drive access, " +
+        "or connect Drive and edit the RP later to add photos.";
+    } else {
+      body +=
+        "\n\nYou can still submit your RP without photos, or click Connect Google Drive and try again.";
+    }
+    return body;
+  }
+
+  function showPhotoUploadWarningsIfAny_(response) {
+    if (!response || !response.photoUploadSkipped) return;
+    var warnings = Array.isArray(response.warnings) ? response.warnings : [];
+    var messages = warnings.map(function(w) {
+      return (w && w.message) ? w.message : String(w || "");
+    }).filter(Boolean);
+    if (!messages.length) {
+      messages.push("Google Drive access is not available.");
+    }
+    alert(buildRpPhotosDriveFailureAlert_(messages.join("\n\n"), true));
+  }
+
+  function issueTypeRequiresPhoto_() {
+    var issueType = document.getElementById("issueType").value;
+    return issueType === "Factory Mistake" || issueType === "Faulty Unit";
+  }
+
+  function issueTypeRequiresReason_() {
+    var issueType = document.getElementById("issueType").value;
+    return issueTypeRequiresPhoto_() || issueType === "Other";
+  }
+
+  function syncIssueTypeReasonRequirement_() {
+    var required = issueTypeRequiresReason_();
+    var helpEl = document.getElementById("reasonForRpHelp");
+    var notesEl = document.getElementById("notes");
+    if (helpEl) helpEl.classList.toggle("hidden-field", !required);
+    if (notesEl) notesEl.setAttribute("aria-required", required ? "true" : "false");
+  }
+
+  function validateReasonForRp_() {
+    if (!issueTypeRequiresReason_()) return true;
+    if (!document.getElementById("notes").value.trim()) {
+      var issueType = document.getElementById("issueType").value;
+      var label = issueType === "Other"
+        ? "Other"
+        : "Factory Mistake and Faulty Unit";
+      return alertAndFail_(
+        "Reason for RP is required for " + label + ". " +
+        "Please state the reason in detail, as this will be used for accounting purposes."
+      );
+    }
+    return true;
+  }
+
+  function rowRequiresItemPhoto_(row) {
+    if (!row || !issueTypeRequiresPhoto_()) return false;
+    var typeInput = row.querySelector(".item-type");
+    return !!(typeInput && typeInput.value === "Panel");
+  }
+
+  function syncItemRowPhotoRequirement_(row) {
+    if (!row) return;
+    var wrap = row.querySelector(".item-photo-wrap");
+    if (wrap) wrap.classList.toggle("is-visible", rowRequiresItemPhoto_(row));
+    updateItemPhotoStatus_(row);
+  }
+
+  function syncIssueTypePhotoRequirement_() {
+    document.querySelectorAll(".item-row").forEach(function(row) {
+      syncItemRowPhotoRequirement_(row);
+    });
+  }
+
+  function clearItemRowPhotoState_(row) {
+    if (!row) return;
+    delete row.dataset.photoBase64;
+    delete row.dataset.photoName;
+    delete row.dataset.photoMime;
+    delete row.dataset.existingPhotoUrl;
+    delete row.dataset.keepExistingPhoto;
+    var input = row.querySelector(".item-photo-input");
+    if (input) input.value = "";
+  }
+
+  function triggerItemPhotoPick_(buttonEl) {
+    var row = buttonEl.closest(".item-row");
+    if (!row) return;
+    var input = row.querySelector(".item-photo-input");
+    if (!input) return;
+    input.value = "";
+    input.click();
+  }
+
+  function handleItemPhotoSelected_(inputEl) {
+    var row = inputEl.closest(".item-row");
+    if (!row || !inputEl.files || !inputEl.files.length) return;
+    var file = inputEl.files[0];
+    if (!file) return;
+
+    if (file.size > RP_PHOTO_MAX_BYTES_) {
+      alert("Снимката е твърде голяма. Максимум 10 MB.");
+      inputEl.value = "";
+      return;
+    }
+
+    var allowed = /^image\/(jpeg|png|webp|gif)$/i.test(file.type) || file.type === "application/pdf";
+    if (!allowed) {
+      alert("Позволени са само снимки (JPEG, PNG, WebP, GIF) или PDF.");
+      inputEl.value = "";
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function() {
+      var result = String(reader.result || "");
+      var comma = result.indexOf(",");
+      var base64 = comma >= 0 ? result.substring(comma + 1) : result;
+      row.dataset.photoBase64 = base64;
+      row.dataset.photoName = file.name || "photo";
+      row.dataset.photoMime = file.type || "image/jpeg";
+      delete row.dataset.keepExistingPhoto;
+      updateItemPhotoStatus_(row);
+      if (issueTypeRequiresPhoto_()) {
+        refreshRpPhotosDriveStatus_(false);
+      }
+    };
+    reader.onerror = function() {
+      alert("Неуспешно четене на файла.");
+      inputEl.value = "";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function updateItemPhotoStatus_(row) {
+    var statusEl = row.querySelector(".item-photo-status");
+    if (!statusEl) return;
+    if (row.dataset.photoBase64) {
+      statusEl.textContent = "Файл: " + (row.dataset.photoName || "избран");
+      statusEl.classList.add("is-ok");
+      return;
+    }
+    if (row.dataset.keepExistingPhoto === "1" && row.dataset.existingPhotoUrl) {
+      var safeUrl = String(row.dataset.existingPhotoUrl).replace(/"/g, "&quot;");
+      statusEl.innerHTML = 'Има снимка (<a href="' + safeUrl + '" target="_blank" rel="noopener">отвори</a>)';
+      statusEl.classList.add("is-ok");
+      return;
+    }
+    statusEl.textContent = rowRequiresItemPhoto_(row) ? "Required" : "";
+    statusEl.classList.remove("is-ok");
+  }
+
+  function bindItemPhotoInput_(row) {
+    var input = row.querySelector(".item-photo-input");
+    if (!input || input.dataset.bound === "1") return;
+    input.dataset.bound = "1";
+    input.addEventListener("change", function() {
+      handleItemPhotoSelected_(input);
+    });
+  }
+
+  function refreshItemRowLabels_() {
+    var container = document.getElementById("itemsContainer");
+    if (!container) return;
+    Array.prototype.forEach.call(container.children, function(row, index) {
+      var badge = row.querySelector(".item-badge");
+      if (badge) badge.textContent = "Item " + (index + 1);
+    });
+  }
+
+  function addItemRow() {
+    itemCounter += 1;
+    var rowId = "item-row-" + itemCounter;
+    var container = document.getElementById("itemsContainer");
+    var row = document.createElement("div");
+    row.className = "item-row";
+    row.id = rowId;
+    row.innerHTML =
+      '<div class="item-row-header">' +
+        '<span class="item-badge">Item ' + itemCounter + '</span>' +
+      '</div>' +
+      '<div class="row g-2">' +
+        '<div class="col-md-3">' +
+          '<label class="form-label">Quantity</label>' +
+          '<input type="number" class="form-control item-qty" value="1" min="1" placeholder="Qty">' +
+        '</div>' +
+        '<div class="col-md-4">' +
+          '<label class="form-label">Parts / Panel</label>' +
+          '<input type="hidden" class="item-type" value="">' +
+          '<div class="btn-group w-100 type-toggle">' +
+            '<button type="button" class="btn btn-outline-secondary item-type-btn item-type-panel-btn" onclick="setItemTypeForRow(this, \'Panel\')">Panel</button>' +
+            '<button type="button" class="btn btn-outline-secondary item-type-btn item-type-part-btn" onclick="setItemTypeForRow(this, \'Part\')">Parts</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-md-5 part-code-wrap hidden-field">' +
+          '<span class="item-standard-partner-warning" aria-live="polite">Standard partner item, please check partner stock first.</span>' +
+          '<label class="form-label">Part Code</label>' +
+          '<input type="text" class="form-control item-rp-code" placeholder="XXXX" maxlength="4" inputmode="numeric" pattern="\\d{4}" oninput="handlePartCodeInput(this)">' +
+          '<div class="code-help-text"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="mt-3 panel-wrap hidden-field">' +
+        '<label class="form-label">Panel Selection</label>' +
+        '<select class="form-select item-panel" onchange="togglePanelOther(this)">' +
+          buildPanelOptions_() +
+        '</select>' +
+      '</div>' +
+      '<div class="mt-3 panel-other-wrap hidden-field">' +
+        '<label class="form-label">Custom Panel Description</label>' +
+        '<input type="text" class="form-control item-panel-other" placeholder="Describe panel...">' +
+      '</div>' +
+      '<div class="mt-3">' +
+        '<label class="form-label">Notes &amp; Shipping Requests</label>' +
+        '<input type="text" class="form-control item-note" placeholder="Notes or shipping requests for this item...">' +
+      '</div>' +
+      '<div class="mt-2 catalogue-btn-wrap hidden-field">' +
+        '<button type="button" class="btn btn-catalogue btn-sm" onclick="openSparePartsCatalogue(\'' + rowId + '\')">Spare parts catalogue</button>' +
+      '</div>' +
+      '<div class="mt-2 panel-booth-warning text-warning small" style="display:none;">' +
+        'This panel will be saved as its own RP (same Booth ID from step 1).' +
+      '</div>' +
+      '<div class="item-row-footer">' +
+        '<div class="item-photo-wrap">' +
+          '<input type="file" class="item-photo-input" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf">' +
+          '<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerItemPhotoPick_(this)">Upload photo</button>' +
+          '<span class="item-photo-status small text-muted"></span>' +
+        '</div>' +
+        (container.children.length
+          ? '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removeItemRow(\'' + rowId + '\')">Remove</button>'
+          : "") +
+      '</div>';
+
+    container.appendChild(row);
+    bindItemPhotoInput_(row);
+    syncItemRowPhotoRequirement_(row);
+    var shouldDefaultToPanel = hasAnyPanelRow_(row);
+    var defaultBtn = shouldDefaultToPanel
+      ? row.querySelector(".item-type-panel-btn")
+      : row.querySelector(".item-type-part-btn");
+    if (defaultBtn) {
+      setItemTypeForRow(defaultBtn, shouldDefaultToPanel ? "Panel" : "Part");
+    }
+    syncItemTypeLocks_();
+    refreshItemRowLabels_();
+  }
+
+  function removeItemRow(rowId) {
+    var container = document.getElementById("itemsContainer");
+    if (container.children.length <= 1) {
+      alert("At least one item is required.");
+      return;
+    }
+
+    var row = document.getElementById(rowId);
+    if (row) {
+      row.remove();
+    }
+    syncItemTypeLocks_();
+    refreshItemRowLabels_();
+  }
+
+  function setItemTypeForRow(button, type) {
+    var row = button.closest(".item-row");
+    var typeInput = row.querySelector(".item-type");
+    if (!typeInput) return;
+
+    var isPart = type === "Part";
+
+    typeInput.value = type;
+    row.querySelectorAll(".item-type-btn").forEach(function(btn) {
+      btn.classList.remove("btn-primary");
+      btn.classList.add("btn-outline-secondary");
+    });
+    button.classList.remove("btn-outline-secondary");
+    button.classList.add("btn-primary");
+
+    applyItemTypeState_(row, type);
+    if (isPart) clearItemRowPhotoState_(row);
+    syncItemRowPhotoRequirement_(row);
+    syncItemTypeLocks_();
+  }
+
+  function applyItemTypeState_(row, type) {
+    var isPart = type === "Part";
+    row.querySelector(".part-code-wrap").style.display = isPart ? "block" : "none";
+    row.querySelector(".panel-wrap").style.display = isPart ? "none" : "block";
+    row.querySelector(".panel-other-wrap").style.display = "none";
+    row.querySelector(".catalogue-btn-wrap").style.display = isPart ? "block" : "none";
+    if (!isPart) {
+      clearPartCodeState_(row);
+    } else {
+      updateStandardPartnerWarningVisibility_(row);
+    }
+  }
+
+  function syncItemTypeLocks_() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".item-row"));
+    var multiItem = rows.length > 1;
+    rows.forEach(function(row) {
+      var partBtn = row.querySelector(".item-type-part-btn");
+      var panelBtn = row.querySelector(".item-type-panel-btn");
+      var panelWarn = row.querySelector(".panel-booth-warning");
+      if (partBtn) partBtn.disabled = false;
+      if (panelBtn) panelBtn.disabled = false;
+      if (panelWarn) {
+        var isPanelRow = row.querySelector(".item-type").value === "Panel";
+        panelWarn.style.display = multiItem && isPanelRow ? "block" : "none";
+      }
+    });
+  }
+
+  function togglePanelOther(selectElement) {
+    var row = selectElement.closest(".item-row");
+    row.querySelector(".panel-other-wrap").style.display = selectElement.value === "Other (Specify in Notes)" ? "block" : "none";
+  }
+
+  function collectItems() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".item-row"));
+
+    return rows.map(function(row) {
+      var itemType = row.querySelector(".item-type").value;
+      var qty = row.querySelector(".item-qty").value;
+      var description = "";
+      var rpCode = "";
+      var itemNotes = row.querySelector(".item-note").value.trim();
+
+      if (itemType === "Part") {
+        rpCode = row.querySelector(".item-rp-code").value.trim();
+        description = row.dataset.partDescription || "";
+      } else {
+        var panelValue = row.querySelector(".item-panel").value;
+        description = panelValue === "Other (Specify in Notes)" ? row.querySelector(".item-panel-other").value : panelValue;
+      }
+
+      var photoPayload = {
+        itemType: itemType,
+        qty: qty,
+        rpCode: rpCode,
+        description: description,
+        itemNotes: itemNotes
+      };
+      if (row.dataset.photoBase64) {
+        photoPayload.photoBase64 = row.dataset.photoBase64;
+        photoPayload.photoName = row.dataset.photoName || "";
+        photoPayload.photoMime = row.dataset.photoMime || "";
+      } else if (row.dataset.keepExistingPhoto === "1" && row.dataset.existingPhotoUrl) {
+        photoPayload.existingPhotoUrl = row.dataset.existingPhotoUrl;
+      }
+      return photoPayload;
+    });
+  }
+
+  function setSubmitOrderBusy_(busy) {
+    isSubmittingForm_ = !!busy;
+    var submitBtn = document.getElementById("submitOrderBtn");
+    if (submitBtn) submitBtn.disabled = !!busy;
+  }
+
+  function finishSubmitOrderAttempt_(showOverlay) {
+    setSubmitOrderBusy_(false);
+    var overlay = document.getElementById("overlay");
+    if (overlay) overlay.style.display = showOverlay ? "flex" : "none";
+  }
+
+  function createLoggerSubmitKey_() {
+    return "sk-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+  }
+
+  var LOGGER_SUBMIT_KEY_STORAGE_ = "loggerSubmitKey_v1";
+
+  function getOrCreateLoggerSubmitKey_() {
+    try {
+      var existing = sessionStorage.getItem(LOGGER_SUBMIT_KEY_STORAGE_);
+      if (existing) return existing;
+    } catch (storageReadErr) {
+      // sessionStorage may be unavailable in some embedded contexts.
+    }
+    var key = createLoggerSubmitKey_();
+    try {
+      sessionStorage.setItem(LOGGER_SUBMIT_KEY_STORAGE_, key);
+    } catch (storageWriteErr) {
+      // Ignore; server lock still serializes concurrent saves.
+    }
+    return key;
+  }
+
+  function clearLoggerSubmitKey_() {
+    try {
+      sessionStorage.removeItem(LOGGER_SUBMIT_KEY_STORAGE_);
+    } catch (storageClearErr) {
+      // Ignore.
+    }
+  }
+
+  function formatSubmitFailureMessage_(error) {
+    var base = (error && error.message) ? error.message : "Something went wrong.";
+    if (/auth\/drive|DriveApp/i.test(base)) {
+      return (
+        "Google Drive access is required to upload panel photos.\n\n" +
+        "Reload the Logger page, choose Factory Mistake or Faulty Unit, and approve " +
+        "Drive permissions when prompted. Then submit once — do not click Submit repeatedly."
+      );
+    }
+    if (isEditMode) return base;
+    return (
+      base +
+      "\n\nPlease check your dashboard before submitting again. " +
+      "If an RP was already created, do not submit a duplicate order."
+    );
+  }
+
+  function submitForm() {
+    if (isSubmittingForm_) return;
+    if (!validateStep_(1) || !validateStep_(2) || !validateStep_(3)) {
+      return;
+    }
+
+    setSubmitOrderBusy_(true);
+    setOverlayMessage_("Saving...");
+    document.getElementById("overlay").style.display = "flex";
+
+    var items = collectItems();
+    var selectedModel = document.getElementById("model").value;
+    var selectedColor = document.getElementById("color").value;
+    var computedColor = resolveColorForSubmission_(selectedModel, selectedColor, items);
+    var formData = {
+      market: document.getElementById("market").value,
+      urgency: document.querySelector('input[name="urgency"]:checked').value,
+      model: selectedModel,
+      boothId: document.getElementById("boothId").value,
+      color: computedColor,
+      issueType: buildIssueTypeValue_(),
+      notes: document.getElementById("notes").value,
+      client: document.getElementById("client").value,
+      address: document.getElementById("address").value,
+      recipient: document.getElementById("recipient").value,
+      phone: document.getElementById("phone").value,
+      email: document.getElementById("email").value,
+      items: items
+    };
+
+    var rpc = isEditMode ? "updateExistingEntry" : "processNewEntry";
+    if (isEditMode) {
+      formData.rpNum = editRpNum;
+    } else {
+      formData.submitKey = getOrCreateLoggerSubmitKey_();
+    }
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        finishSubmitOrderAttempt_(false);
+        var rpList = (response && Array.isArray(response.rpNums) && response.rpNums.length)
+          ? response.rpNums.map(function(v) { return String(v); })
+          : [response && response.rpNum ? String(response.rpNum) : "N/A"];
+        if (isEditMode) {
+          showEditSuccessScreen_(rpList[0] || editRpNum);
+          showPhotoUploadWarningsIfAny_(response);
+          return;
+        }
+        clearLoggerSubmitKey_();
+        showSuccessScreen_(rpList);
+        showPhotoUploadWarningsIfAny_(response);
+      })
+      .withFailureHandler(function(error) {
+        finishSubmitOrderAttempt_(false);
+        alert(formatSubmitFailureMessage_(error));
+      })
+      [rpc](formData);
+  }
+
+  /**
+   * Column J color behavior:
+   * - For STOCK model, do not rely on dropdown values; store PARTS or STOCK.
+   * - For normal models, keep dropdown/custom text behavior.
+   */
+  function resolveColorForSubmission_(modelValue, selectedColor, items) {
+    var modelUpper = String(modelValue || "").trim().toUpperCase();
+    if (modelUpper === "STOCK") {
+      var hasPartItem = (items || []).some(function(item) {
+        return String(item && item.itemType || "") === "Part";
+      });
+      return hasPartItem ? "PARTS" : "STOCK";
+    }
+    if (selectedColor === "Custom RAL") {
+      return formatCustomRalColor_(document.getElementById("customColor").value);
+    }
+    if (selectedColor === "Other") {
+      return String(document.getElementById("customColor").value || "").trim();
+    }
+    return selectedColor;
+  }
+
+  function resetFormForNextEntry_() {
+    setSubmitOrderBusy_(false);
+    clearLoggerSubmitKey_();
+    document.getElementById("orderForm").reset();
+    document.getElementById("itemsContainer").innerHTML = "";
+    itemCounter = 0;
+    addItemRow();
+    toggleColorField();
+    onIssueTypeChange_();
+    closeMarketSuggestions_();
+    closeAddressSuggestions_();
+    showStep(1);
+  }
+
+  function resetSuccessScreenUi_() {
+    var titleEl = document.getElementById("successTitle");
+    var detailEl = document.getElementById("successDetail");
+    var startBtn = document.getElementById("successStartAnotherBtn");
+    var dashBtn = document.getElementById("successDashboardBtn");
+    if (titleEl) titleEl.textContent = "Successfully logged";
+    if (detailEl) detailEl.style.display = "";
+    if (startBtn) startBtn.style.display = "";
+    if (dashBtn) dashBtn.textContent = "Go to dashboard";
+  }
+
+  function showSuccessPanel_(options) {
+    options = options || {};
+    var entryCard = document.getElementById("loggerEntryCard");
+    if (entryCard) entryCard.style.display = "none";
+    document.getElementById("successScreen").style.display = "block";
+    window.scrollTo(0, 0);
+  }
+
+  function showSuccessScreen_(rpValues) {
+    resetSuccessScreenUi_();
+    var rpList = Array.isArray(rpValues) ? rpValues.filter(Boolean) : [String(rpValues || "N/A")];
+    var titleEl = document.getElementById("successTitle");
+    if (titleEl) {
+      titleEl.textContent = rpList.length > 1
+        ? "Successfully logged " + rpList.length + " RPs"
+        : "Successfully logged";
+    }
+    document.getElementById("successRpCode").textContent = rpList.join(", ");
+    showSuccessPanel_();
+  }
+
+  function showEditSuccessScreen_(rpNum) {
+    var rp = String(rpNum || "").trim() || "N/A";
+    var titleEl = document.getElementById("successTitle");
+    var detailEl = document.getElementById("successDetail");
+    var startBtn = document.getElementById("successStartAnotherBtn");
+    var dashBtn = document.getElementById("successDashboardBtn");
+    if (titleEl) titleEl.textContent = rp + " edited successfully";
+    if (detailEl) detailEl.style.display = "none";
+    if (startBtn) startBtn.style.display = "none";
+    if (dashBtn) dashBtn.textContent = "Go back to dashboard";
+    showSuccessPanel_();
+  }
+
+  function startAnotherEntry() {
+    document.getElementById("successScreen").style.display = "none";
+    var entryCard = document.getElementById("loggerEntryCard");
+    if (entryCard) entryCard.style.display = "block";
+    resetSuccessScreenUi_();
+    resetFormForNextEntry_();
+  }
+
+  function buildIssueTypeValue_() {
+    var issueType = document.getElementById("issueType").value;
+    if (!issueType) {
+      alert("Issue Type is required.");
+      return "";
+    }
+    return issueType;
+  }
+
+  function validateItems_() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".item-row"));
+    if (!rows.length) return alertAndFail_("At least one item is required.");
+
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var qty = row.querySelector(".item-qty").value.trim();
+      var itemType = row.querySelector(".item-type").value;
+
+      if (!qty || Number(qty) <= 0) return alertAndFail_("Quantity is required for each item.");
+      if (!itemType) return alertAndFail_("Part / Panel is required for each item.");
+
+      if (itemType === "Panel") {
+        var panelValue = row.querySelector(".item-panel").value;
+        if (!panelValue) return alertAndFail_("Panel selection is required.");
+        if (panelValue === "Other (Specify in Notes)" && !row.querySelector(".item-panel-other").value.trim()) {
+          return alertAndFail_("Custom panel description is required when Panel is Other (Specify in Notes).");
+        }
+      }
+
+      if (itemType === "Part") {
+        var code = row.querySelector(".item-rp-code").value.trim();
+        var hasValidCode = /^\d{4}$/.test(code);
+        var hasDescription = !!String(row.dataset.partDescription || "").trim();
+        if (!hasValidCode && !hasDescription) {
+          return alertAndFail_("Part must have a valid 4-digit code or a custom description from 'Part not listed in the catalogue'.");
+        }
+        if (hasValidCode && !hasDescription) return alertAndFail_("A valid part code must resolve to a description.");
+      }
+
+      if (rowRequiresItemPhoto_(row)) {
+        var hasNewPhoto = !!row.dataset.photoBase64;
+        var hasExisting = row.dataset.keepExistingPhoto === "1" && !!row.dataset.existingPhotoUrl;
+        if (!hasNewPhoto && !hasExisting && rpPhotosDriveReady_ === true) {
+          return alertAndFail_(
+            "Upload a photo for each panel when Issue Type is Factory Mistake or Faulty Unit, " +
+            "or click Connect Google Drive if you cannot upload photos."
+          );
+        }
+      }
+    }
+
+    return true;
+  }
+
+  function hasAnyPanelRow_(excludeRow) {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".item-row"));
+    return rows.some(function(row) {
+      if (excludeRow && row === excludeRow) return false;
+      return row.querySelector(".item-type").value === "Panel";
+    });
+  }
+
+  function hasAnyPartRow_(excludeRow) {
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".item-row"));
+    return rows.some(function(row) {
+      if (excludeRow && row === excludeRow) return false;
+      return row.querySelector(".item-type").value === "Part";
+    });
+  }
+
+  function handlePartCodeInput(inputElement) {
+    var row = inputElement.closest(".item-row");
+    var rowKey = row.id || ("row-" + Math.random().toString(36).slice(2));
+    row.id = rowKey;
+    var code = inputElement.value.replace(/\D/g, "").slice(0, 4);
+    var helpText = row.querySelector(".code-help-text");
+    inputElement.value = code;
+
+    if (partLookupTimers[rowKey]) {
+      clearTimeout(partLookupTimers[rowKey]);
+      delete partLookupTimers[rowKey];
+    }
+
+    if (!code) {
+      row.dataset.manualPart = "";
+      clearPartCodeState_(row);
+      return;
+    }
+
+    if (!/^\d{4}$/.test(code)) {
+      row.dataset.manualPart = "";
+      row.dataset.partDescription = "";
+      setStandardPartnerDatasetForRow_(row, false);
+      inputElement.classList.add("invalid-code");
+      helpText.className = "code-help-text error";
+      helpText.textContent = "Code must contain exactly 4 digits.";
+      return;
+    }
+
+    // Remove red input styling immediately once code is structurally valid.
+    inputElement.classList.remove("invalid-code");
+    helpText.className = "code-help-text";
+    helpText.textContent = "Checking code...";
+
+    if (partLookupClientCache[code]) {
+      applyPartLookupResult_(row, inputElement, helpText, partLookupClientCache[code], code);
+      return;
+    }
+
+    partLookupTimers[rowKey] = setTimeout(function() {
+      delete partLookupTimers[rowKey];
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result) {
+            partLookupClientCache[code] = result;
+          }
+          applyPartLookupResult_(row, inputElement, helpText, result, code);
+        })
+        .withFailureHandler(function() {
+          if (inputElement.value !== code) return;
+          row.dataset.manualPart = "";
+          row.dataset.partDescription = "";
+          setStandardPartnerDatasetForRow_(row, false);
+          inputElement.classList.add("invalid-code");
+          helpText.className = "code-help-text error";
+          helpText.textContent = "Unable to validate code right now.";
+        })
+        .lookupSparePartByCode(code);
+    }, 180);
+  }
+
+  function isStandardPartnerYesFlag_(value) {
+    var s = String(value || "").trim().toLowerCase();
+    return s === "yes" || s === "y" || s === "true" || s === "1";
+  }
+
+  function setStandardPartnerDatasetForRow_(row, flag) {
+    row.dataset.standardPartner = flag ? "yes" : "";
+    updateStandardPartnerWarningVisibility_(row);
+  }
+
+  function updateStandardPartnerWarningVisibility_(row) {
+    var el = row.querySelector(".item-standard-partner-warning");
+    if (!el) return;
+    var typeInput = row.querySelector(".item-type");
+    var isPart = typeInput && typeInput.value === "Part";
+    if (isPart && row.dataset.standardPartner === "yes") {
+      el.classList.add("is-visible");
+    } else {
+      el.classList.remove("is-visible");
+    }
+  }
+
+  function applyPartLookupResult_(row, inputElement, helpText, result, requestedCode) {
+    if (inputElement.value !== requestedCode) return;
+    if (result && result.found && result.description) {
+      row.dataset.manualPart = "";
+      row.dataset.partDescription = result.description;
+      helpText.className = "code-help-text";
+      helpText.textContent = result.description;
+      setStandardPartnerDatasetForRow_(row, !!result.standardPartnerYes);
+      return;
+    }
+
+    row.dataset.manualPart = "";
+    row.dataset.partDescription = "";
+    setStandardPartnerDatasetForRow_(row, false);
+    inputElement.classList.add("invalid-code");
+    helpText.className = "code-help-text error";
+    helpText.textContent = "Code not found in Spare Parts Codes.";
+  }
+
+  function clearPartCodeState_(row) {
+    row.dataset.manualPart = "";
+    row.dataset.partDescription = "";
+    setStandardPartnerDatasetForRow_(row, false);
+    var input = row.querySelector(".item-rp-code");
+    var helpText = row.querySelector(".code-help-text");
+    if (input) {
+      input.classList.remove("invalid-code");
+      input.value = "";
+    }
+    if (helpText) {
+      helpText.className = "code-help-text";
+      helpText.textContent = "";
+    }
+  }
+
+  function openSparePartsCatalogue(rowId) {
+    catalogueTargetRowId = String(rowId || "");
+    if (!catalogueTargetRowId) {
+      alert("Unable to detect target item row.");
+      return;
+    }
+    document.getElementById("catalogueBackdrop").style.display = "flex";
+    document.getElementById("catalogueSearch").value = "";
+
+    if (cataloguePayload && Array.isArray(cataloguePayload.categories)) {
+      if (!catalogueActiveCategory && cataloguePayload.categories.length) {
+        catalogueActiveCategory = cataloguePayload.categories[0].category;
+      }
+      renderCatalogueTabs_();
+      renderCatalogueContent_();
+      return;
+    }
+
+    document.getElementById("catalogueContent").innerHTML = '<div class="text-muted">Loading catalogue...</div>';
+    google.script.run
+      .withSuccessHandler(function(payload) {
+        cataloguePayload = payload || { categories: [] };
+        if (!catalogueActiveCategory && cataloguePayload.categories.length) {
+          catalogueActiveCategory = cataloguePayload.categories[0].category;
+        }
+        renderCatalogueTabs_();
+        renderCatalogueContent_();
+      })
+      .withFailureHandler(function(error) {
+        var message = (error && error.message) ? error.message : "Unable to load catalogue.";
+        document.getElementById("catalogueContent").innerHTML = '<div class="text-danger">' + escapeHtml_(message) + '</div>';
+      })
+      .getCatalogueData();
+  }
+
+  function closeCatalogueModal(event) {
+    if (event && event.stopPropagation) event.stopPropagation();
+    toggleCustomCataloguePartEntry_(false);
+    document.getElementById("catalogueBackdrop").style.display = "none";
+  }
+
+  function renderCatalogueTabs_() {
+    var tabsWrap = document.getElementById("catalogueTabs");
+    var categories = (cataloguePayload && Array.isArray(cataloguePayload.categories)) ? cataloguePayload.categories : [];
+    if (!categories.length) {
+      tabsWrap.innerHTML = "";
+      return;
+    }
+    tabsWrap.innerHTML =
+      '<div class="catalogue-tabs-top">' +
+        '<div class="btn-group btn-group-sm mb-2">' +
+        categories.map(function(cat) {
+          var category = String(cat.category || "");
+          var active = category === catalogueActiveCategory;
+          return '<button type="button" class="btn ' + (active ? 'btn-primary' : 'btn-outline-primary') + '" onclick="setCatalogueCategory(\'' + escapeJsString_(category) + '\')">' + escapeHtml_(category) + '</button>';
+        }).join("") +
+        '</div>' +
+        '<button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="toggleCustomCataloguePartEntry_(true)">Part not listed in the catalogue</button>' +
+      '</div>' +
+      '<div id="catalogueCustomEntry" class="catalogue-custom-entry">' +
+        '<input type="text" id="catalogueCustomPartDesc" class="form-control form-control-sm" placeholder="Enter custom part description...">' +
+        '<button type="button" class="btn btn-primary btn-sm" onclick="addManualPartFromCatalogue_()">Add</button>' +
+        '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleCustomCataloguePartEntry_(false)">Cancel</button>' +
+      '</div>';
+  }
+
+  function toggleCustomCataloguePartEntry_(show) {
+    var wrap = document.getElementById("catalogueCustomEntry");
+    var input = document.getElementById("catalogueCustomPartDesc");
+    if (!wrap || !input) return;
+    wrap.style.display = show ? "flex" : "none";
+    if (show) {
+      setTimeout(function() { input.focus(); }, 0);
+    } else {
+      input.value = "";
+    }
+  }
+
+  function addManualPartFromCatalogue_() {
+    var targetRow = document.getElementById(catalogueTargetRowId);
+    if (!targetRow) {
+      alert("Target item row not found.");
+      return;
+    }
+    var input = document.getElementById("catalogueCustomPartDesc");
+    var description = String(input && input.value || "").trim();
+    if (!description) {
+      alert("Please enter part description.");
+      return;
+    }
+
+    var partToggleBtn = targetRow.querySelector(".item-type-part-btn");
+    if (partToggleBtn) {
+      setItemTypeForRow(partToggleBtn, "Part");
+    }
+    var rpInput = targetRow.querySelector(".item-rp-code");
+    if (rpInput) {
+      rpInput.value = "";
+      rpInput.classList.remove("invalid-code");
+    }
+    targetRow.dataset.partDescription = description;
+    targetRow.dataset.manualPart = "1";
+    setStandardPartnerDatasetForRow_(targetRow, false);
+    var helpText = targetRow.querySelector(".code-help-text");
+    if (helpText) {
+      helpText.className = "code-help-text";
+      helpText.textContent = "Custom part: " + description;
+    }
+
+    toggleCustomCataloguePartEntry_(false);
+    closeCatalogueModal();
+  }
+
+  function setCatalogueCategory(categoryName) {
+    catalogueActiveCategory = String(categoryName || "");
+    renderCatalogueTabs_();
+    renderCatalogueContent_();
+  }
+
+  function renderCatalogueContent_() {
+    var contentEl = document.getElementById("catalogueContent");
+    var categories = (cataloguePayload && Array.isArray(cataloguePayload.categories)) ? cataloguePayload.categories : [];
+    if (!categories.length) {
+      contentEl.innerHTML = '<div class="text-muted">No catalogue data available.</div>';
+      return;
+    }
+    var query = String(document.getElementById("catalogueSearch").value || "").trim().toLowerCase();
+    var includeAllCategories = !!query;
+    var categoriesToRender = includeAllCategories
+      ? categories
+      : [categories.find(function(cat) { return String(cat.category || "") === catalogueActiveCategory; }) || categories[0]];
+    catalogueActiveCategory = String(categoriesToRender[0] && categoriesToRender[0].category || catalogueActiveCategory);
+    var html = "";
+    var visibleItems = 0;
+
+    categoriesToRender.forEach(function(categoryEntry) {
+      var rows = Array.isArray(categoryEntry.rows) ? categoryEntry.rows : [];
+      var categoryHtml = "";
+      var gridOpen = false;
+      var categoryVisibleItems = 0;
+
+      rows.forEach(function(row) {
+        if (!row || !row.type) return;
+        if (row.type === "subcategory") {
+          if (gridOpen) {
+            categoryHtml += '</div>';
+            gridOpen = false;
+          }
+          categoryHtml += '<div class="catalogue-subcategory">' + escapeHtml_(row.subcategory || "Other") + '</div>';
+          return;
+        }
+
+        if (row.type === "item") {
+          var desc = String(row.description || "").toLowerCase();
+          var booth = String(row.booth || "").toLowerCase();
+          if (query && desc.indexOf(query) === -1 && booth.indexOf(query) === -1) return;
+          if (!gridOpen) {
+            categoryHtml += '<div class="catalogue-grid">';
+            gridOpen = true;
+          }
+          categoryVisibleItems += 1;
+          visibleItems += 1;
+          categoryHtml +=
+            '<div class="catalogue-item" role="button" tabindex="0" data-catalogue-rp="' +
+            escapeHtml_(encodeURIComponent(String(row.rpCode || ""))) +
+            '" data-catalogue-desc="' +
+            escapeHtml_(encodeURIComponent(String(row.description || ""))) +
+            '" data-catalogue-standard-partner="' +
+            escapeHtml_(encodeURIComponent(String(row.standardPartner || ""))) +
+            '">' +
+              '<div class="catalogue-photo">' + buildCataloguePhotoMarkup_(row.photoUrl, row.photoDriveFileId) + '</div>' +
+              '<div class="catalogue-item-main">' +
+                '<div class="catalogue-item-desc">' + escapeHtml_(row.description || "-") + '</div>' +
+                '<div class="catalogue-item-meta">Booth: ' + escapeHtml_(row.booth || "-") + '</div>' +
+                '<div class="catalogue-item-meta">Standard Partner Part: ' + escapeHtml_(row.standardPartner || "-") + '</div>' +
+                '<div class="catalogue-item-code">RP ' + escapeHtml_(row.rpCode || "-") + '</div>' +
+              '</div>' +
+            '</div>';
+        }
+      });
+
+      if (gridOpen) {
+        categoryHtml += '</div>';
+      }
+
+      if (categoryVisibleItems > 0) {
+        if (includeAllCategories) {
+          html += '<div class="catalogue-category-heading">' + escapeHtml_(categoryEntry.category || "") + '</div>';
+        }
+        html += categoryHtml;
+      }
+    });
+
+    if (!visibleItems) {
+      html += '<div class="text-muted">No catalogue items match this search.</div>';
+    }
+
+    contentEl.innerHTML = html;
+    wireCatalogueItemClicksOnce_(contentEl);
+    wireCataloguePhotoFallbacks_(contentEl);
+    wireCataloguePhotoBatchLoad_(contentEl);
+  }
+
+  /** Inline onclick breaks on newlines/quotes in part names; delegate once using data-* + encodeURIComponent. */
+  function wireCatalogueItemClicksOnce_(host) {
+    if (catalogueItemClickDelegated_ || !host) return;
+    catalogueItemClickDelegated_ = true;
+    host.addEventListener("click", function(ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      var item = t.closest(".catalogue-item");
+      if (!item || !host.contains(item)) return;
+      var rpEnc = item.getAttribute("data-catalogue-rp");
+      var descEnc = item.getAttribute("data-catalogue-desc");
+      var spEnc = item.getAttribute("data-catalogue-standard-partner");
+      if (rpEnc === null || descEnc === null) return;
+      var rpCode = "";
+      var description = "";
+      var standardPartner = "";
+      try {
+        rpCode = decodeURIComponent(rpEnc);
+      } catch (e0) {}
+      try {
+        description = decodeURIComponent(descEnc);
+      } catch (e1) {}
+      try {
+        if (spEnc !== null && spEnc !== "") standardPartner = decodeURIComponent(spEnc);
+      } catch (e2) {}
+      selectCatalogueItem(rpCode, description, standardPartner);
+    });
+  }
+
+  function collectUniqueCatalogueDriveIds_(payload) {
+    var seen = {};
+    var out = [];
+    var cats = (payload && payload.categories) || [];
+    cats.forEach(function(cat) {
+      (cat.rows || []).forEach(function(row) {
+        if (!row || row.type !== "item") return;
+        var id = String(row.photoDriveFileId || "").trim();
+        if (id && !seen[id]) {
+          seen[id] = true;
+          out.push(id);
+        }
+      });
+    });
+    return out;
+  }
+
+  function requestCatalogueDriveBlobs_(ids, root, doneCb) {
+    var filtered = (ids || []).filter(function(id) {
+      return id && !catalogueDriveImageMemory_[id];
+    });
+    if (!filtered.length) {
+      if (root) applyCatalogueDrivePhotoFromMemory_(root);
+      if (doneCb) doneCb();
+      return;
+    }
+    catalogueDriveTransferQueue_.push({ ids: filtered, root: root, done: doneCb });
+    drainCatalogueDriveTransferQueue_();
+  }
+
+  function drainCatalogueDriveTransferQueue_() {
+    if (catalogueDriveTransferBusy_) return;
+    var job = catalogueDriveTransferQueue_.shift();
+    if (!job) return;
+    catalogueDriveTransferBusy_ = true;
+    fetchCatalogueDriveChunks_(job.ids, job.root, function() {
+      catalogueDriveTransferBusy_ = false;
+      if (job.done) job.done();
+      drainCatalogueDriveTransferQueue_();
+    });
+  }
+
+  /** One RPC per image — slower but under size limits; used when batch is partial or fails. */
+  function fetchCatalogueDriveSingles_(ids, root, doneCb) {
+    if (!ids || !ids.length) {
+      if (doneCb) doneCb();
+      return;
+    }
+    var idx = 0;
+    function one() {
+      if (idx >= ids.length) {
+        if (doneCb) doneCb();
+        return;
+      }
+      var id = ids[idx++];
+      (function(capturedId) {
+        google.script.run
+          .withSuccessHandler(function(dataUrl) {
+            if (dataUrl && String(dataUrl).indexOf("data:image/") === 0) {
+              catalogueDriveImageMemory_[capturedId] = dataUrl;
+              if (root) applyCatalogueDrivePhotoFromMemory_(root);
+            }
+            one();
+          })
+          .withFailureHandler(function() {
+            one();
+          })
+          .getCatalogueDriveImageDataUrl(capturedId);
+      })(id);
+    }
+    one();
+  }
+
+  function fetchCatalogueDriveChunks_(ids, root, doneCb) {
+    if (!ids || !ids.length) {
+      if (doneCb) doneCb();
+      return;
+    }
+    var pos = 0;
+    function next() {
+      if (pos >= ids.length) {
+        if (doneCb) doneCb();
+        return;
+      }
+      var chunk = ids.slice(pos, pos + CATALOGUE_DRIVE_BATCH_CHUNK);
+      pos += CATALOGUE_DRIVE_BATCH_CHUNK;
+      google.script.run
+        .withSuccessHandler(function(map) {
+          map = map || {};
+          Object.keys(map).forEach(function(k) {
+            if (map[k]) catalogueDriveImageMemory_[k] = map[k];
+          });
+          var stillMissing = chunk.filter(function(id) {
+            return !catalogueDriveImageMemory_[id];
+          });
+          if (stillMissing.length) {
+            fetchCatalogueDriveSingles_(stillMissing, root, function() {
+              if (root) applyCatalogueDrivePhotoFromMemory_(root);
+              next();
+            });
+            return;
+          }
+          if (root) applyCatalogueDrivePhotoFromMemory_(root);
+          next();
+        })
+        .withFailureHandler(function() {
+          fetchCatalogueDriveSingles_(chunk, root, function() {
+            if (root) applyCatalogueDrivePhotoFromMemory_(root);
+            next();
+          });
+        })
+        .getCatalogueDriveImageDataUrlsBatch(chunk);
+    }
+    next();
+  }
+
+  function applyCatalogueDrivePhotoFromMemory_(root) {
+    if (!root) return;
+    root.querySelectorAll("img.catalogue-photo-pending[data-drive-file-id]").forEach(function(img) {
+      var id = img.getAttribute("data-drive-file-id");
+      var dataUrl = id && catalogueDriveImageMemory_[id];
+      if (dataUrl && String(dataUrl).indexOf("data:image/") === 0) {
+        img.src = dataUrl;
+        img.classList.remove("catalogue-photo-pending");
+        img.style.display = "";
+        var miss = img.parentNode && img.parentNode.querySelector(".catalogue-photo-missing");
+        if (miss) miss.remove();
+        img.removeAttribute("data-photo-dead");
+      }
+    });
+  }
+
+  function wireCataloguePhotoBatchLoad_(root) {
+    if (!root) return;
+    applyCatalogueDrivePhotoFromMemory_(root);
+    var pending = root.querySelectorAll("img.catalogue-photo-pending[data-drive-file-id]");
+    var ids = [];
+    var seen = {};
+    for (var i = 0; i < pending.length; i++) {
+      var id = pending[i].getAttribute("data-drive-file-id");
+      if (id && !seen[id] && !catalogueDriveImageMemory_[id]) {
+        seen[id] = true;
+        ids.push(id);
+      }
+    }
+    if (!ids.length) {
+      finalizePendingCataloguePhotosMissing_(root);
+      return;
+    }
+    requestCatalogueDriveBlobs_(ids, root, function() {
+      applyCatalogueDrivePhotoFromMemory_(root);
+      finalizePendingCataloguePhotosMissing_(root);
+      warmRemainingCatalogueDriveImages_();
+    });
+  }
+
+  /** After visible photos load, fetch other tabs’ images in the background so tab switches feel instant. */
+  function warmRemainingCatalogueDriveImages_() {
+    if (!cataloguePayload) return;
+    var all = collectUniqueCatalogueDriveIds_(cataloguePayload);
+    var rest = all.filter(function(id) {
+      return !catalogueDriveImageMemory_[id];
+    });
+    if (!rest.length) return;
+    requestCatalogueDriveBlobs_(rest, null, null);
+  }
+
+  function finalizePendingCataloguePhotosMissing_(root) {
+    if (!root) return;
+    root.querySelectorAll("img.catalogue-photo-pending[data-drive-file-id]").forEach(function(img) {
+      finalizeCataloguePhotoMissing_(img);
+    });
+  }
+
+  /** Non-Drive direct URLs only (Drive uses batch + memory, no slow failed hotlinks). */
+  function wireCataloguePhotoFallbacks_(root) {
+    if (!root) return;
+    root.querySelectorAll("img.catalogue-photo-img:not(.catalogue-photo-pending)").forEach(function(img) {
+      img.addEventListener("error", function onCatalogueImgErr() {
+        var fb = img.getAttribute("data-drive-fallback");
+        if (fb) {
+          img.removeAttribute("data-drive-fallback");
+          img.src = fb;
+          return;
+        }
+        finalizeCataloguePhotoMissing_(img);
+      });
+    });
+  }
+
+  function finalizeCataloguePhotoMissing_(img) {
+    if (!img || img.getAttribute("data-photo-dead") === "1") return;
+    img.setAttribute("data-photo-dead", "1");
+    img.style.display = "none";
+    var holder = img.parentNode;
+    if (holder && !holder.querySelector(".catalogue-photo-missing")) {
+      var span = document.createElement("span");
+      span.className = "catalogue-photo-missing text-muted";
+      span.textContent = "No photo";
+      holder.appendChild(span);
+    }
+  }
+
+  function buildCataloguePhotoMarkup_(photoUrl, driveFileId) {
+    var id = String(driveFileId || "").trim();
+    var safeUrl = String(photoUrl || "").trim();
+    if (!id && !safeUrl) return "No photo";
+    if (id) {
+      return (
+        '<img class="catalogue-photo-img catalogue-photo-pending" referrerpolicy="no-referrer" ' +
+        'data-drive-file-id="' +
+        escapeHtml_(id) +
+        '" alt="" loading="eager" decoding="async" src="' +
+        escapeHtml_(CATALOGUE_1PX_GIF) +
+        '">'
+      );
+    }
+    var attrs =
+      '<img class="catalogue-photo-img" referrerpolicy="no-referrer" src="' +
+      escapeHtml_(safeUrl) +
+      '" alt="" loading="lazy" decoding="async"';
+    var driveFb = "";
+    if (safeUrl.indexOf("drive.google.com") !== -1 || safeUrl.indexOf("googleusercontent.com") !== -1) {
+      var idFromUrl = safeUrl.match(/(?:[?&]id=|\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
+      if (idFromUrl) driveFb = "https://drive.google.com/uc?export=view&id=" + idFromUrl[1];
+    }
+    if (driveFb) attrs += ' data-drive-fallback="' + escapeHtml_(driveFb) + '"';
+    return attrs + ">";
+  }
+
+  function selectCatalogueItem(rpCode, description, standardPartnerRaw) {
+    var targetRow = document.getElementById(catalogueTargetRowId);
+    if (!targetRow) {
+      alert("Target row no longer exists.");
+      return;
+    }
+
+    var partToggleBtn = targetRow.querySelector(".item-type-part-btn");
+    if (partToggleBtn) {
+      setItemTypeForRow(partToggleBtn, "Part");
+    }
+
+    var rpInput = targetRow.querySelector(".item-rp-code");
+    var helpText = targetRow.querySelector(".code-help-text");
+    var safeCode = String(rpCode || "").replace(/\D/g, "").slice(0, 4);
+    rpInput.value = safeCode;
+    targetRow.dataset.manualPart = "";
+    targetRow.dataset.partDescription = String(description || "").trim();
+    setStandardPartnerDatasetForRow_(targetRow, isStandardPartnerYesFlag_(standardPartnerRaw));
+    rpInput.classList.remove("invalid-code");
+    helpText.className = "code-help-text";
+    helpText.textContent = targetRow.dataset.partDescription;
+    closeCatalogueModal();
+  }
+
+  function normalizeModelKey_(value) {
+    var flat = String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (flat === "workstation" || flat === "workstaiton" || flat === "worksation") return "workstation";
+    return flat;
+  }
+
+  function getPanelOptionsForCurrentModel_() {
+    var modelValue = document.getElementById("model") ? document.getElementById("model").value : "";
+    var modelKey = normalizeModelKey_(modelValue);
+    if (modelKey && PANEL_OPTIONS_BY_MODEL_[modelKey] && PANEL_OPTIONS_BY_MODEL_[modelKey].length) {
+      return PANEL_OPTIONS_BY_MODEL_[modelKey].slice();
+    }
+    return PANEL_OPTIONS_ALL_.slice();
+  }
+
+  function buildPanelOptions_() {
+    var options = getPanelOptionsForCurrentModel_();
+    var html = '<option value="">-- Choose --</option>';
+    options.forEach(function(option) {
+      if (option === "Other (Specify in Notes)") return;
+      html += '<option value="' + escapeHtml_(option) + '">' + escapeHtml_(option) + '</option>';
+    });
+    html += '<option value="Other (Specify in Notes)">Other (Specify in Notes)</option>';
+    return html;
+  }
+
+  function refreshPanelSelectOptions_(panelSelect) {
+    if (!panelSelect) return;
+    var currentValue = String(panelSelect.value || "");
+    panelSelect.innerHTML = buildPanelOptions_();
+
+    var hasOption = Array.prototype.some.call(panelSelect.options, function(opt) {
+      return String(opt.value || "") === currentValue;
+    });
+    if (hasOption) {
+      panelSelect.value = currentValue;
+    } else if (currentValue) {
+      panelSelect.value = "Other (Specify in Notes)";
+      var row = panelSelect.closest(".item-row");
+      if (row) {
+        row.querySelector(".panel-other-wrap").style.display = "block";
+        if (!row.querySelector(".item-panel-other").value) {
+          row.querySelector(".item-panel-other").value = currentValue;
+        }
+      }
+    }
+  }
+
+  function refreshPanelOptionsForAllRows_() {
+    var selects = document.querySelectorAll(".item-panel");
+    Array.prototype.forEach.call(selects, function(sel) {
+      refreshPanelSelectOptions_(sel);
+    });
+  }
+
+  function escapeHtml_(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function escapeJsString_(value) {
+    return String(value == null ? "" : value)
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'");
+  }
+</script>
+</body>
+</html>

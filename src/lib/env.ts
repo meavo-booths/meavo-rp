@@ -1,0 +1,52 @@
+import { z } from "zod";
+
+const ServerEnvSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3003"),
+  DATABASE_URL: z.string().min(10).optional(),
+  AUTH_SECRET: z.string().min(16).optional(),
+  AUTH_GOOGLE_ID: z.string().optional(),
+  AUTH_GOOGLE_SECRET: z.string().optional(),
+  RP_TOOL_CARD_ID: z.string().default("seed-rp-tool"),
+  GATEWAY_URL: z.string().url().default("https://meavo.app"),
+  GOOGLE_SERVICE_ACCOUNT_JSON: z.string().optional(),
+  REP_PARTS_SPREADSHEET_ID: z.string().optional(),
+  REP_PARTS_SHEET_NAME: z.string().default("Rep.Parts26"),
+  INTERNAL_PRODUCTION_SHEET_NAME: z.string().default("Internal Production"),
+  SLACK_BOT_TOKEN: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
+  BLOB_READ_WRITE_TOKEN: z.string().optional(),
+});
+
+export type ServerEnv = z.infer<typeof ServerEnvSchema>;
+
+function nonEmptyEnv(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(
+      (entry): entry is [string, string] => (entry[1] ?? "") !== "",
+    ),
+  );
+}
+
+export function loadServerEnv(): ServerEnv {
+  const parsed = ServerEnvSchema.safeParse(nonEmptyEnv());
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
+    throw new Error(`Invalid environment:\n${issues}`);
+  }
+  return parsed.data;
+}
+
+export function isGoogleAuthEnabled(env: ServerEnv): boolean {
+  return Boolean(env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET);
+}
+
+export function isRepPartsSheetConfigured(env: ServerEnv): boolean {
+  return Boolean(
+    env.REP_PARTS_SPREADSHEET_ID && env.GOOGLE_SERVICE_ACCOUNT_JSON,
+  );
+}

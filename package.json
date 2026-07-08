@@ -1,0 +1,46 @@
+{
+  "name": "meavo-rp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Meavo RP — spare parts & panel orders (rp.meavo.app)",
+  "scripts": {
+    "dev": "next dev -p 3003",
+    "build": "prisma generate && next build",
+    "start": "next start -p 3003",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:push": "echo 'db:push is disabled — schema changes go in meavo-db' && exit 1",
+    "import:sheets": "tsx scripts/import-from-sheets.ts"
+  },
+  "prisma": {
+    "schema": "node_modules/@meavo/db/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@meavo/db": "git+https://github.com/meavo-booths/meavo-db.git#v0.7.0",
+    "@meavo/navigation": "git+https://github.com/meavo-booths/meavo-navigation.git#v0.1.2",
+    "@prisma/client": "^6.19.3",
+    "@vercel/blob": "^2.4.0",
+    "googleapis": "^144.0.0",
+    "next": "^15.1.0",
+    "next-auth": "5.0.0-beta.25",
+    "prisma": "^6.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.0",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

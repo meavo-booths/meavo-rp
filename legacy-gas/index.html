@@ -1,0 +1,4489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    :root {
+      --mv-font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mv-bg: #FAF9F7;
+      --mv-surface: #ffffff;
+      --mv-secondary: #ECE8E1;
+      --mv-ink: #212121;
+      --mv-muted: #727272;
+      --mv-border: #F2F0EB;
+      --mv-border-strong: #D7D3CD;
+      --mv-grey-50: #EAEAEA;
+      --mv-accent: #0C8F61;
+      --mv-accent-hover: #0a7a53;
+      --mv-accent-soft: rgba(12, 143, 97, 0.12);
+      --mv-accent-ring: rgba(12, 143, 97, 0.35);
+      --mv-cta: #0C8F61;
+      --mv-cta-hover: #0a7a53;
+      --mv-pastel-pink: #EEDCDC;
+      --mv-pastel-yellow: #F4E3B1;
+      --mv-pastel-blue: #E1E9EC;
+      --mv-urgent: #b42318;
+      --mv-urgent-soft: #EEDCDC;
+      --mv-standard: #D7D3CD;
+      --mv-standard-soft: #E1E9EC;
+      --mv-radius: 12px;
+      --mv-radius-sm: 8px;
+      --mv-shadow: 0 4px 24px rgba(33, 33, 33, 0.06);
+      --mv-shadow-hover: 0 8px 32px rgba(33, 33, 33, 0.08);
+      --mv-transition: 0.18s ease;
+    }
+
+    .meavo-app {
+      font-family: var(--mv-font);
+      background: var(--mv-bg);
+      color: var(--mv-ink);
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: clip;
+    }
+
+    .meavo-app .container-fluid { max-width: 1720px; margin: 0 auto; }
+
+    .header-area {
+      background: var(--mv-secondary);
+      color: var(--mv-ink);
+      padding: 1.1rem 1.35rem;
+      border-radius: var(--mv-radius);
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--mv-border-strong);
+      box-shadow: var(--mv-shadow);
+      gap: 12px;
+    }
+
+    .header-area .page-brand-title {
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.08;
+    }
+
+    .header-area .page-brand-sub {
+      font-size: 0.8125rem;
+      color: var(--mv-muted);
+      font-weight: 500;
+      margin-top: 2px;
+      letter-spacing: 0.01em;
+    }
+
+    .header-brand-block {
+      max-width: 100%;
+    }
+
+    .header-brand-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0 8px;
+    }
+
+    .header-email {
+      font-size: 0.875rem;
+      color: var(--mv-muted);
+      font-weight: 500;
+    }
+
+    .logged-in-as {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--mv-muted);
+      margin: 6px 0 0;
+      padding: 0;
+      line-height: 1.5;
+      white-space: normal;
+      letter-spacing: 0.01em;
+    }
+
+    #headerControls .btn:not(.view-toggle-btn) {
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      padding: 0.45rem 0.95rem;
+      transition: transform var(--mv-transition), box-shadow var(--mv-transition), background var(--mv-transition);
+    }
+
+    #headerControls .btn:not(.view-toggle-btn):active { transform: scale(0.97); }
+
+    /* Segmented control: Active / Shipped / Cancelled — one rail, not touching pills */
+    .view-toggle-group {
+      display: inline-flex;
+      align-items: stretch;
+      padding: 4px;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--mv-border-strong);
+      border-radius: 11px;
+      box-shadow: inset 0 1px 2px rgba(33, 33, 33, 0.04);
+    }
+
+    .view-toggle-group .view-toggle-btn {
+      border-radius: 8px !important;
+      border: none !important;
+      margin: 0 !important;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      padding: 0.42rem 0.95rem;
+      line-height: 1.25;
+      color: var(--mv-muted);
+      background: transparent;
+      box-shadow: none;
+      transition: background var(--mv-transition), color var(--mv-transition), box-shadow var(--mv-transition);
+    }
+
+    .view-toggle-group .view-toggle-btn:hover {
+      color: var(--mv-ink);
+      background: var(--mv-pastel-blue);
+    }
+
+    .view-toggle-group .view-toggle-btn:focus-visible {
+      outline: 2px solid var(--mv-accent-ring);
+      outline-offset: 2px;
+    }
+
+    .view-toggle-group .view-toggle-btn.view-toggle-active {
+      color: var(--mv-bg);
+      background: var(--mv-accent);
+      box-shadow: 0 2px 10px rgba(12, 143, 97, 0.35);
+    }
+
+    .view-toggle-group .view-toggle-btn.view-toggle-active:hover {
+      color: var(--mv-bg);
+      background: var(--mv-accent-hover);
+    }
+
+    .meavo-app .header-area .btn-outline-light,
+    .meavo-app .dashboard-search-wrap .btn-outline-light {
+      border-color: var(--mv-border-strong);
+      color: var(--mv-ink);
+      background: var(--mv-surface);
+    }
+
+    .meavo-app .header-area .btn-outline-light:hover,
+    .meavo-app .dashboard-search-wrap .btn-outline-light:hover,
+    .meavo-app .header-area .btn-outline-light:focus,
+    .meavo-app .dashboard-search-wrap .btn-outline-light:focus,
+    .meavo-app .header-area .btn-outline-light.show,
+    .meavo-app .dashboard-search-wrap .btn-outline-light.show {
+      border-color: var(--mv-accent);
+      color: var(--mv-accent);
+      background: var(--mv-accent-soft);
+    }
+
+    .meavo-app .btn-primary {
+      background-color: var(--mv-accent);
+      border-color: var(--mv-accent);
+      font-weight: 600;
+    }
+
+    .meavo-app .btn-primary:hover,
+    .meavo-app .btn-primary:focus {
+      background-color: var(--mv-accent-hover);
+      border-color: var(--mv-accent-hover);
+    }
+
+    .meavo-app .btn-outline-primary {
+      color: var(--mv-accent);
+      border-color: var(--mv-accent);
+    }
+
+    .meavo-app .btn-outline-primary:hover {
+      background-color: var(--mv-accent-soft);
+      border-color: var(--mv-accent);
+      color: var(--mv-accent-hover);
+    }
+
+    .meavo-app .btn-success {
+      background-color: var(--mv-accent);
+      border-color: var(--mv-accent);
+    }
+
+    .meavo-app .btn-success:hover {
+      background-color: var(--mv-accent-hover);
+      border-color: var(--mv-accent-hover);
+    }
+
+    #newEntryBtn {
+      background: var(--mv-cta);
+      border: none;
+      color: var(--mv-bg);
+      font-weight: 600;
+      box-shadow: 0 2px 12px rgba(12, 143, 97, 0.28);
+    }
+
+    #newEntryBtn:hover {
+      background: var(--mv-cta-hover);
+      color: var(--mv-bg);
+      box-shadow: 0 4px 16px rgba(12, 143, 97, 0.35);
+    }
+
+    #activeUrgentPanelsTabs .btn {
+      border-radius: 999px;
+      font-weight: 600;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    #activeUrgentPanelsTabs .btn-primary {
+      background: var(--mv-accent);
+      border-color: var(--mv-accent);
+      box-shadow: 0 2px 10px rgba(12, 143, 97, 0.28);
+    }
+
+    .aup-tab-inactive {
+      background: var(--mv-pastel-blue);
+      border-color: var(--mv-border-strong);
+      color: var(--mv-ink);
+    }
+
+    .aup-tab-inactive:hover {
+      background: var(--mv-secondary);
+      color: var(--mv-ink);
+    }
+
+    .dashboard-search-wrap { margin-bottom: 1.1rem; }
+
+    .search-field-shell {
+      max-width: 760px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .search-input-wrap {
+      flex: 1 1 260px;
+      position: relative;
+      width: 100%;
+    }
+
+    .dashboard-sort-wrap {
+      flex: 0 0 auto;
+      display: inline-flex;
+    }
+
+    #dashboardItemFilterBtn,
+    #dashboardSourceFilterBtn,
+    #dashboardFactoryFilterBtn,
+    #dashboardMarketFilterBtn,
+    #dashboardSortBtn,
+    #dashboardPanelsPdfBtn {
+      border-radius: 999px;
+      border: 1px solid var(--mv-border);
+      box-shadow: var(--mv-shadow);
+      font-size: 0.9rem;
+      padding: 0.55rem 0.95rem;
+      white-space: nowrap;
+      color: var(--mv-ink);
+    }
+
+    #dashboardItemFilterBtn:hover,
+    #dashboardItemFilterBtn:focus,
+    #dashboardItemFilterBtn:active,
+    #dashboardItemFilterBtn.show,
+    #dashboardSourceFilterBtn:hover,
+    #dashboardSourceFilterBtn:focus,
+    #dashboardSourceFilterBtn:active,
+    #dashboardSourceFilterBtn.show,
+    #dashboardFactoryFilterBtn:hover,
+    #dashboardFactoryFilterBtn:focus,
+    #dashboardFactoryFilterBtn:active,
+    #dashboardFactoryFilterBtn.show,
+    #dashboardMarketFilterBtn:hover,
+    #dashboardMarketFilterBtn:focus,
+    #dashboardMarketFilterBtn:active,
+    #dashboardMarketFilterBtn.show,
+    #dashboardSortBtn:hover,
+    #dashboardSortBtn:focus,
+    #dashboardSortBtn:active,
+    #dashboardSortBtn.show,
+    #dashboardPanelsPdfBtn:hover,
+    #dashboardPanelsPdfBtn:focus,
+    #dashboardPanelsPdfBtn:active,
+    #dashboardPanelsPdfBtn.show,
+    #dashboardPanelsPdfBtn:disabled {
+      color: var(--mv-ink);
+    }
+
+    .panel-pdf-picker-item {
+      border: 2px solid var(--mv-border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: border-color var(--mv-transition), background-color var(--mv-transition), box-shadow var(--mv-transition);
+      background: #fff;
+    }
+
+    .panel-pdf-picker-item:hover {
+      border-color: #9ca3af;
+    }
+
+    .panel-pdf-picker-item-selected {
+      border-color: #2563eb;
+      background: #eff6ff;
+      box-shadow: 0 0 0 1px #2563eb;
+    }
+
+    .panel-pdf-picker-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .panel-pdf-picker-num {
+      font-size: 1.05rem;
+    }
+
+    .panel-pdf-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.35rem 1rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .panel-pdf-picker-field {
+      font-size: 0.9rem;
+      min-width: 0;
+    }
+
+    .panel-pdf-picker-note {
+      margin-top: 0.25rem;
+    }
+
+    .panel-pdf-picker-note .workshop-note-input {
+      margin-top: 0.35rem;
+    }
+
+    @media (max-width: 575.98px) {
+      .panel-pdf-picker-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .search-input-wrap::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      opacity: 0.45;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23727272'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E") center / contain no-repeat;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #dashboardSearchInput {
+      border-radius: 999px;
+      border: 1px solid var(--mv-border);
+      padding-left: 2.65rem;
+      padding-right: 2.65rem;
+      padding-top: 0.55rem;
+      padding-bottom: 0.55rem;
+      font-size: 0.9rem;
+      box-shadow: var(--mv-shadow);
+      transition: border-color var(--mv-transition), box-shadow var(--mv-transition);
+    }
+
+    #dashboardSearchInput:focus {
+      border-color: var(--mv-accent);
+      box-shadow: 0 0 0 4px var(--mv-accent-soft);
+    }
+
+    .dashboard-search-clear {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--mv-muted);
+      padding: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      transition: background var(--mv-transition), color var(--mv-transition);
+    }
+
+    .dashboard-search-clear.is-visible {
+      display: flex;
+    }
+
+    .dashboard-search-clear:hover {
+      background: var(--mv-grey-50);
+      color: var(--mv-ink);
+    }
+
+    .dashboard-search-clear:focus-visible {
+      outline: 2px solid var(--mv-accent);
+      outline-offset: 2px;
+    }
+
+    .dashboard-search-clear svg {
+      display: block;
+      pointer-events: none;
+    }
+
+    .card {
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius);
+      margin-bottom: 14px;
+      box-shadow: var(--mv-shadow);
+      background: var(--mv-surface);
+      transition: box-shadow var(--mv-transition), transform var(--mv-transition);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .card:hover { box-shadow: var(--mv-shadow-hover); }
+    }
+
+    .urgent-card {
+      border-left: 5px solid var(--mv-urgent);
+      background: linear-gradient(90deg, var(--mv-pastel-pink) 0%, var(--mv-surface) 56px);
+    }
+
+    .standard-card {
+      border-left: 5px solid var(--mv-border-strong);
+      background: linear-gradient(90deg, var(--mv-pastel-blue) 0%, var(--mv-surface) 56px);
+    }
+
+    .bg-shipped {
+      background: linear-gradient(135deg, var(--mv-pastel-blue) 0%, var(--mv-surface) 100%) !important;
+      border-color: var(--mv-border-strong) !important;
+    }
+
+    .bg-cancelled {
+      background: linear-gradient(135deg, var(--mv-pastel-pink) 0%, var(--mv-surface) 100%) !important;
+      border-color: var(--mv-border-strong) !important;
+    }
+
+    .rp-large {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--mv-ink);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .reviewer-item-type-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      vertical-align: middle;
+    }
+
+    .label-tag {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--mv-muted);
+      font-weight: 700;
+      margin-right: 6px;
+    }
+
+    .info-line { font-size: 0.9375rem; margin-bottom: 3px; color: var(--mv-ink); display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px; }
+
+    .shipping-box {
+      background: var(--mv-secondary);
+      border-radius: var(--mv-radius-sm);
+      padding: 10px;
+      border: 1px solid var(--mv-border);
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .col-tech { width: 16%; align-self: stretch; }
+    .col-desc { width: 26%; display: flex; flex-direction: column; min-width: 0; overflow: hidden; align-self: stretch; }
+    .col-ship { width: 41%; min-width: 0; }
+    .col-log { width: 17%; }
+    .desc-content { flex-grow: 1; margin-bottom: 0; min-height: 0; }
+    .desc-bottom-stack {
+      margin-top: auto;
+      padding-top: 12px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .desc-bottom-stack .due-section,
+    .desc-bottom-stack .workshop-note-section {
+      margin-top: 0;
+      padding-top: 0;
+    }
+    .due-section { margin-top: auto; padding-top: 12px; border-top: none; }
+    .due-section-tech { margin-top: auto; padding-top: 12px; }
+    .workshop-note-section {
+      margin-top: 10px;
+      padding-top: 10px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .workshop-note-section .workshop-note-input {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.875rem;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .active-urgent-panels-workshop-note {
+      margin-top: 8px;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    .active-urgent-panels-workshop-note .workshop-note-input {
+      margin-top: 4px;
+      font-size: 0.82rem;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    #loader { display: none; }
+
+    .badge-due {
+      background: var(--mv-ink);
+      color: var(--mv-bg);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--mv-radius-sm);
+      border: 1px solid var(--mv-ink);
+      letter-spacing: 0.02em;
+    }
+
+    .badge-date { font-size: 0.9rem; }
+
+    .item-note { font-size: 0.875rem; color: var(--mv-muted); font-style: italic; margin-top: 6px; display: block; line-height: 1.45; }
+
+    .item-list { margin: 8px 0 0; padding-left: 0; list-style: none; }
+    .item-list li {
+      font-size: 0.98rem;
+      color: var(--mv-ink);
+      margin-bottom: 5px;
+      word-break: break-word;
+      padding-left: 0.65rem;
+      border-left: 3px solid var(--mv-accent);
+    }
+
+    .empty-state {
+      background: var(--mv-surface);
+      border-radius: var(--mv-radius);
+      padding: 2.5rem 1.5rem;
+      box-shadow: var(--mv-shadow);
+      border: 1px dashed var(--mv-border-strong);
+    }
+
+    .empty-state h5 { font-weight: 700; color: var(--mv-muted); }
+
+    .logged-in-as.logged-in-as-simulated {
+      color: var(--mv-accent);
+      font-weight: 600;
+    }
+
+    .admin-launcher {
+      background: var(--mv-surface);
+      border-radius: var(--mv-radius);
+      box-shadow: var(--mv-shadow);
+      padding: 0.65rem 1rem;
+      margin-bottom: 0.75rem;
+      display: none;
+      border: 1px solid var(--mv-border);
+    }
+
+    .admin-launcher .admin-sim-input {
+      flex: 1 1 220px;
+      min-width: 140px;
+      max-width: 420px;
+      border-radius: var(--mv-radius-sm);
+    }
+
+    .admin-launcher .form-control,
+    .admin-launcher .btn { border-radius: var(--mv-radius-sm); }
+
+    .standard-view .col-desc { width: 48%; }
+    .standard-view .col-ship { width: 34%; }
+    .standard-view .col-log { width: 8.5%; }
+    .standard-active-view .col-desc { width: 56%; }
+    .standard-active-view .col-ship { width: 32%; }
+    .standard-active-view .col-log { display: none; }
+    .standard-shipped-view .col-ship { width: 42.5%; }
+    .standard-shipped-view .col-log { display: none; }
+    .standard-cancelled-view .col-desc { width: 52%; }
+    .standard-cancelled-view .col-ship { width: 28%; border-right: none !important; }
+    .standard-cancelled-view .col-log { width: 8%; }
+
+    .reviewer-no-ship-section .col-desc { width: 48%; }
+    .reviewer-no-ship-section .col-log { width: 28%; }
+    .reviewer-ip-record.reviewer-no-ship-section:not(.reviewer-logistics-notify) .col-desc { width: 72%; }
+    .reviewer-ip-record:not(.reviewer-logistics-notify) .col-log { display: none !important; }
+    .reviewer-ip-record.reviewer-logistics-notify .col-log.reviewer-logistics-col {
+      display: flex !important;
+    }
+
+    .reviewer-logistics-notify.reviewer-no-ship-section .col-desc {
+      flex: 1 1 0;
+      width: auto;
+      min-width: 0;
+    }
+    .reviewer-logistics-notify.reviewer-no-ship-section .col-log {
+      flex: 0 0 auto;
+      width: auto;
+      max-width: 12rem;
+    }
+    .reviewer-logistics-notify.reviewer-no-ship-section .col-desc { border-right: none !important; }
+    .reviewer-logistics-notify .col-log.reviewer-logistics-col {
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-start;
+      border: none !important;
+      padding-left: 0.75rem !important;
+    }
+    .reviewer-logistics-notify .reviewer-logistics-notify-box {
+      background: transparent;
+      border: none;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .reviewer-logistics-notify-btn {
+      width: 100%;
+      max-width: 100%;
+      white-space: normal;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    .col-tech-inner { display: flex; flex-direction: column; height: 100%; }
+    .tech-bottom-action { margin-top: auto; padding-top: 10px; }
+    .tech-detail-meta {
+      margin-top: 14px;
+    }
+    .standard-rp-action-btn {
+      min-width: 5.5rem;
+      padding: 0.375rem 0.65rem;
+      font-weight: 600;
+      border-radius: var(--mv-radius-sm);
+    }
+    .standard-active-actions-row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 10px;
+    }
+    .standard-active-actions-row .standard-rp-action-btn {
+      min-width: 0;
+      flex: 0 1 auto;
+      padding: 0.35rem 0.55rem;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+    .standard-rp-status-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.35em 0.55em;
+      align-self: flex-start;
+    }
+    .plain-action-box { background: transparent; border: none; padding: 0; display: flex; align-items: center; justify-content: center; height: 100%; }
+    .cancelled-right-box { display: flex; align-items: center; justify-content: center; background: transparent; border: none; padding: 0; }
+    .bring-back-btn { min-height: 44px; padding-top: 10px; padding-bottom: 10px; border-radius: var(--mv-radius-sm); font-weight: 700; }
+    .tracking-copy-btn { padding: 2px 8px; font-size: 0.72rem; line-height: 1.2; border-radius: 6px; font-weight: 600; }
+    .standard-logged-by { font-size: 0.76rem; line-height: 1.25; color: var(--mv-muted); }
+
+    .active-urgent-panels-board {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .active-urgent-panels-col {
+      background: var(--mv-surface);
+      border-radius: var(--mv-radius);
+      padding: 1rem 1.1rem;
+      box-shadow: var(--mv-shadow);
+      border: 1px solid var(--mv-border);
+      border-top: 4px solid var(--mv-accent);
+    }
+
+    .active-urgent-panels-col h5 {
+      margin-bottom: 12px;
+      color: var(--mv-ink);
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .active-urgent-panels-item {
+      border: 1px solid var(--mv-border);
+      border-radius: var(--mv-radius-sm);
+      padding: 12px;
+      margin-bottom: 10px;
+      background: var(--mv-bg);
+      transition: border-color var(--mv-transition), box-shadow var(--mv-transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .active-urgent-panels-item:hover {
+      border-color: var(--mv-accent);
+      box-shadow: 0 4px 14px rgba(33, 33, 33, 0.06);
+    }
+
+    .active-urgent-panels-item:last-child { margin-bottom: 0; }
+
+    .active-urgent-panels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+
+    .active-urgent-panels-line { font-size: 0.875rem; margin-bottom: 4px; color: var(--mv-ink); line-height: 1.4; }
+
+    .active-urgent-panels-due {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--mv-ink);
+    }
+
+    .active-urgent-panels-item-footer {
+      margin-top: 10px;
+      padding-top: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .active-urgent-panels-item-footer .d-flex.gap-2 {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .active-urgent-panels-item-footer .btn {
+      white-space: normal;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .active-urgent-panels-tabs-wrap { display: none; justify-content: center; margin: -4px 0 16px; }
+
+    .meavo-app .modal-content {
+      border: none;
+      border-radius: var(--mv-radius);
+      box-shadow: var(--mv-shadow-hover);
+    }
+
+    .meavo-app .modal-header {
+      border-bottom: 1px solid var(--mv-border);
+      padding: 1rem 1.25rem;
+    }
+
+    .meavo-app .modal-title { font-weight: 800; letter-spacing: -0.02em; }
+
+    .meavo-app .modal-footer {
+      border-top: 1px solid var(--mv-border);
+      padding: 0.85rem 1.25rem;
+    }
+
+    .meavo-app .form-control,
+    .meavo-app .form-select {
+      border-radius: var(--mv-radius-sm);
+      border-color: var(--mv-border-strong);
+    }
+
+    .meavo-app .form-control:focus,
+    .meavo-app .form-select:focus {
+      border-color: var(--mv-accent);
+      box-shadow: 0 0 0 4px var(--mv-accent-soft);
+    }
+
+    .aup-tabs-scroll-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      padding-bottom: 6px;
+      margin-bottom: -2px;
+    }
+
+    .aup-tabs-scroll-wrap::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .aup-tabs-scroll-wrap::-webkit-scrollbar-thumb {
+      background: var(--mv-border-strong);
+      border-radius: 4px;
+    }
+
+    .aup-tabs-scroll-wrap .btn-group {
+      flex-wrap: nowrap;
+    }
+
+    .aup-tabs-scroll-wrap .btn-group > .btn {
+      white-space: nowrap;
+    }
+
+    @media screen and (max-width: 768px) {
+      .header-area {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+        align-items: stretch !important;
+      }
+
+      .header-brand-block {
+        width: 100%;
+      }
+
+      #headerControls {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 10px;
+      }
+
+      #headerControls > .btn,
+      #headerControls > div {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      #headerControls #standardRegionalBtnGroup {
+        justify-content: center;
+      }
+
+      #viewAndRefreshWrap {
+        width: 100%;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        margin-left: 0 !important;
+        gap: 10px !important;
+      }
+
+      #viewAndRefreshWrap > .btn {
+        width: 100%;
+        min-height: 44px;
+      }
+
+      .view-toggle-group {
+        width: 100%;
+        justify-content: stretch;
+        padding: 5px;
+        gap: 3px;
+      }
+
+      .view-toggle-group .view-toggle-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 44px;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+        font-size: 0.78rem;
+        line-height: 1.15;
+        white-space: normal;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .dashboard-search-wrap {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      .search-field-shell {
+        max-width: none;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #dashboardSearchInput {
+        min-height: 44px;
+        font-size: 16px;
+      }
+
+      .dashboard-search-clear {
+        width: 36px;
+        height: 36px;
+        right: 6px;
+      }
+
+      .dashboard-sort-wrap {
+        width: 100%;
+      }
+
+      #dashboardItemFilterBtn,
+      #dashboardSourceFilterBtn,
+      #dashboardFactoryFilterBtn,
+      #dashboardMarketFilterBtn,
+      #dashboardSortBtn {
+        width: 100%;
+        min-height: 44px;
+      }
+
+      .meavo-app .card.p-3 {
+        padding: 0.9rem !important;
+      }
+
+      .d-flex-responsive { flex-direction: column !important; }
+      .col-tech, .col-desc, .col-ship, .col-log {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--mv-border);
+        padding: 12px 0 !important;
+        margin: 0 !important;
+        min-width: 0;
+      }
+      .col-log { border-bottom: none; }
+      .rp-large { font-size: 1.85rem; word-break: break-word; }
+      .shipping-box { margin-top: 10px; }
+      .btn-sm { padding: 10px 14px; font-size: 0.9rem; min-height: 44px; }
+      .col-tech-inner > .tech-rp-number-row {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+      .tech-bottom-action.d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+      .tech-bottom-action .standard-rp-action-btn {
+        width: 100%;
+        min-height: 44px;
+      }
+      .standard-active-actions-row .standard-rp-action-btn {
+        width: auto;
+        min-height: 38px;
+        flex: 1 1 0;
+        min-width: 0;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.15;
+      }
+      .active-urgent-panels-board { grid-template-columns: 1fr; }
+      .active-urgent-panels-tabs-wrap {
+        justify-content: stretch;
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .aup-tabs-scroll-wrap .btn-group > .btn {
+        min-height: 44px;
+      }
+
+      .admin-launcher {
+        padding: 1rem;
+      }
+
+      .meavo-app .modal.modal-fullscreen-sm-down .modal-footer .btn,
+      .meavo-app .modal.modal-fullscreen-sm-down .modal-header .btn {
+        min-height: 44px;
+      }
+
+      .meavo-app input.form-control,
+      .meavo-app textarea.form-control,
+      .meavo-app select.form-select {
+        font-size: 16px;
+      }
+    }
+
+    @media screen and (max-width: 576px) {
+      .active-urgent-panels-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .page-brand-title {
+        font-size: 1.2rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card,
+      #headerControls .btn,
+      .active-urgent-panels-item { transition: none; }
+    }
+
+    .meavo-app .badge.bg-info {
+      background-color: var(--mv-pastel-blue) !important;
+      color: var(--mv-ink) !important;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .meavo-app .badge.bg-danger {
+      background-color: var(--mv-pastel-pink) !important;
+      color: var(--mv-urgent) !important;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .meavo-app .btn-warning,
+    .meavo-app .bring-back-btn {
+      background-color: var(--mv-pastel-yellow);
+      border-color: var(--mv-border-strong);
+      color: var(--mv-ink);
+      font-weight: 600;
+    }
+
+    .meavo-app .btn-warning:hover,
+    .meavo-app .bring-back-btn:hover {
+      background-color: #e8d49a;
+      border-color: var(--mv-border-strong);
+      color: var(--mv-ink);
+    }
+
+    .meavo-app .btn-outline-secondary {
+      border-color: var(--mv-border-strong);
+      color: var(--mv-muted);
+    }
+
+    .meavo-app .btn-outline-secondary:hover {
+      background: var(--mv-secondary);
+      border-color: var(--mv-border-strong);
+      color: var(--mv-ink);
+    }
+
+    .meavo-app .text-muted { color: var(--mv-muted) !important; }
+    .meavo-app .text-secondary { color: var(--mv-muted) !important; }
+  </style>
+</head>
+<body class="meavo-app">
+
+<div class="container-fluid">
+  <div id="adminLauncher" class="admin-launcher">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <label class="visually-hidden" for="simulateEmailInline">Simulate another @meavo.com user (optional)</label>
+      <input type="text" id="simulateEmailInline" class="form-control form-control-sm admin-sim-input" placeholder="name or name@meavo.com" autocomplete="username" autocapitalize="none" spellcheck="false">
+      <button type="button" class="btn btn-outline-secondary btn-sm flex-shrink-0" onclick="applyInlineSimulation()">Apply</button>
+    </div>
+  </div>
+
+  <div class="header-area d-flex justify-content-between align-items-center flex-wrap">
+    <div class="header-brand-block text-md-start text-center">
+      <div class="page-brand-title mb-0 header-brand-title-row justify-content-center justify-content-md-start">
+        <span id="pageTitleText">Meavo Spare Parts</span><span id="pageTitleEmail" class="header-email"></span>
+      </div>
+      <div id="pageBrandSub" class="page-brand-sub">Operations dashboard</div>
+      <div id="loggedInAs" class="logged-in-as"></div>
+    </div>
+
+    <div id="headerControls" class="d-flex align-items-center flex-wrap justify-content-center">
+      <button id="newEntryBtn" class="btn btn-sm fw-bold me-2 mb-2 mb-md-0" onclick="goToLogger()">New Entry Form</button>
+      <div id="kalinMainViewTabs" class="view-toggle-group me-2 mb-2 mb-md-0" style="display: none;" role="tablist" aria-label="Kalin dashboard view">
+        <button id="btnKalinAup" type="button" class="btn btn-sm view-toggle-btn view-toggle-active" role="tab" aria-selected="true" onclick="changeKalinDashboardMode('aup')">Active Urgent Panels</button>
+        <button id="btnKalinAllRps" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeKalinDashboardMode('all')">All RPs</button>
+        <button id="btnKalinOwnRps" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeKalinDashboardMode('own')">Kalin's RPs</button>
+      </div>
+      <button id="standardLoggedPartsBtn" class="btn btn-outline-light btn-sm me-2 mb-2 mb-md-0" style="display: none;" onclick="toggleStandardLoggedPartsMode()">Standard Logged Parts</button>
+      <button id="ownRpsBtn" class="btn btn-outline-light btn-sm me-2 mb-2 mb-md-0" style="display: none;" onclick="toggleOwnRpsMode()">My RPs</button>
+      <div id="standardRegionalBtnGroup" class="d-inline-flex flex-wrap align-items-center me-2 mb-2 mb-md-0" style="display: none;"></div>
+      <div id="viewAndRefreshWrap" class="d-flex align-items-center flex-wrap justify-content-end ms-md-auto mb-2 mb-md-0" style="display: none; gap: 10px;">
+        <div id="logisticsViewTabs" class="view-toggle-group" style="display: none;" role="tablist" aria-label="Logistics view">
+          <button id="btnLogProcessing" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeLogisticsView('processing')">Processing</button>
+          <button id="btnLogReady" type="button" class="btn btn-sm view-toggle-btn view-toggle-active" role="tab" aria-selected="true" onclick="changeLogisticsView('ready')">Ready to ship</button>
+          <button id="btnLogShipped" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeLogisticsView('shipped')">Shipped</button>
+        </div>
+        <div id="todorViewTabs" class="view-toggle-group" style="display: none;" role="tablist" aria-label="Изгледи Тодор">
+          <button id="btnTodorIznos" type="button" class="btn btn-sm view-toggle-btn view-toggle-active" role="tab" aria-selected="true" onclick="changeTodorMainView('iznos')">Износ</button>
+          <button id="btnTodorAvailability" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeTodorMainView('availability')">Наличност Тополи</button>
+          <button id="btnTodorIp" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeTodorMainView('ip')">Вътрешна продукция (IP)</button>
+        </div>
+        <div id="aupViewTabs" class="view-toggle-group" style="display: none;" role="tablist" aria-label="Urgent panels view">
+          <button id="btnUnbriefed" type="button" class="btn btn-sm view-toggle-btn view-toggle-active" role="tab" aria-selected="true" onclick="changeActiveUrgentPanelsView('unbriefed')">Unbriefed</button>
+          <button id="btnInProduction" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeActiveUrgentPanelsView('inproduction')">In Production</button>
+          <button id="btnReady" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeActiveUrgentPanelsView('ready')">Ready</button>
+          <button id="btnAupShipped" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeActiveUrgentPanelsView('shipped')">Shipped</button>
+        </div>
+        <div id="adminOwnPartsViewTabs" class="view-toggle-group" style="display: none;" role="tablist" aria-label="My logged parts view">
+          <button id="btnAdminOwnActive" type="button" class="btn btn-sm view-toggle-btn view-toggle-active" role="tab" aria-selected="true" onclick="changeView('active')">Active</button>
+          <button id="btnAdminOwnArchive" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeView('archive')">Shipped</button>
+          <button id="btnAdminOwnCancelled" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeView('cancelled')">Cancelled</button>
+        </div>
+        <div id="viewTabs" class="view-toggle-group" style="display: none;" role="tablist" aria-label="Orders view">
+          <button id="btnActive" type="button" class="btn btn-sm view-toggle-btn view-toggle-active" role="tab" aria-selected="true" onclick="changeView('active')">Активни</button>
+          <button id="btnAnnaReady" type="button" class="btn btn-sm view-toggle-btn" style="display: none;" role="tab" aria-selected="false" onclick="changeView('ready')">Готови</button>
+          <button id="btnArchive" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeView('archive')">Изпратени</button>
+          <button id="btnCancelled" type="button" class="btn btn-sm view-toggle-btn" role="tab" aria-selected="false" onclick="changeView('cancelled')">Анулирани</button>
+        </div>
+        <button id="manualRefreshBtn" class="btn btn-outline-light btn-sm" style="display: none;" onclick="refreshData()">Ръчно обновяване</button>
+        <button id="refreshLoaderBtn" class="btn btn-outline-light btn-sm" style="display: none;" disabled>
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Loading...
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="dashboardSearchWrap" class="dashboard-search-wrap px-1" style="display: none;">
+    <div class="search-field-shell">
+      <div class="search-input-wrap flex-grow-1">
+        <input type="text" id="dashboardSearchInput" class="form-control form-control-sm" placeholder="RP, client, or market" autocomplete="off" role="searchbox" inputmode="search" aria-label="Search RP, client, or market">
+        <button type="button" id="dashboardSearchClearBtn" class="dashboard-search-clear" onclick="clearDashboardSearch_()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="dashboardMarketFilterWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="dashboardMarketFilterBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">All</button>
+        <ul id="dashboardMarketFilterMenu" class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" id="dashboardMarketFilterAllBtn" class="dropdown-item active" onclick="setDashboardMarketFilter_('all')">All</button></li>
+        </ul>
+      </div>
+      <div id="dashboardSourceFilterWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="dashboardSourceFilterBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Всички</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" id="dashboardSourceFilterAllBtn" class="dropdown-item active" onclick="setDashboardSourceFilter_('all')">Всички</button></li>
+          <li><button type="button" id="dashboardSourceFilterRpBtn" class="dropdown-item" onclick="setDashboardSourceFilter_('rp')">Резервни Части</button></li>
+          <li><button type="button" id="dashboardSourceFilterIpBtn" class="dropdown-item" onclick="setDashboardSourceFilter_('ip')">Вътрешна Продукция</button></li>
+        </ul>
+      </div>
+      <div id="dashboardFactoryFilterWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="dashboardFactoryFilterBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Всички</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" id="dashboardFactoryFilterAllBtn" class="dropdown-item active" onclick="setDashboardFactoryFilter_('all')">Всички</button></li>
+          <li><button type="button" id="dashboardFactoryFilterAksBtn" class="dropdown-item" onclick="setDashboardFactoryFilter_('AKS')">AKS</button></li>
+          <li><button type="button" id="dashboardFactoryFilterVarBtn" class="dropdown-item" onclick="setDashboardFactoryFilter_('VAR')">VAR</button></li>
+          <li><button type="button" id="dashboardFactoryFilterKazBtn" class="dropdown-item" onclick="setDashboardFactoryFilter_('KAZ')">KAZ</button></li>
+        </ul>
+      </div>
+      <div id="dashboardItemFilterWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="dashboardItemFilterBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Всички</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" id="dashboardItemFilterAllBtn" class="dropdown-item active" onclick="setDashboardItemFilter_('all')">Всички</button></li>
+          <li><button type="button" id="dashboardItemFilterPartsBtn" class="dropdown-item" onclick="setDashboardItemFilter_('parts')">Части</button></li>
+          <li><button type="button" id="dashboardItemFilterPanelsBtn" class="dropdown-item" onclick="setDashboardItemFilter_('panels')">Панели</button></li>
+        </ul>
+      </div>
+      <div id="dashboardSortWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="dashboardSortBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Newest First</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" id="dashboardSortNewestBtn" class="dropdown-item active" onclick="setDashboardSortOrder_('newest')">Newest First</button></li>
+          <li><button type="button" id="dashboardSortOldestBtn" class="dropdown-item" onclick="setDashboardSortOrder_('oldest')">Oldest First</button></li>
+        </ul>
+      </div>
+      <div id="dashboardPanelsPdfWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="dashboardPanelsPdfBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Генерирай PDF</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" class="dropdown-item" onclick="generateStefanActivePanelsPdf_()">Всички Активни</button></li>
+          <li><button type="button" class="dropdown-item" onclick="openStefanPanelPdfPicker_()">Конкретни Части</button></li>
+        </ul>
+      </div>
+      <div id="todorIznosWeekWrap" class="dropdown dashboard-sort-wrap" style="display: none;">
+        <button type="button" id="todorIznosWeekBtn" class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Тази седмица</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" id="todorIznosWeekThisBtn" class="dropdown-item active" onclick="setTodorIznosWeek_('this_week')">Тази седмица</button></li>
+          <li><button type="button" id="todorIznosWeekNextBtn" class="dropdown-item" onclick="setTodorIznosWeek_('next_week')">Следваща седмица</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="partsContainer"></div>
+</div>
+
+<div class="modal fade" id="stefanPanelPdfPickerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Конкретни Части</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="stefanPanelPdfPickerList"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отказ</button>
+        <button type="button" id="stefanPanelPdfPickerGenerateBtn" class="btn btn-primary btn-sm" onclick="generateStefanSelectedPanelsPdfFromModal_()">Генерирай PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="briefModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Brief Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="briefRpNum">
+        <div class="mb-3">Briefed with <strong id="briefFactoryLabel">-</strong></div>
+        <label class="form-label">Production ETA</label>
+        <input type="date" id="briefProductionEta" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmBrief()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="existingPanelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Used Existing Panel</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="existingPanelRpNum">
+        <div class="mb-3">Panel from <strong id="existingPanelFactoryLabel">-</strong></div>
+        <label class="form-label">Batch</label>
+        <input type="text" id="existingPanelBatch" class="form-control mb-3">
+        <label class="form-label">Colour</label>
+        <input type="text" id="existingPanelColor" class="form-control mb-3">
+        <label class="form-label" for="existingPanelWarehouse">Warehouse</label>
+        <select id="existingPanelWarehouse" class="form-select">
+          <option value="">Choose warehouse...</option>
+          <option value="Topoli">Topoli</option>
+          <option value="Alliance">Alliance</option>
+          <option value="NY Warehouse">NY Warehouse</option>
+          <option value="SF Warehouse">SF Warehouse</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmExistingPanel()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="etaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Production ETA</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="etaRpNum">
+        <label class="form-label">New ETA</label>
+        <input type="date" id="etaNewDate" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="confirmEtaChange()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="dateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Промяна на срок</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modalRpNum">
+        <label class="form-label">Нов срок на изпращане</label>
+        <input type="date" id="modalNewDate" class="form-control mb-3">
+        <label class="form-label">Причина за забавяне</label>
+        <textarea id="modalReason" class="form-control" rows="2" placeholder="Опишете причината..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="dateModalCancelBtn" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отказ</button>
+        <button type="button" id="dateModalSubmitBtn" class="btn btn-primary btn-sm" onclick="submitDateChange()">Запази и отложи</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  var currentView = "active";
+  var dateModal;
+  var briefModal;
+  var stefanPanelPdfPickerModal;
+  var existingPanelModal;
+  var etaModal;
+  var userEmail = "<?= userEmail ?>";
+  var scriptUrl = "<?= scriptUrl ?>";
+  var simulatedUserEmail = "";
+  var isAdminUser = false;
+  /** Admin emails — full RP-app rights and the unrestricted admin dashboard view. Keep in sync with WebAppLogic.js ADMIN_EMAILS_. */
+  var ADMIN_EMAILS_ = { "boyan@meavo.com": true, "todor@meavo.com": true };
+  function isAdminEmail_(email) {
+    return ADMIN_EMAILS_[String(email || "").trim().toLowerCase()] === true;
+  }
+  var hasEnteredAdminView = false;
+  var activeUrgentPanelsView = "unbriefed";
+  /** Logistics viewer: processing | ready | shipped */
+  var logisticsView = "ready";
+  /** Todor dashboard: this_week | next_week | topoli — keep in sync with WebAppLogic.js TODOR_DASHBOARD_VIEWER_EMAILS_. */
+  var TODOR_DASHBOARD_VIEWER_EMAILS_ = { "todor.dimitrov@meavo.com": true };
+  /** Ivan dashboard (read-only all RP types) — keep in sync with WebAppLogic.js IVAN_DASHBOARD_VIEWER_EMAILS_. */
+  var IVAN_DASHBOARD_VIEWER_EMAILS_ = { "ivan@meavo.com": true };
+  /** Due date in left column (pinned to bottom) — keep in sync with WebAppLogic.js isWorkshopNoteViewerForFactory_ emails. */
+  var WORKSHOP_NOTE_DASHBOARD_VIEWER_EMAILS_ = {
+    "stefan@meavo.com": true,
+    "ivan@meavo.com": true,
+    "kalin@meavo.com": true,
+    "boyan@meavo.com": true,
+    "yavor@meavo.com": true
+  };
+  var todorMainView = "iznos";
+  var todorIznosWeek = "this_week";
+  var lastDashboardTodorMeta = null;
+  var standardLoggedPartsMode = false;
+  var ownRpsMode = false;
+  /** Kalin dashboard: aup | all | own */
+  var kalinDashboardMode = "aup";
+  var activeRegionalScopes = [];
+  var lastEffectiveViewerForRegional_ = "";
+  var lastEffectiveViewerForKalin_ = "";
+  var isRefreshing = false;
+  var shouldShowRefreshBtn = false;
+  var dashboardSearchQuery = "";
+  var dashboardCrossTabSearchActive = false;
+  var dashboardItemFilter = "all";
+  var dashboardSourceFilter = "all";
+  var dashboardFactoryFilter = "all";
+  var dashboardMarketFilter = "all";
+  var dashboardSortOrder = "newest";
+  var lastDashboardPartsList = null;
+  var lastDashboardUrgentBuckets = null;
+
+  window.onload = function() {
+    google.script.run.primeUserAuthorizations();
+    dateModal = new bootstrap.Modal(document.getElementById("dateModal"));
+    briefModal = new bootstrap.Modal(document.getElementById("briefModal"));
+    stefanPanelPdfPickerModal = new bootstrap.Modal(document.getElementById("stefanPanelPdfPickerModal"));
+    existingPanelModal = new bootstrap.Modal(document.getElementById("existingPanelModal"));
+    etaModal = new bootstrap.Modal(document.getElementById("etaModal"));
+    isAdminUser = isAdminEmail_(userEmail);
+
+    if (isAdminUser) {
+      initAdminDashboard_();
+      initAdminSimInput_();
+    } else {
+      document.getElementById("headerControls").style.display = "flex";
+      if (isActiveUrgentPanelsMode_() && !isKalinViewer_()) {
+        document.getElementById("newEntryBtn").style.display = "none";
+        document.getElementById("manualRefreshBtn").style.display = "inline-block";
+      }
+      if (isTodorDashboardMode_()) {
+        document.getElementById("newEntryBtn").style.display = "none";
+      }
+      refreshData();
+    }
+    updateLoggedInAs_();
+    initDashboardSearch_();
+    updateDashboardSearchPlaceholder_();
+    initBackgroundAwareAutoRefresh_();
+  };
+
+  // Auto-refresh once a minute, but only while the tab is actually visible.
+  // Forgotten background tabs were previously polling getPartsData 24/7 and
+  // dominating Apps Script execution time. When the tab becomes visible again
+  // we trigger a single refresh so users see fresh data immediately.
+  function initBackgroundAwareAutoRefresh_() {
+    var AUTO_REFRESH_INTERVAL_MS = 60000;
+    setInterval(function() {
+      if (document.hidden) return;
+      refreshData();
+    }, AUTO_REFRESH_INTERVAL_MS);
+
+    document.addEventListener("visibilitychange", function() {
+      if (!document.hidden) refreshData();
+    });
+  }
+
+  function updateDashboardSearchClearVisibility_() {
+    var inp = document.getElementById("dashboardSearchInput");
+    var btn = document.getElementById("dashboardSearchClearBtn");
+    if (!inp || !btn) return;
+    var has = String(inp.value || "").length > 0;
+    btn.classList.toggle("is-visible", has);
+    btn.setAttribute("aria-hidden", has ? "false" : "true");
+  }
+
+  function isDashboardCrossTabSearchActive_() {
+    return !!parseDashboardSearchQuery_(dashboardSearchQuery).raw;
+  }
+
+  function getDashboardFetchViewParam_() {
+    if (!isDashboardCrossTabSearchActive_()) {
+      if (isLogisticsMode_()) return logisticsView;
+      if (isActiveUrgentPanelsMode_()) return activeUrgentPanelsView;
+      return currentView;
+    }
+    return "all";
+  }
+
+  function derivePartViewFromStatus_(part) {
+    var status = String(part && part.status || "").trim().toLowerCase();
+    if (status === "cancelled") return "cancelled";
+    if (status === "shipped" || status === "ordered on amazon") return "archive";
+    if (status === "ready") return "ready";
+    return "active";
+  }
+
+  function getEffectivePartView_(part) {
+    if (!isDashboardCrossTabSearchActive_()) return currentView;
+    return derivePartViewFromStatus_(part);
+  }
+
+  function deriveLogisticsViewFromStatus_(status) {
+    var lower = String(status || "").trim().toLowerCase();
+    if (lower === "shipped") return "shipped";
+    if (lower === "ready") return "ready";
+    return "processing";
+  }
+
+  function deriveUrgentPanelViewFromStatus_(status) {
+    var lower = String(status || "").trim().toLowerCase();
+    if (lower === "in production" || lower === "briefed") return "inproduction";
+    if (lower === "ready") return "ready";
+    if (lower === "shipped") return "shipped";
+    return "unbriefed";
+  }
+
+  function getEffectiveUrgentPanelView_(item) {
+    if (!isDashboardCrossTabSearchActive_()) return activeUrgentPanelsView;
+    return deriveUrgentPanelViewFromStatus_(item && item.status);
+  }
+
+  function getEffectiveTodorMainView_(part) {
+    if (!isDashboardCrossTabSearchActive_()) return todorMainView;
+    if (String(part && part.recordType || "").toLowerCase() === "ip") return "ip";
+    if (part && (part.shippingWeek || part.shippingWeekCode)) return "iznos";
+    return "availability";
+  }
+
+  function initDashboardSearch_() {
+    var inp = document.getElementById("dashboardSearchInput");
+    if (!inp) return;
+    inp.addEventListener("input", function() {
+      dashboardSearchQuery = inp.value;
+      updateDashboardSearchClearVisibility_();
+      var crossTab = isDashboardCrossTabSearchActive_();
+      if (crossTab !== dashboardCrossTabSearchActive) {
+        dashboardCrossTabSearchActive = crossTab;
+        refreshData();
+        return;
+      }
+      applyDashboardSearchFilter_();
+    });
+    dashboardCrossTabSearchActive = isDashboardCrossTabSearchActive_();
+    updateDashboardSearchClearVisibility_();
+  }
+
+  function parseDashboardSearchQuery_(raw) {
+    var s = String(raw || "").trim().toLowerCase();
+    return { raw: s, digits: s.replace(/\D/g, "") };
+  }
+
+  function parseDashboardDate_(value) {
+    var raw = String(value || "").trim();
+    if (!raw) return null;
+
+    var isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+      return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+    }
+
+    var slashMatch = raw.match(/^(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?$/);
+    if (slashMatch) {
+      var day = Number(slashMatch[1]);
+      var month = Number(slashMatch[2]) - 1;
+      var year = slashMatch[3] ? Number(slashMatch[3]) : new Date().getFullYear();
+      if (year < 100) year += 2000;
+      return new Date(year, month, day);
+    }
+
+    var parsed = new Date(raw);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function getRpSortNumber_(rpNum) {
+    var match = String(rpNum || "").match(/(\d+)/);
+    return match ? Number(match[1]) : 0;
+  }
+
+  function dashboardSearchMatchesRp_(rpNum, q) {
+    if (!q.raw) return true;
+    var rpLower = String(rpNum || "").trim().toLowerCase().replace(/\s/g, "");
+    if (rpLower.indexOf(q.raw.replace(/\s/g, "")) !== -1) return true;
+    var rpDig = rpLower.replace(/\D/g, "");
+    if (q.digits && rpDig.indexOf(q.digits) !== -1) return true;
+    return false;
+  }
+
+  function dashboardSearchMatchesPartLike_(obj, q) {
+    if (!q.raw) return true;
+    var client = String(obj.client || "").toLowerCase();
+    if (client.indexOf(q.raw) !== -1) return true;
+    var market = String(obj.market || "").toLowerCase();
+    if (market.indexOf(q.raw) !== -1) return true;
+    if (dashboardSearchMatchesRp_(obj.rpNum, q) || dashboardSearchMatchesRp_(obj.rpCode, q)) return true;
+    if (obj.items && obj.items.length) {
+      for (var ii = 0; ii < obj.items.length; ii++) {
+        if (String(obj.items[ii].displayText || "").toLowerCase().indexOf(q.raw) !== -1) return true;
+      }
+    }
+    var extras = [
+      obj.batch,
+      obj.warehouse,
+      obj.factory,
+      obj.factoryName,
+      obj.sourceRp,
+      obj.model,
+      obj.issue,
+      obj.note,
+      obj.status,
+      obj.pallet,
+      obj.shippingWeek,
+      obj.shippingWeekCode,
+      obj.rpCode
+    ];
+    for (var i = 0; i < extras.length; i++) {
+      if (String(extras[i] || "").toLowerCase().indexOf(q.raw) !== -1) return true;
+    }
+    return false;
+  }
+
+  function isDashboardIpRecord_(part) {
+    return !!(part && String(part.recordType || "").toLowerCase() === "ip");
+  }
+
+  function isDashboardNikolayIpRecord_(part) {
+    return isDashboardIpRecord_(part);
+  }
+
+  function isReviewerPanelRow_(part, reviewerConfig) {
+    if (!reviewerConfig || !reviewerConfig.panelLogisticsButtonOnly) return false;
+    if (isDashboardIpRecord_(part)) return true;
+    return !isDashboardPartItemType_(part && part.itemType);
+  }
+
+  function isReviewerPanelLogisticsOnly_(part, reviewerConfig) {
+    return isReviewerPanelRow_(part, reviewerConfig);
+  }
+
+  function isDashboardPartItemType_(itemType) {
+    var normalized = String(itemType || "").trim().toUpperCase();
+    if (!normalized) return false;
+    var tokens = normalized.split("|").map(function(token) {
+      return String(token || "").trim();
+    }).filter(Boolean);
+    return tokens.some(function(token) {
+      return token === "PART" || token === "PARTS" || token === "STOCK" || token === "SPARE";
+    });
+  }
+
+  function isDashboardItemFilterEnabled_() {
+    if (isKalinAllRpsMode_()) return true;
+    if (getViewerRole_() === "logistics") return true;
+    var reviewerConfig = getReviewerDashboardConfig_();
+    return !!(reviewerConfig && reviewerConfig.showItemTypeFilter);
+  }
+
+  function isDashboardSourceFilterEnabled_() {
+    var reviewerConfig = getReviewerDashboardConfig_();
+    return !!(reviewerConfig && reviewerConfig.showSourceFilter);
+  }
+
+  function isIvanDashboardMode_() {
+    var ev = getEffectiveViewerEmail_();
+    return IVAN_DASHBOARD_VIEWER_EMAILS_[ev] === true;
+  }
+
+  function isWorkshopNoteDashboardViewer_() {
+    var ev = String(getEffectiveViewerEmail_() || "").trim().toLowerCase();
+    return WORKSHOP_NOTE_DASHBOARD_VIEWER_EMAILS_[ev] === true;
+  }
+
+  function buildDueSectionHtml_(part, viewerRole, labels, reviewerConfig, partView, options) {
+    options = options || {};
+    var cssClass = "due-section" + (options.inTechColumn ? " due-section-tech" : "");
+    var dueFallback = (viewerRole === "standard" || viewerRole === "ivan") ? "TBC" : "---";
+    var editBtn = part.canEditDueDate && viewerRole === "anna" && (!reviewerConfig || reviewerConfig.allowDueDateEdit !== false) && (partView === "active" || partView === "ready")
+      ? '<button class="btn btn-link btn-sm p-0 ms-1 text-decoration-none" onclick="openDateModal(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.changeDueDate) + '</button>'
+      : "";
+    return '<div class="' + cssClass + '">' +
+      '<span class="badge badge-due badge-date">' + escapeHtml(part.due || dueFallback) + '</span>' +
+      editBtn +
+      '</div>';
+  }
+
+  function buildWorkshopNoteSectionHtml_(part, labels) {
+    if (!part || !part.showWorkshopNote) return "";
+    var recordNum = String(part.rpNum || "");
+    var recordType = String(part.recordType || "rp").toLowerCase();
+    var savedVal = String(part.workshopNote || "");
+    var disabledAttr = part.canEditWorkshopNote ? "" : " disabled";
+    return '<div class="workshop-note-section">' +
+      '<span class="label-tag">' + escapeHtml(labels.workshopNote || "Бележка Цех") + '</span>' +
+      '<input type="text" class="form-control form-control-sm workshop-note-input"' +
+        ' data-record-num="' + escapeAttr(recordNum) + '"' +
+        ' data-record-type="' + escapeAttr(recordType) + '"' +
+        ' data-last-saved="' + escapeAttr(savedVal) + '"' +
+        ' value="' + escapeAttr(savedVal) + '"' +
+        disabledAttr +
+        ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}"' +
+        ' onblur="saveWorkshopNoteFromUi_(this)">' +
+      '</div>';
+  }
+
+  function saveWorkshopNoteFromUi_(el) {
+    if (!el || el.disabled) return;
+    var recordNum = el.getAttribute("data-record-num");
+    var recordType = el.getAttribute("data-record-type") || "rp";
+    var newVal = String(el.value || "").trim();
+    var oldVal = String(el.getAttribute("data-last-saved") || "").trim();
+    if (!recordNum || newVal === oldVal) return;
+    el.disabled = true;
+    google.script.run
+      .withSuccessHandler(function() {
+        el.disabled = false;
+        el.setAttribute("data-last-saved", newVal);
+      })
+      .withFailureHandler(function(err) {
+        el.disabled = false;
+        handleFailure(err);
+      })
+      .updateWorkshopNoteFromWeb(recordNum, recordType, newVal, simulatedUserEmail);
+  }
+
+  function isDashboardFactoryFilterEnabled_() {
+    if (isKalinAllRpsMode_()) return true;
+    return isIvanDashboardMode_();
+  }
+
+  function matchesDashboardSourceFilter_(part) {
+    if (!isDashboardSourceFilterEnabled_()) return true;
+    if (dashboardSourceFilter === "all") return true;
+    var rt = String((part && part.recordType) || "rp").toLowerCase();
+    if (dashboardSourceFilter === "rp") return rt === "rp";
+    if (dashboardSourceFilter === "ip") return rt === "ip";
+    return true;
+  }
+
+  function matchesDashboardItemFilter_(part) {
+    if (!isDashboardItemFilterEnabled_()) return true;
+    if (dashboardItemFilter === "all") return true;
+    if (isKalinAllRpsMode_()) {
+      var isPart = isDashboardPartItemType_(part && part.itemType);
+      if (dashboardItemFilter === "parts") {
+        if (isDashboardIpRecord_(part)) return false;
+        return isPart;
+      }
+      if (dashboardItemFilter === "panels") {
+        if (isDashboardIpRecord_(part)) return true;
+        return !isPart;
+      }
+      return true;
+    }
+    var reviewerConfig = getReviewerDashboardConfig_();
+    var isPart = isDashboardPartItemType_(part && part.itemType);
+    if (dashboardItemFilter === "parts") {
+      if (isDashboardIpRecord_(part)) return false;
+      return isPart;
+    }
+    if (dashboardItemFilter === "panels") {
+      if (isDashboardIpRecord_(part)) {
+        return !!(reviewerConfig && reviewerConfig.mergeInternalProduction);
+      }
+      return !isPart;
+    }
+    return true;
+  }
+
+  function matchesDashboardFactoryFilter_(part) {
+    if (!isDashboardFactoryFilterEnabled_()) return true;
+    if (dashboardFactoryFilter === "all") return true;
+    var reviewGroup = String((part && part.reviewGroup) || "").trim().toUpperCase();
+    return reviewGroup === dashboardFactoryFilter;
+  }
+
+  function isDashboardMarketFilterEnabled_() {
+    return isLogisticsViewer_();
+  }
+
+  function matchesDashboardMarketFilter_(part) {
+    if (!isDashboardMarketFilterEnabled_()) return true;
+    if (dashboardMarketFilter === "all") return true;
+    return String((part && part.market) || "").trim().toLowerCase() === String(dashboardMarketFilter).trim().toLowerCase();
+  }
+
+  function collectDashboardMarketOptions_() {
+    var seen = {};
+    var out = [];
+    (lastDashboardPartsList || []).forEach(function(part) {
+      var market = String((part && part.market) || "").trim();
+      if (!market) return;
+      var key = market.toLowerCase();
+      if (seen[key]) return;
+      seen[key] = true;
+      out.push(market);
+    });
+    out.sort(function(a, b) {
+      return a.localeCompare(b, undefined, { sensitivity: "base" });
+    });
+    return out;
+  }
+
+  function filterDashboardParts_(parts) {
+    var q = parseDashboardSearchQuery_(dashboardSearchQuery);
+    return (parts || []).filter(function(p) {
+      if (!matchesDashboardSourceFilter_(p)) return false;
+      if (!matchesDashboardItemFilter_(p)) return false;
+      if (!matchesDashboardFactoryFilter_(p)) return false;
+      if (!matchesDashboardMarketFilter_(p)) return false;
+      return dashboardSearchMatchesPartLike_(p, q);
+    });
+  }
+
+  function isDashboardSortEnabled_() {
+    var reviewerConfig = getReviewerDashboardConfig_();
+    if (reviewerConfig && reviewerConfig.showDashboardSort) return true;
+    var viewerRole = isAdminOwnPartsDashboard_() ? "standard" : getViewerRole_();
+    return viewerRole === "standard";
+  }
+
+  function isDashboardSortEnabledView_() {
+    if (!isDashboardSortEnabled_()) return false;
+    var viewerRole = isAdminOwnPartsDashboard_() ? "standard" : getViewerRole_();
+    if (viewerRole === "anna") {
+      return (
+        currentView === "active" ||
+        currentView === "ready" ||
+        currentView === "archive" ||
+        currentView === "cancelled"
+      );
+    }
+    return currentView === "active" || currentView === "archive" || currentView === "cancelled";
+  }
+
+  function isDashboardPanelEntry_(part) {
+    if (isDashboardIpRecord_(part)) return true;
+    return !isDashboardPartItemType_(part && part.itemType);
+  }
+
+  function buildDashboardItemTypeBadge_(part, reviewerConfig, labels) {
+    if (!reviewerConfig || !reviewerConfig.showItemTypeFilter) return "";
+    if (dashboardItemFilter !== "all") return "";
+    var isPanel = isDashboardPanelEntry_(part);
+    var text = isPanel ? (labels.rowTypePanel || "Панел") : (labels.rowTypePart || "Част");
+    var badgeClass = isPanel ? "bg-primary" : "bg-secondary";
+    return '<span class="badge reviewer-item-type-badge ' + badgeClass + '">' + escapeHtml(text) + "</span>";
+  }
+
+  function sortDashboardParts_(parts, viewerRole) {
+    var out = (parts || []).slice();
+    if (!isDashboardSortEnabledView_()) return out;
+    if (viewerRole !== "standard" && viewerRole !== "anna") return out;
+
+    var newestFirst = dashboardSortOrder !== "oldest";
+    out.sort(function(a, b) {
+      if (currentView === "active") {
+        var aUrgent = String(a.priority || "").toLowerCase() === "urgent";
+        var bUrgent = String(b.priority || "").toLowerCase() === "urgent";
+        if (aUrgent && !bUrgent) return -1;
+        if (!aUrgent && bUrgent) return 1;
+      }
+
+      var aDate = parseDashboardDate_(a.due);
+      var bDate = parseDashboardDate_(b.due);
+      if (aDate && bDate && aDate.getTime() !== bDate.getTime()) {
+        return newestFirst ? (bDate - aDate) : (aDate - bDate);
+      }
+      if (aDate && !bDate) return -1;
+      if (!aDate && bDate) return 1;
+
+      var aRp = getRpSortNumber_(a.rpNum);
+      var bRp = getRpSortNumber_(b.rpNum);
+      return newestFirst ? (bRp - aRp) : (aRp - bRp);
+    });
+    return out;
+  }
+
+  function setDashboardSortOrder_(order) {
+    if (order !== "newest" && order !== "oldest") return;
+    dashboardSortOrder = order;
+    updateDashboardSortUi_();
+    applyDashboardSearchFilter_();
+  }
+
+  function setDashboardItemFilter_(filter) {
+    if (filter !== "all" && filter !== "parts" && filter !== "panels") return;
+    dashboardItemFilter = filter;
+    updateDashboardItemFilterUi_();
+    applyDashboardSearchFilter_();
+  }
+
+  function setDashboardSourceFilter_(filter) {
+    if (filter !== "all" && filter !== "rp" && filter !== "ip") return;
+    dashboardSourceFilter = filter;
+    updateDashboardSourceFilterUi_();
+    applyDashboardSearchFilter_();
+  }
+
+  function setDashboardFactoryFilter_(filter) {
+    if (filter !== "all" && filter !== "AKS" && filter !== "VAR" && filter !== "KAZ") return;
+    dashboardFactoryFilter = filter;
+    updateDashboardFactoryFilterUi_();
+    applyDashboardSearchFilter_();
+  }
+
+  function setDashboardMarketFilter_(filter) {
+    if (filter === "all") {
+      dashboardMarketFilter = "all";
+    } else {
+      var market = String(filter || "").trim();
+      if (!market) return;
+      dashboardMarketFilter = market;
+    }
+    updateDashboardMarketFilterUi_();
+    applyDashboardSearchFilter_();
+  }
+
+  function rebuildDashboardMarketFilterMenu_() {
+    var menu = document.getElementById("dashboardMarketFilterMenu");
+    if (!menu) return;
+    var labels = getLabels_("logistics");
+    var markets = collectDashboardMarketOptions_();
+    if (dashboardMarketFilter !== "all") {
+      var selectedKey = String(dashboardMarketFilter).trim().toLowerCase();
+      var stillAvailable = markets.some(function(market) {
+        return market.toLowerCase() === selectedKey;
+      });
+      if (!stillAvailable) dashboardMarketFilter = "all";
+    }
+    var html = '<li><button type="button" class="dropdown-item' + (dashboardMarketFilter === "all" ? " active" : "") + '" onclick="setDashboardMarketFilter_(\'all\')">' + escapeHtml(labels.marketFilterAll || "All") + "</button></li>";
+    markets.forEach(function(market) {
+      var active = dashboardMarketFilter !== "all" && String(dashboardMarketFilter).trim().toLowerCase() === market.toLowerCase() ? " active" : "";
+      html += '<li><button type="button" class="dropdown-item' + active + '" onclick="setDashboardMarketFilter_(\'' + escapeJs(market) + "')\">" + escapeHtml(market) + "</button></li>";
+    });
+    menu.innerHTML = html;
+  }
+
+  function updateDashboardMarketFilterUi_() {
+    var wrap = document.getElementById("dashboardMarketFilterWrap");
+    var btn = document.getElementById("dashboardMarketFilterBtn");
+    if (!wrap || !btn) return;
+
+    var show = (hasEnteredAdminView || !isAdminUser) && isDashboardMarketFilterEnabled_();
+    wrap.style.display = show ? "inline-flex" : "none";
+    if (!show) return;
+
+    var labels = getLabels_("logistics");
+    var currentLabel = labels.marketFilterAll || "All";
+    if (dashboardMarketFilter !== "all") currentLabel = dashboardMarketFilter;
+    btn.textContent = currentLabel;
+    btn.setAttribute("aria-label", labels.marketFilterAria || "Filter by market");
+    rebuildDashboardMarketFilterMenu_();
+  }
+
+  function updateDashboardSourceFilterUi_() {
+    var wrap = document.getElementById("dashboardSourceFilterWrap");
+    var btn = document.getElementById("dashboardSourceFilterBtn");
+    var allBtn = document.getElementById("dashboardSourceFilterAllBtn");
+    var rpBtn = document.getElementById("dashboardSourceFilterRpBtn");
+    var ipBtn = document.getElementById("dashboardSourceFilterIpBtn");
+    if (!wrap || !btn || !allBtn || !rpBtn || !ipBtn) return;
+
+    var show = (hasEnteredAdminView || !isAdminUser) && isDashboardSourceFilterEnabled_();
+    wrap.style.display = show ? "inline-flex" : "none";
+    if (!show) return;
+
+    var labels = getLabels_(getViewerRole_());
+    var currentLabel = labels.sourceFilterAll || "Всички";
+    if (dashboardSourceFilter === "rp") currentLabel = labels.sourceFilterRp || "Резервни Части";
+    if (dashboardSourceFilter === "ip") currentLabel = labels.sourceFilterIp || "Вътрешна Продукция";
+    btn.textContent = currentLabel;
+    btn.setAttribute("aria-label", labels.sourceFilterAria || "Филтър по източник");
+    allBtn.textContent = labels.sourceFilterAll || "Всички";
+    rpBtn.textContent = labels.sourceFilterRp || "Резервни Части";
+    ipBtn.textContent = labels.sourceFilterIp || "Вътрешна Продукция";
+    allBtn.classList.toggle("active", dashboardSourceFilter === "all");
+    rpBtn.classList.toggle("active", dashboardSourceFilter === "rp");
+    ipBtn.classList.toggle("active", dashboardSourceFilter === "ip");
+  }
+
+  function updateDashboardFactoryFilterUi_() {
+    var wrap = document.getElementById("dashboardFactoryFilterWrap");
+    var btn = document.getElementById("dashboardFactoryFilterBtn");
+    var allBtn = document.getElementById("dashboardFactoryFilterAllBtn");
+    var aksBtn = document.getElementById("dashboardFactoryFilterAksBtn");
+    var varBtn = document.getElementById("dashboardFactoryFilterVarBtn");
+    var kazBtn = document.getElementById("dashboardFactoryFilterKazBtn");
+    if (!wrap || !btn || !allBtn || !aksBtn || !varBtn || !kazBtn) return;
+
+    var show = (hasEnteredAdminView || !isAdminUser) && isDashboardFactoryFilterEnabled_();
+    wrap.style.display = show ? "inline-flex" : "none";
+    if (!show) return;
+
+    var labels = getLabels_(getViewerRole_());
+    var currentLabel = labels.factoryFilterAll || "Всички";
+    if (isKalinAllRpsMode_()) currentLabel = "All";
+    if (dashboardFactoryFilter === "AKS") currentLabel = "AKS";
+    if (dashboardFactoryFilter === "VAR") currentLabel = "VAR";
+    if (dashboardFactoryFilter === "KAZ") currentLabel = "KAZ";
+    btn.textContent = currentLabel;
+    btn.setAttribute("aria-label", labels.factoryFilterAria || "Филтър по фабрика");
+    allBtn.textContent = isKalinAllRpsMode_() ? "All" : (labels.factoryFilterAll || "Всички");
+    allBtn.classList.toggle("active", dashboardFactoryFilter === "all");
+    aksBtn.classList.toggle("active", dashboardFactoryFilter === "AKS");
+    varBtn.classList.toggle("active", dashboardFactoryFilter === "VAR");
+    kazBtn.classList.toggle("active", dashboardFactoryFilter === "KAZ");
+  }
+
+  function updateDashboardItemFilterUi_() {
+    var wrap = document.getElementById("dashboardItemFilterWrap");
+    var btn = document.getElementById("dashboardItemFilterBtn");
+    var allBtn = document.getElementById("dashboardItemFilterAllBtn");
+    var partsBtn = document.getElementById("dashboardItemFilterPartsBtn");
+    var panelsBtn = document.getElementById("dashboardItemFilterPanelsBtn");
+    if (!wrap || !btn || !allBtn || !partsBtn || !panelsBtn) return;
+
+    var show = (hasEnteredAdminView || !isAdminUser) && isDashboardItemFilterEnabled_();
+    wrap.style.display = show ? "inline-flex" : "none";
+    if (!show) return;
+
+    var labels = getLabels_(getViewerRole_());
+    var currentLabel = labels.itemFilterAll || "Всички";
+    if (isKalinAllRpsMode_()) {
+      currentLabel = "All RPs";
+      if (dashboardItemFilter === "parts") currentLabel = "Parts";
+      if (dashboardItemFilter === "panels") currentLabel = "Panels";
+    } else {
+      if (dashboardItemFilter === "parts") currentLabel = labels.itemFilterParts || "Части";
+      if (dashboardItemFilter === "panels") currentLabel = labels.itemFilterPanels || "Панели";
+    }
+    btn.textContent = currentLabel;
+    btn.setAttribute("aria-label", labels.itemFilterAria || "Филтър по тип");
+    if (isKalinAllRpsMode_()) {
+      allBtn.textContent = "All RPs";
+      partsBtn.textContent = "Parts";
+      panelsBtn.textContent = "Panels";
+    } else {
+      allBtn.textContent = labels.itemFilterAll || "Всички";
+      partsBtn.textContent = labels.itemFilterParts || "Части";
+      panelsBtn.textContent = labels.itemFilterPanels || "Панели";
+    }
+    allBtn.classList.toggle("active", dashboardItemFilter === "all");
+    partsBtn.classList.toggle("active", dashboardItemFilter === "parts");
+    panelsBtn.classList.toggle("active", dashboardItemFilter === "panels");
+  }
+
+  function updateDashboardSortUi_() {
+    var wrap = document.getElementById("dashboardSortWrap");
+    var btn = document.getElementById("dashboardSortBtn");
+    var newestBtn = document.getElementById("dashboardSortNewestBtn");
+    var oldestBtn = document.getElementById("dashboardSortOldestBtn");
+    if (!wrap || !btn || !newestBtn || !oldestBtn) return;
+
+    var show = (hasEnteredAdminView || !isAdminUser) && isDashboardSortEnabledView_();
+    wrap.style.display = show ? "inline-flex" : "none";
+    if (!show) return;
+
+    var labels = getLabels_(isAdminOwnPartsDashboard_() ? "standard" : getViewerRole_());
+    var newestLabel = labels.sortNewest || "Newest First";
+    var oldestLabel = labels.sortOldest || "Oldest First";
+    btn.textContent = dashboardSortOrder === "oldest" ? oldestLabel : newestLabel;
+    btn.setAttribute("aria-label", labels.sortAria || "Sort order");
+    newestBtn.textContent = newestLabel;
+    oldestBtn.textContent = oldestLabel;
+    newestBtn.classList.toggle("active", dashboardSortOrder === "newest");
+    oldestBtn.classList.toggle("active", dashboardSortOrder === "oldest");
+  }
+
+  function filterDashboardUrgentBuckets_(grouped) {
+    var q = parseDashboardSearchQuery_(dashboardSearchQuery);
+    if (!q.raw) return {
+      AKS: (grouped.AKS || []).slice(),
+      VAR: (grouped.VAR || []).slice(),
+      KAZ: (grouped.KAZ || []).slice()
+    };
+    function filt(arr) {
+      return (arr || []).filter(function(item) {
+        return dashboardSearchMatchesPartLike_(item, q);
+      });
+    }
+    return { AKS: filt(grouped.AKS), VAR: filt(grouped.VAR), KAZ: filt(grouped.KAZ) };
+  }
+
+  function applyDashboardSearchFilter_() {
+    if (isActiveUrgentPanelsMode_()) {
+      if (!lastDashboardUrgentBuckets) return;
+      renderActiveUrgentPanelsBoard(lastDashboardUrgentBuckets);
+      return;
+    }
+    if (isTodorDashboardMode_()) {
+      if (lastDashboardPartsList === null) return;
+      renderTodorDashboard_({ parts: lastDashboardPartsList, meta: lastDashboardTodorMeta });
+      return;
+    }
+    if (getViewerRole_() === "logistics") {
+      if (!lastDashboardPartsList) return;
+      renderLogisticsParts(lastDashboardPartsList);
+      return;
+    }
+    if (lastDashboardPartsList === null) return;
+    renderParts(lastDashboardPartsList);
+  }
+
+  function clearDashboardSearch_() {
+    dashboardSearchQuery = "";
+    var inp = document.getElementById("dashboardSearchInput");
+    if (inp) inp.value = "";
+    updateDashboardSearchClearVisibility_();
+    if (dashboardCrossTabSearchActive) {
+      dashboardCrossTabSearchActive = false;
+      refreshData();
+    } else {
+      applyDashboardSearchFilter_();
+    }
+    if (inp) inp.focus();
+  }
+
+  function updateDashboardSearchVisibility_() {
+    var wrap = document.getElementById("dashboardSearchWrap");
+    if (!wrap) return;
+    var show = hasEnteredAdminView || !isAdminUser;
+    wrap.style.display = show ? "block" : "none";
+    updateTodorIznosWeekUi_();
+    updateDashboardItemFilterUi_();
+    updateDashboardSourceFilterUi_();
+    updateDashboardFactoryFilterUi_();
+    updateDashboardMarketFilterUi_();
+    updateDashboardSortUi_();
+    updateDashboardPanelsPdfExportUi_();
+  }
+
+  function isDashboardPanelsPdfExportEnabled_() {
+    var reviewerConfig = getReviewerDashboardConfig_();
+    return !!(reviewerConfig && reviewerConfig.showActivePanelsPdfExport);
+  }
+
+  function isDashboardPanelsPdfExportVisible_() {
+    return isDashboardPanelsPdfExportEnabled_() && currentView === "active";
+  }
+
+  function updateDashboardPanelsPdfExportUi_() {
+    var wrap = document.getElementById("dashboardPanelsPdfWrap");
+    if (!wrap) return;
+    var show = (hasEnteredAdminView || !isAdminUser) && isDashboardPanelsPdfExportVisible_();
+    wrap.style.display = show ? "inline-flex" : "none";
+  }
+
+  function downloadBase64File_(base64, mimeType, fileName) {
+    var byteChars = atob(base64);
+    var byteNumbers = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    var blob = new Blob([new Uint8Array(byteNumbers)], { type: mimeType || "application/octet-stream" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = fileName || "download";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  function setStefanPanelPdfExportLoading_(loading) {
+    var btn = document.getElementById("dashboardPanelsPdfBtn");
+    if (!btn) return;
+    btn.disabled = !!loading;
+  }
+
+  function handleStefanPanelPdfExportResult_(result) {
+    if (!result || !result.ok) {
+      alert((result && result.message) || "Грешка при генериране на PDF.");
+      return false;
+    }
+    if (!result.data) {
+      alert("PDF файлът е празен. Опитайте отново или изберете други записи.");
+      return false;
+    }
+    if (!result.exportRowCount) {
+      alert("Няма редове за експорт.");
+      return false;
+    }
+    downloadBase64File_(result.data, result.mimeType, result.fileName);
+    return true;
+  }
+
+  function generateStefanActivePanelsPdf_() {
+    setStefanPanelPdfExportLoading_(true);
+    google.script.run
+      .withSuccessHandler(function(result) {
+        setStefanPanelPdfExportLoading_(false);
+        handleStefanPanelPdfExportResult_(result);
+      })
+      .withFailureHandler(function(error) {
+        setStefanPanelPdfExportLoading_(false);
+        handleFailure(error);
+      })
+      .generateStefanActivePanelsPdf(simulatedUserEmail);
+  }
+
+  function buildStefanPanelPdfPickerFieldHtml_(label, value) {
+    return '<div class="panel-pdf-picker-field">' +
+      '<span class="label-tag">' + escapeHtml(label) + ':</span> ' +
+      '<strong>' + escapeHtml(value || "-") + '</strong>' +
+      '</div>';
+  }
+
+  function buildStefanPanelPdfPickerItemHtml_(item) {
+    var recordNum = escapeAttr(item.rpNum);
+    var recordType = escapeAttr(item.recordType || "rp");
+    var savedVal = String(item.workshopNote || "");
+    var disabledAttr = item.canEditWorkshopNote ? "" : " disabled";
+    return '<div class="panel-pdf-picker-item" role="button" tabindex="0"' +
+      ' data-record-num="' + recordNum + '"' +
+      ' data-record-type="' + recordType + '"' +
+      ' onclick="toggleStefanPanelPdfPickerSelection_(this, event)"' +
+      ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleStefanPanelPdfPickerSelection_(this, event);}">' +
+      '<div class="panel-pdf-picker-item-top">' +
+        '<strong class="panel-pdf-picker-num">' + escapeHtml(item.rpNum) + '</strong>' +
+        '<span class="badge bg-secondary">' + escapeHtml(item.status || "-") + '</span>' +
+      '</div>' +
+      '<div class="panel-pdf-picker-grid">' +
+        buildStefanPanelPdfPickerFieldHtml_("Booth", item.boothId) +
+        buildStefanPanelPdfPickerFieldHtml_("Модел", item.model) +
+        buildStefanPanelPdfPickerFieldHtml_("Цвят", item.color) +
+        buildStefanPanelPdfPickerFieldHtml_("Артикул", item.itemType) +
+        buildStefanPanelPdfPickerFieldHtml_("Уточнение", item.clarification) +
+      '</div>' +
+      '<div class="panel-pdf-picker-note" onclick="event.stopPropagation()">' +
+        '<span class="label-tag">Бележка Цех</span>' +
+        '<input type="text" class="form-control form-control-sm workshop-note-input"' +
+          ' data-record-num="' + recordNum + '"' +
+          ' data-record-type="' + recordType + '"' +
+          ' data-last-saved="' + escapeAttr(savedVal) + '"' +
+          ' value="' + escapeAttr(savedVal) + '"' +
+          disabledAttr +
+          ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}"' +
+          ' onblur="saveWorkshopNoteFromUi_(this)">' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderStefanPanelPdfPickerItems_(items) {
+    var list = document.getElementById("stefanPanelPdfPickerList");
+    if (!list) return;
+    if (!items || !items.length) {
+      list.innerHTML = '<div class="text-muted p-2">Няма намерени панели.</div>';
+      return;
+    }
+    var html = "";
+    for (var i = 0; i < items.length; i++) {
+      html += buildStefanPanelPdfPickerItemHtml_(items[i]);
+    }
+    list.innerHTML = html;
+  }
+
+  function openStefanPanelPdfPicker_() {
+    var list = document.getElementById("stefanPanelPdfPickerList");
+    if (list) list.innerHTML = '<div class="text-muted p-2">Зареждане...</div>';
+    if (stefanPanelPdfPickerModal) stefanPanelPdfPickerModal.show();
+    google.script.run
+      .withSuccessHandler(renderStefanPanelPdfPickerItems_)
+      .withFailureHandler(function(error) {
+        if (list) list.innerHTML = "";
+        handleFailure(error);
+      })
+      .getStefanRecentKazPanelsForPicker(simulatedUserEmail);
+  }
+
+  function toggleStefanPanelPdfPickerSelection_(el, ev) {
+    if (!el) return;
+    if (ev && ev.target && ev.target.closest && ev.target.closest(".workshop-note-input")) return;
+    el.classList.toggle("panel-pdf-picker-item-selected");
+  }
+
+  function generateStefanSelectedPanelsPdfFromModal_() {
+    var selectedEls = document.querySelectorAll("#stefanPanelPdfPickerList .panel-pdf-picker-item-selected");
+    if (!selectedEls.length) {
+      alert("Изберете поне един панел.");
+      return;
+    }
+
+    var selections = [];
+    for (var i = 0; i < selectedEls.length; i++) {
+      var el = selectedEls[i];
+      var noteInput = el.querySelector(".workshop-note-input");
+      var workshopNote = noteInput ? String(noteInput.value || "").trim() : "";
+      if (!workshopNote) {
+        alert("Въведи бележка цех за всички панели");
+        return;
+      }
+      selections.push({
+        rpNum: el.getAttribute("data-record-num"),
+        recordType: el.getAttribute("data-record-type") || "rp",
+        workshopNote: workshopNote
+      });
+    }
+
+    var btn = document.getElementById("stefanPanelPdfPickerGenerateBtn");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Генериране...";
+    }
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Генерирай PDF";
+        }
+        if (handleStefanPanelPdfExportResult_(result) && stefanPanelPdfPickerModal) {
+          stefanPanelPdfPickerModal.hide();
+        }
+      })
+      .withFailureHandler(function(error) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "Генерирай PDF";
+        }
+        handleFailure(error);
+      })
+      .generateStefanSelectedPanelsPdf(simulatedUserEmail, JSON.stringify(selections));
+  }
+
+  function updateDashboardSearchPlaceholder_() {
+    var inp = document.getElementById("dashboardSearchInput");
+    if (!inp) return;
+    var labels = getLabels_(isAdminOwnPartsDashboard_() ? "standard" : getViewerRole_());
+    inp.placeholder = labels.searchPlaceholder;
+    var clearBtn = document.getElementById("dashboardSearchClearBtn");
+    if (clearBtn) clearBtn.setAttribute("aria-label", labels.searchClear);
+    updateDashboardItemFilterUi_();
+    updateDashboardSourceFilterUi_();
+    updateDashboardFactoryFilterUi_();
+    updateDashboardMarketFilterUi_();
+  }
+
+  function isDashboardFilterActive_() {
+    var q = parseDashboardSearchQuery_(dashboardSearchQuery);
+    if (q.raw) return true;
+    if (isDashboardItemFilterEnabled_() && dashboardItemFilter !== "all") return true;
+    if (isDashboardSourceFilterEnabled_() && dashboardSourceFilter !== "all") return true;
+    if (isDashboardFactoryFilterEnabled_() && dashboardFactoryFilter !== "all") return true;
+    if (isDashboardMarketFilterEnabled_() && dashboardMarketFilter !== "all") return true;
+    return false;
+  }
+
+  function goToLogger() {
+    if (getEffectiveViewerEmail_() === "nikolay@meavo.com") {
+      window.top.location.href = scriptUrl + "?view=ipLogger";
+      return;
+    }
+    window.top.location.href = scriptUrl + "?view=logger";
+  }
+
+  function refreshData() {
+    if (isAdminUser && !hasEnteredAdminView) return;
+    if (getViewerRole_() === "ivan" && currentView === "cancelled") {
+      currentView = "active";
+    }
+    if (isAdminOwnPartsDashboard_() && currentView === "ready") {
+      currentView = "active";
+    }
+    if (getViewerRole_() !== "anna" && getViewerRole_() !== "ivan" && currentView === "ready") {
+      currentView = "active";
+    }
+    var reviewerConfig = getReviewerDashboardConfig_();
+    if (reviewerConfig && reviewerConfig.showArchive === false && currentView === "archive") {
+      currentView = "active";
+    }
+    ensureRegionalScopeValidForViewer_();
+    ensureKalinDashboardModeValidForViewer_();
+    updateHeaderControls_();
+    applyViewToggleUi_();
+    setRefreshLoading_(true);
+    var fetchView = getDashboardFetchViewParam_();
+    if (isTodorDashboardMode_()) {
+      google.script.run
+        .withSuccessHandler(renderTodorDashboard_)
+        .withFailureHandler(handleFailure)
+        .getTodorDashboardData(fetchView === "all" ? "all" : todorMainView, todorIznosWeek, simulatedUserEmail);
+      return;
+    }
+    if (isIvanDashboardMode_()) {
+      google.script.run
+        .withSuccessHandler(renderParts)
+        .withFailureHandler(handleFailure)
+        .getIvanDashboardData(fetchView, simulatedUserEmail);
+      return;
+    }
+    if (isLogisticsMode_()) {
+      google.script.run
+        .withSuccessHandler(renderLogisticsParts)
+        .withFailureHandler(handleFailure)
+        .getLogisticsPartsData(fetchView, simulatedUserEmail);
+      return;
+    }
+    if (isActiveUrgentPanelsMode_()) {
+      google.script.run
+        .withSuccessHandler(renderActiveUrgentPanelsBoard)
+        .withFailureHandler(handleFailure)
+        .getActiveUrgentPanelsData(simulatedUserEmail, fetchView);
+      return;
+    }
+    if (isKalinAllRpsMode_()) {
+      google.script.run
+        .withSuccessHandler(renderParts)
+        .withFailureHandler(handleFailure)
+        .getKalinAllRpsDashboardData(fetchView, simulatedUserEmail);
+      return;
+    }
+    var scopeArg = getValidatedRegionalScopeArg_();
+    var ownerFilterArg = getOwnerFilterArg_();
+    if (isAdminOwnPartsDashboard_()) {
+      google.script.run
+        .withSuccessHandler(renderParts)
+        .withFailureHandler(handleFailure)
+        .getPartsData(fetchView, simulatedUserEmail, "", "", { adminOwnLoggedParts: true });
+      return;
+    }
+    if (reviewerConfig && reviewerConfig.showSourceFilter) {
+      google.script.run
+        .withSuccessHandler(renderParts)
+        .withFailureHandler(handleFailure)
+        .getNikolayDashboardData(fetchView, simulatedUserEmail);
+      return;
+    }
+    if (reviewerConfig && reviewerConfig.mergeInternalProduction) {
+      google.script.run
+        .withSuccessHandler(renderParts)
+        .withFailureHandler(handleFailure)
+        .getStefanDashboardData(fetchView, simulatedUserEmail);
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(renderParts)
+      .withFailureHandler(handleFailure)
+      .getPartsData(fetchView, simulatedUserEmail, scopeArg, ownerFilterArg);
+  }
+
+  /**
+   * True when the admin strip should show "your logged parts" (Boyan) standard UI and
+   * load data via adminOwnLoggedParts. False while simulating someone else so Anna /
+   * regional / logistics views use normal getPartsData + role behaviour.
+   */
+  function isAdminSimulatingAnotherMeavoUser_() {
+    if (!isAdminUser) return false;
+    var sim = String(simulatedUserEmail || "").trim().toLowerCase();
+    if (!sim) return false;
+    var self = String(userEmail || "").trim().toLowerCase();
+    return sim !== self;
+  }
+
+  function isAdminOwnPartsDashboard_() {
+    if (!isAdminUser || !hasEnteredAdminView) return false;
+    if (isAdminSimulatingAnotherMeavoUser_()) return false;
+    if (isLogisticsMode_()) return false;
+    if (isActiveUrgentPanelsMode_()) return false;
+    return true;
+  }
+
+  function getOwnerFilterArg_() {
+    if (isKalinOwnRpsMode_()) return getEffectiveViewerEmail_();
+    if (!ownRpsMode) return "";
+    return getEffectiveViewerEmail_();
+  }
+
+  function getStandardRegionalButtonDefsForUser_() {
+    var ev = getEffectiveViewerEmail_();
+    var map = {
+      "hedi@meavo.com": [
+        { scope: "fr_ch", label: "All FR / CH RPs" },
+        { scope: "usa", label: "USA" },
+        { scope: "iberia", label: "Italy/Spain/Portugal" },
+        { scope: "de_balkans", label: "Germany/Balkans" },
+        { scope: "czechia", label: "Czechia" }
+      ],
+      "carla@meavo.com": [{ scope: "uk", label: "All UK RPs" }],
+      "eftychia@meavo.com": [{ scope: "uk", label: "All UK RPs" }],
+      "dimitar@meavo.com": [
+        { scope: "de_balkans", label: "All Germany / Balkans RPs" },
+        { scope: "france", label: "France RPs" }
+      ],
+      "rosalia@meavo.com": [{ scope: "usa", label: "All USA RPs" }],
+      "giulia@meavo.com": [{ scope: "iberia", label: "All Italy / Spain / Portugal RPs" }],
+      "vojtech@meavo.com": [{ scope: "all_markets", label: "View All Markets" }]
+    };
+    return map[ev] || [];
+  }
+
+  function getAllowedRegionalScopesForUser_() {
+    return getStandardRegionalButtonDefsForUser_().map(function(d) {
+      return d.scope;
+    });
+  }
+
+  function getValidatedRegionalScopeArg_() {
+    if (getViewerRole_() !== "standard") return "";
+    var allowed = getAllowedRegionalScopesForUser_();
+    if (!allowed.length) return "";
+    var parts = activeRegionalScopes.filter(function(s) {
+      return allowed.indexOf(s) !== -1;
+    });
+    return parts.join("|");
+  }
+
+  function ensureKalinDashboardModeValidForViewer_() {
+    var ev = getEffectiveViewerEmail_();
+    if (ev !== lastEffectiveViewerForKalin_) {
+      if (ev === "kalin@meavo.com" || lastEffectiveViewerForKalin_ === "kalin@meavo.com") {
+        kalinDashboardMode = "aup";
+        dashboardItemFilter = "all";
+        dashboardFactoryFilter = "all";
+      }
+      lastEffectiveViewerForKalin_ = ev;
+    }
+  }
+
+  function ensureRegionalScopeValidForViewer_() {
+    var ev = getEffectiveViewerEmail_();
+    if (ev !== lastEffectiveViewerForRegional_) {
+      lastEffectiveViewerForRegional_ = ev;
+      activeRegionalScopes = [];
+    }
+    var allowed = getAllowedRegionalScopesForUser_();
+    activeRegionalScopes = activeRegionalScopes.filter(function(s) {
+      return allowed.indexOf(s) !== -1;
+    });
+  }
+
+  function toggleStandardRegionalScope_(scopeId) {
+    if (getViewerRole_() !== "standard") return;
+    var allowed = getAllowedRegionalScopesForUser_();
+    if (allowed.indexOf(scopeId) === -1) return;
+    var idx = activeRegionalScopes.indexOf(scopeId);
+    if (idx === -1) activeRegionalScopes.push(scopeId);
+    else activeRegionalScopes.splice(idx, 1);
+    updateStandardRegionalButtons_();
+    refreshData();
+  }
+
+  function updateStandardRegionalButtons_() {
+    var wrap = document.getElementById("standardRegionalBtnGroup");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    if (isActiveUrgentPanelsMode_() || getViewerRole_() !== "standard") {
+      wrap.style.display = "none";
+      return;
+    }
+    var defs = getStandardRegionalButtonDefsForUser_();
+    if (!defs.length) {
+      wrap.style.display = "none";
+      return;
+    }
+    wrap.style.display = "inline-flex";
+    var effectiveViewer = getEffectiveViewerEmail_();
+    if (effectiveViewer === "hedi@meavo.com") {
+      var primary = defs.filter(function(def) { return def.scope === "fr_ch"; });
+      var secondary = defs.filter(function(def) { return def.scope !== "fr_ch"; });
+      primary.forEach(function(def) {
+        var btnPrimary = document.createElement("button");
+        btnPrimary.type = "button";
+        btnPrimary.className = "btn btn-sm me-2 mb-2 mb-md-0";
+        var isPrimaryActive = activeRegionalScopes.indexOf(def.scope) !== -1;
+        btnPrimary.classList.add(isPrimaryActive ? "btn-primary" : "btn-outline-light");
+        btnPrimary.textContent = def.label;
+        var sidPrimary = def.scope;
+        btnPrimary.onclick = function() { toggleStandardRegionalScope_(sidPrimary); };
+        wrap.appendChild(btnPrimary);
+      });
+
+      if (secondary.length) {
+        var dropWrap = document.createElement("div");
+        dropWrap.className = "dropdown me-2 mb-2 mb-md-0";
+        var anySecondaryActive = secondary.some(function(def) {
+          return activeRegionalScopes.indexOf(def.scope) !== -1;
+        });
+        var dropBtn = document.createElement("button");
+        dropBtn.type = "button";
+        dropBtn.className = "btn btn-sm dropdown-toggle " + (anySecondaryActive ? "btn-primary" : "btn-outline-light");
+        dropBtn.setAttribute("data-bs-toggle", "dropdown");
+        dropBtn.setAttribute("aria-expanded", "false");
+        dropBtn.textContent = "Other";
+        var menu = document.createElement("ul");
+        menu.className = "dropdown-menu";
+        secondary.forEach(function(def) {
+          var li = document.createElement("li");
+          var itemBtn = document.createElement("button");
+          itemBtn.type = "button";
+          itemBtn.className = "dropdown-item";
+          if (activeRegionalScopes.indexOf(def.scope) !== -1) {
+            itemBtn.className += " active";
+          }
+          itemBtn.textContent = def.label;
+          var sid = def.scope;
+          itemBtn.onclick = function() { toggleStandardRegionalScope_(sid); };
+          li.appendChild(itemBtn);
+          menu.appendChild(li);
+        });
+        dropWrap.appendChild(dropBtn);
+        dropWrap.appendChild(menu);
+        wrap.appendChild(dropWrap);
+      }
+      return;
+    }
+
+    defs.forEach(function(def) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn btn-sm me-2 mb-2 mb-md-0";
+      var active = activeRegionalScopes.indexOf(def.scope) !== -1;
+      btn.classList.add(active ? "btn-primary" : "btn-outline-light");
+      btn.textContent = def.label;
+      var sid = def.scope;
+      btn.onclick = function() {
+        toggleStandardRegionalScope_(sid);
+      };
+      wrap.appendChild(btn);
+    });
+  }
+
+  function isStandardRpOwnedByViewer_(part) {
+    var owner = String(part.user || "").trim().toLowerCase();
+    if (isAdminOwnPartsDashboard_()) {
+      return owner === String(userEmail || "").trim().toLowerCase();
+    }
+    var ev = getEffectiveViewerEmail_();
+    return owner === ev;
+  }
+
+  function buildStandardLoggedByLine_(part) {
+    if (getViewerRole_() !== "standard" || !activeRegionalScopes.length) return "";
+    if (isStandardRpOwnedByViewer_(part)) return "";
+    var email = String(part.user || "").trim();
+    if (!email) return "";
+    return '<div class="mt-auto pt-2 text-end standard-logged-by text-muted">Logged by: ' + escapeHtml(email) + '</div>';
+  }
+
+  function buildNikolayIpTechMetaHtml_(part, labels) {
+    function line(label, value) {
+      if (!value) return "";
+      return '<div class="info-line"><span class="label-tag">' + escapeHtml(label) + ':</span> <strong>' + escapeHtml(value) + '</strong></div>';
+    }
+    var html = "";
+    html += line(labels.ipStatus || "Статус", part.status);
+    html += line(labels.ipReason || "Причина", part.issue);
+    html += line(labels.ipSourceRp || "Източник RP", part.sourceRp);
+    return html ? '<div class="tech-detail-meta">' + html + "</div>" : "";
+  }
+
+  function buildNikolayIpDescDetailsHtml_(part, labels) {
+    function line(label, value) {
+      if (!value) return "";
+      return '<div class="info-line"><span class="label-tag">' + escapeHtml(label) + ':</span> <strong>' + escapeHtml(value) + '</strong></div>';
+    }
+    var html = "";
+    html += line(labels.model, part.model);
+    html += line(labels.ipBatch || "Партида", part.batch);
+    html += line(labels.ipColour || "Цвят", part.color);
+    return html ? '<div class="ip-desc-details">' + html + "</div>" : "";
+  }
+
+
+  function buildNikolayIpWarehouseReadyControls_(part, labels, reviewerConfig, partView) {
+    partView = partView || currentView;
+    if (partView !== "active") return "";
+    var useNotifyLabel = !!(reviewerConfig && reviewerConfig.mergeInternalProduction);
+    var btnLabel = useNotifyLabel
+      ? labels.notifyLogistics
+      : (labels.ipReadyForWarehouse || "Готово за склад");
+    return '<button type="button" class="btn btn-outline-primary btn-sm w-100 reviewer-logistics-notify-btn" onclick="reviewerMarkIpReadyForWarehouseFromUi(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(btnLabel) + '</button>';
+  }
+
+  function buildNikolayIpItemsInlineHtml_(items, labels) {
+    var label = labels.ipItem || "Артикул";
+    var parts = [];
+    if (items && items.length) {
+      items.forEach(function(item) {
+        var t = String(item.displayText || item.description || item.itemType || "").trim();
+        if (t) parts.push(t);
+      });
+    }
+    var value = parts.length ? parts.join(", ") : "N/A";
+    return '<div class="info-line"><span class="label-tag">' + escapeHtml(label) + ':</span> <strong>' + escapeHtml(value) + '</strong></div>';
+  }
+
+  function buildReviewerShippingControls_(part, labels, reviewerConfig, shipControlDisabled, trackingWrapStyleCombined, optEmptySel, optPalletSel, optContainerSel, optDpdSel, optDhlSel, optEcoSel, annaShowLogisticsNotifyBtn, annaMethodNorm, partView) {
+    partView = partView || currentView;
+    if (isDashboardIpRecord_(part)) return '';
+    if (!reviewerConfig || partView === "cancelled") return '';
+    if (reviewerConfig.logisticsButtonOnly || (reviewerConfig.panelLogisticsButtonOnly && isReviewerPanelRow_(part, reviewerConfig))) {
+      if (partView !== "active") return '';
+      return '<button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2 reviewer-logistics-notify-btn" onclick="annaNotifyLogisticsReady(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.notifyLogistics) + '</button>';
+    }
+    return '<div><select class="form-select form-select-sm mb-2" id="m-' + escapeAttr(part.rpNum) + '" onchange="toggleTrackingOrLogistics(\'' + escapeJs(part.rpNum) + '\', \'anna\')" ' + shipControlDisabled + '><option value=""' + optEmptySel + '>' + escapeHtml(labels.choose) + '...</option><option value="Pallet"' + optPalletSel + '>Pallet</option><option value="Container"' + optContainerSel + '>Container</option><option value="DPD/Speedy"' + optDpdSel + '>DPD/Speedy</option><option value="Express DHL"' + optDhlSel + '>Express DHL</option><option value="DHL Eco"' + optEcoSel + '>DHL Eco</option></select><div id="trackingWrap-' + escapeAttr(part.rpNum) + '" style="' + trackingWrapStyleCombined + '"><input type="text" class="form-control form-control-sm mb-2" id="t-' + escapeAttr(part.rpNum) + '" placeholder="' + escapeHtml(labels.trackingNumber) + '" value="' + escapeAttr(part.tracking || "") + '" ' + shipControlDisabled + '></div><div id="logisticsBtnWrap-' + escapeAttr(part.rpNum) + '" style="' + (annaShowLogisticsNotifyBtn ? "" : "display:none;") + '"><button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" onclick="annaNotifyLogisticsReady(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.notifyLogistics) + '</button></div>' + (partView === "active" ? '<div id="annaIzpratenoWrap-' + escapeAttr(part.rpNum) + '" style="' + (annaMethodNorm && !isLogisticsMethod_(annaMethodNorm) ? "" : "display:none;") + '"><button type="button" class="btn btn-success btn-sm w-100" onclick="markShipped(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.markDone) + '</button></div>' : '') + '</div>';
+  }
+
+  function renderParts(parts) {
+    var container = document.getElementById("partsContainer");
+    setRefreshLoading_(false);
+    container.innerHTML = "";
+    var viewerRole = isAdminOwnPartsDashboard_() ? "standard" : getViewerRole_();
+    var labels = getLabels_(viewerRole);
+    var reviewerConfig = viewerRole === "anna" ? getReviewerDashboardConfig_() : null;
+
+    lastDashboardPartsList = parts ? parts.slice() : [];
+
+    if (!lastDashboardPartsList.length) {
+      container.innerHTML = '<div class="empty-state text-center mt-2"><h5 class="text-muted mb-1">' + escapeHtml(labels.emptyTitle) + '</h5><small class="text-secondary">' + escapeHtml(labels.emptyHint) + '</small></div>';
+      return;
+    }
+
+    var filtered = sortDashboardParts_(filterDashboardParts_(lastDashboardPartsList), viewerRole);
+    var q = parseDashboardSearchQuery_(dashboardSearchQuery);
+    if (!filtered.length && isDashboardFilterActive_()) {
+      container.innerHTML = '<div class="empty-state text-center mt-2"><h5 class="text-muted mb-1">' + escapeHtml(labels.searchNoMatch) + '</h5><small class="text-secondary">' + escapeHtml(labels.emptyHint) + '</small></div>';
+      return;
+    }
+
+    filtered.forEach(function(part) {
+      var partView = getEffectivePartView_(part);
+      var isIp = isDashboardIpRecord_(part);
+      var panelLogisticsOnly = isReviewerPanelLogisticsOnly_(part, reviewerConfig);
+      var isUrgent = String(part.priority || "").toLowerCase() === "urgent";
+      var showModel = !isIp && part.model && String(part.model).toLowerCase() !== "other";
+      var showBooth = !isIp && part.boothId && String(part.boothId).toLowerCase() !== "stock";
+      var showColor = !isIp && part.color && String(part.color).toLowerCase() !== "part";
+      var bgClass = partView === "archive" ? "bg-shipped" : (partView === "cancelled" ? "bg-cancelled" : "");
+      var itemsMarkup = isIp ? buildNikolayIpItemsInlineHtml_(part.items, labels) : buildItemsMarkup(part.items);
+
+      var isStandard = viewerRole === "standard" || viewerRole === "ivan";
+      var isStandardActive = isStandard && partView === "active";
+      var isStandardShipped = isStandard && partView === "archive";
+      var isStandardCancelled = isStandard && partView === "cancelled";
+      var canCreateSimilar = viewerRole === "standard";
+      var shipControlDisabled = "";
+      if (viewerRole === "anna") {
+        shipControlDisabled = (partView === "active" || partView === "ready") ? "" : "disabled";
+      } else {
+        shipControlDisabled = partView !== "active" ? "disabled" : "";
+      }
+      var annaMethodNorm = viewerRole === "anna" ? annaMethodTrim_(part.method) : "";
+      var annaShowLogisticsNotifyBtn = viewerRole === "anna" && partView === "active" && !!annaMethodNorm && isLogisticsMethod_(annaMethodNorm);
+      var annaTrackingHiddenAnna = false;
+      if (viewerRole === "anna") {
+        if (partView === "active") {
+          annaTrackingHiddenAnna = !annaMethodNorm || isLogisticsMethod_(annaMethodNorm);
+        } else if (partView === "ready") {
+          annaTrackingHiddenAnna = isLogisticsMethod_(annaMethodNorm);
+        }
+      }
+      var trackingWrapStyleCombined = "";
+      if (viewerRole === "anna") {
+        trackingWrapStyleCombined = annaTrackingHiddenAnna ? "display:none;" : "";
+      } else {
+        trackingWrapStyleCombined = isLogisticsMethod_(part.method) ? "display:none;" : "";
+      }
+      var optEmptySel = "";
+      var optPalletSel = "";
+      var optContainerSel = "";
+      var optDpdSel = "";
+      var optDhlSel = "";
+      var optEcoSel = "";
+      if (viewerRole === "anna") {
+        optEmptySel = !annaMethodNorm ? " selected" : "";
+        optPalletSel = annaMethodNorm.toLowerCase() === "pallet" ? " selected" : "";
+        optContainerSel = annaMethodNorm.toLowerCase() === "container" ? " selected" : "";
+        optDpdSel = (annaMethodNorm === "DPD/Speedy" || annaMethodNorm === "DPD / Speedy") ? " selected" : "";
+        optDhlSel = annaMethodNorm === "Express DHL" ? " selected" : "";
+        optEcoSel = annaMethodNorm === "DHL Eco" ? " selected" : "";
+      } else {
+        optPalletSel = part.method === "Pallet" ? " selected" : "";
+        optContainerSel = part.method === "Container" ? " selected" : "";
+        optDpdSel = (part.method === "DPD/Speedy" || part.method === "DPD / Speedy") ? " selected" : "";
+        optDhlSel = part.method === "Express DHL" ? " selected" : "";
+        optEcoSel = part.method === "DHL Eco" ? " selected" : "";
+      }
+      var standardStatusBadge = "";
+      if (isStandardActive && part.status && part.status !== "Shipped" && part.status !== "Cancelled") {
+        standardStatusBadge = '<span class="badge bg-secondary standard-rp-status-badge">' + escapeHtml(part.status) + '</span>';
+      }
+      var ipRecordBadge = isIp ? '<span class="badge bg-info text-dark">' + escapeHtml(labels.ipRecordTag || "ВП") + '</span>' : "";
+      var itemTypeBadge = buildDashboardItemTypeBadge_(part, reviewerConfig, labels);
+      var techMetaHtml = isIp
+        ? buildNikolayIpTechMetaHtml_(part, labels)
+        : ((showBooth || showModel || showColor)
+          ? '<div class="tech-detail-meta">' +
+            (showBooth ? '<div class="info-line"><span class="label-tag">Booth:</span> <strong>' + escapeHtml(part.boothId) + '</strong></div>' : "") +
+            (showModel ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.model) + ':</span> ' + escapeHtml(part.model) + '</div>' : "") +
+            (showColor ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.color) + ':</span> ' + escapeHtml(part.color) + '</div>' : "") +
+            "</div>"
+          : "");
+      var isReviewerIpLogisticsBtn = isIp && !!(reviewerConfig && (reviewerConfig.showSourceFilter || reviewerConfig.mergeInternalProduction)) && partView === "active";
+      var hideShippingAddressSection = !!(reviewerConfig && reviewerConfig.hideShippingAddressSection);
+      var isPanelLogisticsLayout = !!(reviewerConfig && !isIp && (reviewerConfig.logisticsButtonOnly || panelLogisticsOnly));
+      var isCompactPanelLogistics = isPanelLogisticsLayout && hideShippingAddressSection;
+      var isReviewerActionLayout = isCompactPanelLogistics || isReviewerIpLogisticsBtn;
+      var descColClass = "col-desc px-2" + (hideShippingAddressSection ? "" : " border-end");
+      var ipDescDetailsHtml = isIp ? buildNikolayIpDescDetailsHtml_(part, labels) : "";
+      var colLogSectionHtml = "";
+      if (isReviewerIpLogisticsBtn) {
+        colLogSectionHtml =
+          '<div class="col-log ps-2 reviewer-logistics-col">' +
+            '<div class="reviewer-logistics-notify-box">' +
+              buildNikolayIpWarehouseReadyControls_(part, labels, reviewerConfig, partView) +
+            '</div>' +
+          '</div>';
+      } else if (!isIp) {
+        var reviewerLogColClass = isCompactPanelLogistics ? " reviewer-logistics-col" : "";
+        var panelLogisticsInnerClass = isPanelLogisticsLayout
+          ? (hideShippingAddressSection ? "reviewer-logistics-notify-box" : "shipping-box d-flex flex-column justify-content-between")
+          : (isStandardActive ? "plain-action-box" : (isStandard && partView === "cancelled" ? "shipping-box cancelled-right-box" : "shipping-box d-flex flex-column justify-content-between"));
+        colLogSectionHtml =
+          '<div class="col-log ps-2' + reviewerLogColClass + '">' +
+            '<div class="' + panelLogisticsInnerClass + '">' +
+              ((viewerRole === "standard" || viewerRole === "ivan")
+                ? (partView === "cancelled" ? '' : '<div class="mb-2"></div>')
+                : buildReviewerShippingControls_(part, labels, reviewerConfig, shipControlDisabled, trackingWrapStyleCombined, optEmptySel, optPalletSel, optContainerSel, optDpdSel, optDhlSel, optEcoSel, annaShowLogisticsNotifyBtn, annaMethodNorm, partView)) +
+              ((isPanelLogisticsLayout && partView === "active")
+                ? ""
+                : '<div class="' + ((isStandardActive || isStandardCancelled) ? "" : "d-grid gap-2") + '">' +
+                    buildActionButtons_(part, viewerRole, labels, partView) +
+                  '</div>') +
+            '</div>' +
+          '</div>';
+      }
+      var dueInTechColumn = isWorkshopNoteDashboardViewer_();
+      var dueSectionHtml = buildDueSectionHtml_(part, viewerRole, labels, reviewerConfig, partView, { inTechColumn: dueInTechColumn });
+      var workshopNoteSectionHtml = buildWorkshopNoteSectionHtml_(part, labels);
+      var descBottomStackHtml = "";
+      if (dueInTechColumn) {
+        if (workshopNoteSectionHtml) {
+          descBottomStackHtml = '<div class="desc-bottom-stack">' + workshopNoteSectionHtml + '</div>';
+        }
+      } else if (workshopNoteSectionHtml || dueSectionHtml) {
+        descBottomStackHtml = '<div class="desc-bottom-stack">' + workshopNoteSectionHtml + dueSectionHtml + '</div>';
+      }
+      var shippingAddressSectionHtml = hideShippingAddressSection
+        ? ""
+        : '<div class="col-ship border-end px-2 d-flex flex-column h-100">' +
+            '<div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.recipient) + ':</span> ' + escapeHtml(part.recipient || "-") + '</div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.market) + ':</span> <strong>' + escapeHtml(part.market || "-") + '</strong></div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.client) + ':</span> ' + escapeHtml(part.client || "-") + '</div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.address) + ':</span> ' + escapeHtml(part.address || "-") + '</div>' +
+            (part.phone ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.phone) + ':</span> ' + escapeHtml(part.phone) + '</div>' : "") +
+            (part.email ? '<div class="info-line"><span class="label-tag">Email:</span> ' + escapeHtml(part.email) + '</div>' : "") +
+            '</div>' +
+            buildStandardLoggedByLine_(part) +
+          '</div>';
+      var card = document.createElement("div");
+      card.id = "card-" + part.rpNum;
+      card.className = "card p-3 " + (isUrgent ? "urgent-card" : "standard-card") + " " + bgClass + (isStandard ? " standard-view" : "") + (isStandardActive ? " standard-active-view" : "") + (isStandard && partView === "archive" ? " standard-shipped-view" : "") + (isStandardCancelled ? " standard-cancelled-view" : "") + (hideShippingAddressSection ? " reviewer-no-ship-section" : "") + (isReviewerActionLayout ? " reviewer-logistics-notify" : "") + (isIp ? " reviewer-ip-record" : "");
+      card.innerHTML =
+        '<div class="d-flex d-flex-responsive align-items-stretch">' +
+          '<div class="col-tech border-end pe-2">' +
+            '<div class="col-tech-inner">' +
+              '<div class="d-flex align-items-start justify-content-between gap-2 tech-rp-number-row">' +
+                '<div class="d-flex align-items-center gap-2 flex-wrap"><div class="rp-large mb-0">' + escapeHtml(part.rpNum) + '</div>' + itemTypeBadge + ipRecordBadge + '</div>' +
+                standardStatusBadge +
+              '</div>' +
+              techMetaHtml +
+              (isStandardShipped ? buildStandardShippedLeftMeta_(part, labels) : "") +
+              (isStandardActive && isStandardRpOwnedByViewer_(part) ? buildStandardActiveActions_(part, labels, canCreateSimilar) : '') +
+              (isStandardCancelled && isStandardRpOwnedByViewer_(part) ? '<div class="tech-bottom-action"><button class="btn btn-warning btn-sm bring-back-btn" onclick="revert(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.bringBack) + '</button></div>' : '') +
+              (dueInTechColumn ? dueSectionHtml : "") +
+            '</div>' +
+          '</div>' +
+
+          '<div class="' + descColClass + '">' +
+            '<div class="desc-content">' +
+              (isIp
+                ? itemsMarkup + ipDescDetailsHtml
+                : '<span class="label-tag">' + escapeHtml(labels.items) + '</span>' + itemsMarkup) +
+              (part.clarification ? '<div class="mt-2"><span class="label-tag">' + escapeHtml(labels.clarification) + ':</span> ' + escapeHtml(part.clarification) + '</div>' : "") +
+              (part.note ? '<span class="item-note">' + escapeHtml(part.note) + '</span>' : "") +
+            '</div>' +
+            descBottomStackHtml +
+          '</div>' +
+
+          shippingAddressSectionHtml +
+
+          colLogSectionHtml +
+        '</div>';
+
+      container.appendChild(card);
+    });
+  }
+
+  function renderLogisticsParts(parts) {
+    var container = document.getElementById("partsContainer");
+    setRefreshLoading_(false);
+    container.innerHTML = "";
+    var labels = getLabels_("logistics");
+
+    lastDashboardPartsList = parts ? parts.slice() : [];
+    updateDashboardMarketFilterUi_();
+
+    if (!lastDashboardPartsList.length) {
+      container.innerHTML = '<div class="empty-state text-center mt-2"><h5 class="text-muted mb-1">' + escapeHtml(labels.emptyTitle) + '</h5><small class="text-secondary">' + escapeHtml(labels.emptyHint) + '</small></div>';
+      return;
+    }
+
+    var filtered = filterDashboardParts_(lastDashboardPartsList);
+    var q = parseDashboardSearchQuery_(dashboardSearchQuery);
+    if (!filtered.length && (q.raw || (isDashboardItemFilterEnabled_() && dashboardItemFilter !== "all") || (isDashboardMarketFilterEnabled_() && dashboardMarketFilter !== "all"))) {
+      container.innerHTML = '<div class="empty-state text-center mt-2"><h5 class="text-muted mb-1">' + escapeHtml(labels.searchNoMatch) + '</h5><small class="text-secondary">' + escapeHtml(labels.emptyHint) + '</small></div>';
+      return;
+    }
+
+    filtered.forEach(function(part) {
+      var partLogisticsView = isDashboardCrossTabSearchActive_()
+        ? deriveLogisticsViewFromStatus_(part.status)
+        : logisticsView;
+      var daysStr = part.daysSinceReady === null || part.daysSinceReady === undefined ? "—" : String(part.daysSinceReady);
+      var palletStr = part.pallet || "—";
+      var weekStr = part.shippingWeek || "—";
+      var statusStr = part.status || "—";
+      var isUrgent = String(part.priority || "").toLowerCase() === "urgent";
+      var highlightUrgent = partLogisticsView === "ready" && isUrgent;
+      var showModel = part.model && String(part.model).toLowerCase() !== "other";
+      var showBooth = part.boothId && String(part.boothId).toLowerCase() !== "stock";
+      var showColor = part.color && String(part.color).toLowerCase() !== "part";
+      var itemsMarkup = buildItemsMarkup(part.items);
+      var card = document.createElement("div");
+      card.className = "card p-3 " + (highlightUrgent ? "urgent-card" : "standard-card") + " logistics-card";
+      card.innerHTML =
+        '<div class="d-flex d-flex-responsive align-items-stretch">' +
+          '<div class="col-tech border-end pe-2">' +
+            '<div class="col-tech-inner">' +
+              '<div class="d-flex align-items-start justify-content-between gap-2 tech-rp-number-row">' +
+                '<div class="rp-large mb-0">' + escapeHtml(part.rpNum) + '</div>' +
+                '<div class="d-flex gap-2 flex-wrap justify-content-end">' +
+                  (highlightUrgent ? '<span class="badge bg-danger">' + escapeHtml(labels.urgentTag || "URGENT") + '</span>' : '') +
+                  '<span class="badge bg-secondary">' + escapeHtml(statusStr) + '</span>' +
+                '</div>' +
+              '</div>' +
+              (showBooth || showModel || showColor
+                ? '<div class="tech-detail-meta">' +
+                  (showBooth ? '<div class="info-line"><span class="label-tag">Booth:</span> <strong>' + escapeHtml(part.boothId) + '</strong></div>' : "") +
+                  (showModel ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.model) + ':</span> ' + escapeHtml(part.model) + '</div>' : "") +
+                  (showColor ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.color) + ':</span> ' + escapeHtml(part.color) + '</div>' : "") +
+                  "</div>"
+                : "") +
+              '<div class="info-line mt-2"><span class="label-tag">' + escapeHtml(labels.daysSinceReady) + ':</span> <strong>' + escapeHtml(daysStr) + '</strong></div>' +
+              '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.factory) + ':</span> <strong>' + escapeHtml(part.factoryDisplay != null ? part.factoryDisplay : (part.reviewGroup || "—")) + '</strong></div>' +
+              '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.shippingWeek) + ':</span> <strong>' + escapeHtml(weekStr) + '</strong></div>' +
+              '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.pallet) + ':</span> <strong>' + escapeHtml(palletStr) + '</strong></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="col-desc border-end px-2">' +
+            '<div class="desc-content">' +
+              '<span class="label-tag">' + escapeHtml(labels.items) + '</span>' +
+              itemsMarkup +
+              (part.clarification ? '<div class="mt-2"><span class="label-tag">' + escapeHtml(labels.clarification) + ':</span> ' + escapeHtml(part.clarification) + '</div>' : "") +
+            '</div>' +
+            '<div class="due-section mt-2">' +
+              '<span class="badge badge-due badge-date">' + escapeHtml(part.due || "TBC") + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="col-ship border-end px-2 d-flex flex-column h-100">' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.recipient) + ':</span> ' + escapeHtml(part.recipient || "-") + '</div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.market) + ':</span> <strong>' + escapeHtml(part.market || "-") + '</strong></div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.client) + ':</span> ' + escapeHtml(part.client || "-") + '</div>' +
+            '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.address) + ':</span> ' + escapeHtml(part.address || "-") + '</div>' +
+            (part.phone ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.phone) + ':</span> ' + escapeHtml(part.phone) + '</div>' : "") +
+          '</div>' +
+          '<div class="col-log ps-2">' +
+            '<div class="shipping-box">' +
+              '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.shippingMethod) + ':</span> <strong>' + escapeHtml(part.method || "—") + '</strong></div>' +
+              '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.trackingNumber) + ':</span> ' + escapeHtml(part.tracking || "—") + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      container.appendChild(card);
+    });
+  }
+
+  function renderTodorDashboard_(response) {
+    var container = document.getElementById("partsContainer");
+    setRefreshLoading_(false);
+    container.innerHTML = "";
+    var labels = getLabels_("todor");
+    var payload = response || {};
+    var parts = payload.parts ? payload.parts.slice() : [];
+    lastDashboardPartsList = parts;
+    lastDashboardTodorMeta = payload.meta || null;
+
+    if (!parts.length) {
+      var emptyTitle = labels.emptyThisWeek;
+      if (todorMainView === "availability") emptyTitle = labels.emptyAvailability;
+      else if (todorMainView === "ip") emptyTitle = labels.emptyIp;
+      else if (todorIznosWeek === "next_week") emptyTitle = labels.emptyNextWeek;
+      container.innerHTML = '<div class="empty-state text-center mt-2"><h5 class="text-muted mb-1">' + escapeHtml(emptyTitle) + '</h5><small class="text-secondary">' + escapeHtml(labels.emptyHint) + '</small></div>';
+      return;
+    }
+
+    var filtered = filterDashboardParts_(parts);
+    var q = parseDashboardSearchQuery_(dashboardSearchQuery);
+    if (!filtered.length && q.raw) {
+      container.innerHTML = '<div class="empty-state text-center mt-2"><h5 class="text-muted mb-1">' + escapeHtml(labels.searchNoMatch) + '</h5><small class="text-secondary">' + escapeHtml(labels.emptyHint) + '</small></div>';
+      return;
+    }
+
+    filtered.forEach(function(part) {
+      var partTodorView = getEffectiveTodorMainView_(part);
+      var isIp = String(part.recordType || "").toLowerCase() === "ip";
+      var isUrgent = String(part.priority || "").toLowerCase() === "urgent";
+      var showModel = part.model && String(part.model).toLowerCase() !== "other";
+      var showBooth = !isIp && part.boothId && String(part.boothId).toLowerCase() !== "stock";
+      var showColor = part.color && String(part.color).toLowerCase() !== "part";
+      var statusStr = part.status || "—";
+      var palletStr = part.pallet || "—";
+      var factoryLabel = part.factoryName ? (part.factoryName + (part.shippingWeekCode ? " · " + part.shippingWeekCode : "")) : (part.shippingWeek || "—");
+      var itemsMarkup = part.hasSheetDetails
+        ? buildItemsMarkup(part.items)
+        : ('<p class="text-muted small mb-0">' + escapeHtml(labels.noDetails) + '</p>');
+      if (part.hasSheetDetails && (!part.items || !part.items.length) && !isIp) {
+        itemsMarkup = '<p class="text-muted small mb-0">' + escapeHtml(labels.noLineItems) + '</p>';
+      }
+
+      var showIpAction = isIp && partTodorView === "ip";
+      var descColClass = "col-desc px-2" + (showIpAction ? " border-end" : "");
+      var techColStyle = showIpAction ? "" : ' style="flex: 0 0 38%; max-width: 38%;"';
+      var ipActionColHtml = showIpAction
+        ? '<div class="col-log ps-2 reviewer-logistics-col">' +
+            '<div class="reviewer-logistics-notify-box">' +
+              '<button type="button" class="btn btn-outline-primary btn-sm reviewer-logistics-notify-btn" onclick="todorMarkIpDeliveredAtTopoliFromUi(\'' + escapeJs(part.rpNum) + '\', this)">' + escapeHtml(labels.acceptedAtTopoli) + '</button>' +
+            '</div>' +
+          '</div>'
+        : "";
+
+      var card = document.createElement("div");
+      card.className = "card p-3 " + (isUrgent ? "urgent-card" : "standard-card") + " logistics-card todor-dashboard-card reviewer-no-ship-section" + (showIpAction ? " reviewer-logistics-notify" : "");
+      card.id = "card-" + escapeAttr(part.rpNum || part.rpCode || "");
+      card.innerHTML =
+        '<div class="d-flex d-flex-responsive align-items-stretch">' +
+          '<div class="col-tech border-end pe-2"' + techColStyle + '>' +
+            '<div class="col-tech-inner">' +
+              '<div class="d-flex align-items-start justify-content-between gap-2 tech-rp-number-row">' +
+                '<div class="rp-large mb-0">' + escapeHtml(part.rpNum || part.rpCode) + (isIp ? ' <span class="badge bg-info text-dark">' + escapeHtml(labels.ipTag) + '</span>' : '') + '</div>' +
+                '<div class="d-flex gap-2 flex-wrap justify-content-end">' +
+                  (isUrgent ? '<span class="badge bg-danger">' + escapeHtml(labels.urgentTag) + '</span>' : '') +
+                  (part.status ? '<span class="badge bg-secondary">' + escapeHtml(statusStr) + '</span>' : '') +
+                '</div>' +
+              '</div>' +
+              (showBooth || showModel || showColor || (isIp && part.batch)
+                ? '<div class="tech-detail-meta">' +
+                  (showBooth ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.booth) + ':</span> <strong>' + escapeHtml(part.boothId) + '</strong></div>' : "") +
+                  (showModel ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.model) + ':</span> ' + escapeHtml(part.model) + '</div>' : "") +
+                  (showColor ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.color) + ':</span> ' + escapeHtml(part.color) + '</div>' : "") +
+                  (isIp && part.batch ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.ipBatch) + ':</span> <strong>' + escapeHtml(part.batch) + '</strong></div>' : "") +
+                  "</div>"
+                : "") +
+              (partTodorView === "iznos" && factoryLabel !== "—"
+                ? '<div class="info-line mt-2"><span class="label-tag">' + escapeHtml(labels.factory) + ':</span> <strong>' + escapeHtml(factoryLabel) + '</strong></div>'
+                : "") +
+              (partTodorView === "availability" && part.factoryName
+                ? '<div class="info-line mt-2"><span class="label-tag">' + escapeHtml(labels.factory) + ':</span> <strong>' + escapeHtml(part.factoryName) + '</strong></div>'
+                : "") +
+              (isIp && part.warehouse
+                ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.ipWarehouse) + ':</span> <strong>' + escapeHtml(part.warehouse) + '</strong></div>'
+                : "") +
+              (isIp && part.factory
+                ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.ipFactory) + ':</span> ' + escapeHtml(part.factory) + '</div>'
+                : "") +
+              (isIp && part.sourceRp
+                ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.ipSourceRp) + ':</span> ' + escapeHtml(part.sourceRp) + '</div>'
+                : "") +
+              (partTodorView === "iznos"
+                ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.pallet) + ':</span> <strong>' + escapeHtml(palletStr) + '</strong></div>'
+                : "") +
+              (!isIp && part.method ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.shippingMethod) + ':</span> ' + escapeHtml(part.method) + '</div>' : "") +
+              (isIp && part.issue ? '<div class="info-line"><span class="label-tag">' + escapeHtml(labels.ipReason) + ':</span> ' + escapeHtml(part.issue) + '</div>' : "") +
+            '</div>' +
+          '</div>' +
+          '<div class="' + descColClass + '"' + (showIpAction ? "" : ' style="flex: 1;"') + '>' +
+            '<div class="desc-content">' +
+              '<span class="label-tag">' + escapeHtml(labels.items) + '</span>' +
+              itemsMarkup +
+              (part.clarification ? '<div class="mt-2"><span class="label-tag">' + escapeHtml(labels.clarification) + ':</span> ' + escapeHtml(part.clarification) + '</div>' : "") +
+              (part.note ? '<div class="mt-1"><span class="label-tag">' + escapeHtml(labels.notes) + ':</span> ' + escapeHtml(part.note) + '</div>' : "") +
+            '</div>' +
+            '<div class="due-section mt-2">' +
+              '<span class="badge badge-due badge-date">' + escapeHtml(part.due || "TBC") + '</span>' +
+            '</div>' +
+          '</div>' +
+          ipActionColHtml +
+        '</div>';
+      container.appendChild(card);
+    });
+  }
+
+  function renderActiveUrgentPanelsBoard(grouped) {
+    var container = document.getElementById("partsContainer");
+    setRefreshLoading_(false);
+    lastDashboardUrgentBuckets = {
+      AKS: (grouped && grouped.AKS || []).slice(),
+      VAR: (grouped && grouped.VAR || []).slice(),
+      KAZ: (grouped && grouped.KAZ || []).slice()
+    };
+    var buckets = filterDashboardUrgentBuckets_(lastDashboardUrgentBuckets);
+    var boardHtml = '<div class="active-urgent-panels-board">' +
+      renderActiveUrgentPanelsColumn_("AKS", buckets.AKS || []) +
+      renderActiveUrgentPanelsColumn_("VAR", buckets.VAR || []) +
+      renderActiveUrgentPanelsColumn_("KAZ", buckets.KAZ || []) +
+      '</div>';
+    container.innerHTML = boardHtml;
+  }
+
+  function renderActiveUrgentPanelsColumn_(title, items) {
+    var content = items.length ? items.map(function(item) {
+      var itemPanelView = getEffectiveUrgentPanelView_(item);
+      var canBrief = itemPanelView === "unbriefed";
+      var canChangeEta = itemPanelView === "inproduction";
+      var canMarkReady = itemPanelView === "inproduction" && String(item.status || "").toLowerCase() === "in production";
+      var actions = [];
+      if (canBrief) {
+        actions.push('<button class="btn btn-primary btn-sm" onclick="openBriefModal(\'' + escapeJs(item.rpNum) + '\', \'' + escapeJs(item.reviewGroup || title) + '\')">Brief</button>');
+        actions.push('<button class="btn btn-outline-secondary btn-sm" onclick="openExistingPanelModal(\'' + escapeJs(item.rpNum) + '\', \'' + escapeJs(item.reviewGroup || title) + '\')">Used Existing Panel</button>');
+      }
+      if (canMarkReady) {
+        actions.push('<button class="btn btn-success btn-sm" onclick="markActiveUrgentPanelReadyFromUi(\'' + escapeJs(item.rpNum) + '\', this)">Mark Ready</button>');
+      }
+      var dueHtml = 'Due: ' + escapeHtml(item.due || "TBC") + (canChangeEta ? ' <button class="btn btn-link btn-sm p-0 ms-1 text-decoration-none" onclick="openEtaModal(\'' + escapeJs(item.rpNum) + '\', \'' + escapeJs(item.due || "") + '\')">Change</button>' : '');
+      var dueBlockHtml = '<div class="active-urgent-panels-due">' + dueHtml + '</div>';
+      var workshopNoteHtml = "";
+      if (item.showWorkshopNote) {
+        var aupLabels = { workshopNote: "Бележка Цех" };
+        workshopNoteHtml = '<div class="active-urgent-panels-workshop-note">' +
+          buildWorkshopNoteSectionHtml_(item, aupLabels) +
+          '</div>';
+      }
+      var footerHtml = '<div class="active-urgent-panels-item-footer">' +
+        workshopNoteHtml +
+        dueBlockHtml +
+        (actions.length ? '<div class="text-end d-flex gap-2 justify-content-end flex-wrap">' + actions.join("") + '</div>' : '') +
+        '</div>';
+      return '<div class="active-urgent-panels-item">' +
+        '<div class="active-urgent-panels-grid">' +
+          '<div>' +
+            '<div class="active-urgent-panels-line"><strong>RP:</strong> ' + escapeHtml(item.rpNum || "-") + '</div>' +
+            '<div class="active-urgent-panels-line"><strong>Booth ID:</strong> ' + escapeHtml(item.boothId || "-") + '</div>' +
+            '<div class="active-urgent-panels-line"><strong>Color:</strong> ' + escapeHtml(item.color || "-") + '</div>' +
+            '<div class="active-urgent-panels-line"><strong>Item:</strong> ' + escapeHtml(item.qtyAndPanel || "-") + '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="active-urgent-panels-line"><strong>Notes:</strong> ' + escapeHtml(item.notes || "-") + '</div>' +
+            '<div class="active-urgent-panels-line"><strong>Client:</strong> ' + escapeHtml(item.client || "-") + '</div>' +
+            '<div class="active-urgent-panels-line"><strong>Status:</strong> ' + escapeHtml(item.status || "-") + '</div>' +
+          '</div>' +
+        '</div>' +
+        footerHtml +
+      '</div>';
+    }).join("") : '<div class="text-muted small">' + "No urgent panels" + "</div>";
+
+    return '<div class="active-urgent-panels-col"><h5>' + escapeHtml(title) + '</h5>' + content + '</div>';
+  }
+
+  function buildItemsMarkup(items) {
+    if (!items || !items.length) {
+      return '<div style="font-size: 1.1rem;"><strong>N/A</strong></div>';
+    }
+
+    var html = '<ul class="item-list">';
+    items.forEach(function(item) {
+      html += "<li>&bull; " + escapeHtml(item.displayText || "") + "</li>";
+    });
+    html += "</ul>";
+    return html;
+  }
+
+  function buildStandardShippedLeftMeta_(part, labels) {
+    var method = String(part.method || "-");
+    var tracking = String(part.tracking || "-");
+    var hasTracking = tracking && tracking !== "-";
+    return '' +
+      '<div class="mt-2">' +
+        '<div class="info-line"><strong>' + escapeHtml(labels.shippingMethod) + ':</strong>&nbsp;<strong>' + escapeHtml(method) + '</strong></div>' +
+        '<div class="info-line"><strong>' + escapeHtml(labels.trackingNumber) + ':</strong>&nbsp;<strong>' + escapeHtml(tracking) + '</strong>' +
+          (hasTracking
+            ? '<button type="button" class="btn btn-outline-secondary btn-sm tracking-copy-btn ms-2" onclick="copyTrackingValue(\'' + escapeJs(tracking) + '\', this)">Copy</button>'
+            : '') +
+        '</div>' +
+      '</div>';
+  }
+
+  function copyTrackingValue(value, btn) {
+    var raw = String(value || "").trim();
+    if (!raw || raw === "-") return;
+    function markCopied() {
+      if (!btn) return;
+      var old = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(function() { btn.textContent = old; }, 900);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(raw).then(markCopied).catch(function() {
+        fallbackCopyTracking_(raw);
+        markCopied();
+      });
+      return;
+    }
+    fallbackCopyTracking_(raw);
+    markCopied();
+  }
+
+  function fallbackCopyTracking_(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "readonly");
+    area.style.position = "absolute";
+    area.style.left = "-9999px";
+    document.body.appendChild(area);
+    area.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(area);
+  }
+
+  function applyViewToggleUi_() {
+    var buttons = {
+      active: document.getElementById("btnActive"),
+      ready: document.getElementById("btnAnnaReady"),
+      archive: document.getElementById("btnArchive"),
+      cancelled: document.getElementById("btnCancelled")
+    };
+    Object.keys(buttons).forEach(function(key) {
+      var b = buttons[key];
+      if (!b) return;
+      if (key === currentView) {
+        b.classList.add("view-toggle-active");
+        b.setAttribute("aria-selected", "true");
+      } else {
+        b.classList.remove("view-toggle-active");
+        b.setAttribute("aria-selected", "false");
+      }
+    });
+    var adminOwnBtns = {
+      active: document.getElementById("btnAdminOwnActive"),
+      archive: document.getElementById("btnAdminOwnArchive"),
+      cancelled: document.getElementById("btnAdminOwnCancelled")
+    };
+    Object.keys(adminOwnBtns).forEach(function(key) {
+      var b = adminOwnBtns[key];
+      if (!b) return;
+      if (key === currentView) {
+        b.classList.add("view-toggle-active");
+        b.setAttribute("aria-selected", "true");
+      } else {
+        b.classList.remove("view-toggle-active");
+        b.setAttribute("aria-selected", "false");
+      }
+    });
+  }
+
+  function changeView(view) {
+    currentView = view;
+    applyViewToggleUi_();
+    refreshData();
+  }
+
+  function buildActionButtons_(part, viewerRole, labels, partView) {
+    partView = partView || currentView;
+    if (viewerRole === "standard" || viewerRole === "ivan") {
+      // Standard users can only cancel from active view (button is rendered in tech section).
+      // No post-submit edit/revert actions in shipped/cancelled views.
+      if (partView === "active") return '';
+      return '';
+    }
+
+    var reviewerConfig = viewerRole === "anna" ? getReviewerDashboardConfig_() : null;
+    if (viewerRole === "anna" && reviewerConfig && reviewerConfig.logisticsButtonOnly) return '';
+
+    if (viewerRole === "anna" && partView === "cancelled") return '';
+
+    if (viewerRole === "anna") {
+      if (partView === "archive") {
+        return '<button class="btn btn-warning btn-sm" onclick="revert(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.bringBack) + '</button>';
+      }
+      if (partView === "ready") {
+        return '<button type="button" class="btn btn-warning btn-sm" onclick="annaRevertReadyToActiveFromUi(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.returnToActive) + '</button>';
+      }
+      if (partView === "active") {
+        return '';
+      }
+      return '';
+    }
+
+    return partView === "active"
+      ? '<button class="btn btn-primary btn-sm" onclick="saveOnly(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.save) + '</button><button class="btn btn-success btn-sm" onclick="markShipped(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.markDone) + '</button>'
+      : '<button class="btn btn-warning btn-sm" onclick="revert(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.bringBack) + '</button>';
+  }
+
+  function buildStandardActiveActions_(part, labels, canCreateSimilar) {
+    var canEdit = !!part.canEditRp;
+    var editReason = String(part.editRpDisabledReason || "");
+    var editBtn = canEdit
+      ? '<button type="button" class="btn btn-outline-secondary btn-sm standard-rp-action-btn" onclick="openEditRp(\'' + escapeJs(part.rpNum) + '\')">Edit</button>'
+      : '<span title="' + escapeAttr(editReason || "Edit unavailable") + '"><button type="button" class="btn btn-outline-secondary btn-sm standard-rp-action-btn" disabled>Edit</button></span>';
+    var createBtn = canCreateSimilar
+      ? '<button type="button" class="btn btn-outline-secondary btn-sm standard-rp-action-btn" onclick="openCreateSimilar(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.createNew) + '</button>'
+      : "";
+    var cancelBtn = '<button type="button" class="btn btn-danger btn-sm standard-rp-action-btn" onclick="cancelRp(\'' + escapeJs(part.rpNum) + '\')">' + escapeHtml(labels.cancelRp) + '</button>';
+    return '<div class="tech-bottom-action standard-active-actions-row">' +
+      editBtn + createBtn + cancelBtn +
+      '</div>';
+  }
+
+  function openEditRp(rpNum) {
+    var safeRp = String(rpNum || "").trim();
+    if (!safeRp) return;
+    window.top.location.href = scriptUrl + "?view=logger&editRp=" + encodeURIComponent(safeRp);
+  }
+
+  function openCreateSimilar(rpNum) {
+    var safeRp = String(rpNum || "").trim();
+    if (!safeRp) return;
+    function navigate_() {
+      window.top.location.href = scriptUrl + "?view=logger&similarRp=" + encodeURIComponent(safeRp);
+    }
+    google.script.run
+      .withSuccessHandler(function(payload) {
+        try {
+          var raw = JSON.stringify(payload || {});
+          if (window.sessionStorage) {
+            window.sessionStorage.setItem("loggerSimilarPayload", raw);
+            window.sessionStorage.setItem("loggerSimilarRp", safeRp);
+          }
+        } catch (e) {}
+        navigate_();
+      })
+      .withFailureHandler(function() {
+        navigate_();
+      })
+      .getSimilarRpData(safeRp);
+  }
+
+  function saveOnly(rpNum) {
+    var method = document.getElementById("m-" + rpNum).value;
+    var tracking = document.getElementById("t-" + rpNum).value;
+    google.script.run
+      .withSuccessHandler(function() { alert("Данните са запазени!"); })
+      .withFailureHandler(handleFailure)
+      .saveInfoOnly(rpNum, method, tracking);
+  }
+
+  function markShipped(rpNum) {
+    var method = document.getElementById("m-" + rpNum).value;
+    var tracking = document.getElementById("t-" + rpNum).value;
+    document.getElementById("card-" + rpNum).style.opacity = "0.3";
+    google.script.run
+      .withSuccessHandler(refreshData)
+      .withFailureHandler(handleFailure)
+      .updatePartToShipped(rpNum, method, tracking);
+  }
+
+  function revert(rpNum) {
+    document.getElementById("card-" + rpNum).style.opacity = "0.3";
+    google.script.run
+      .withSuccessHandler(refreshData)
+      .withFailureHandler(handleFailure)
+      .revertToActive(rpNum);
+  }
+
+  function cancelRp(rpNum) {
+    if (!confirm("Are you sure you want to Cancel this order?")) return;
+    document.getElementById("card-" + rpNum).style.opacity = "0.3";
+    google.script.run
+      .withSuccessHandler(refreshData)
+      .withFailureHandler(handleFailure)
+      .cancelRp(rpNum);
+  }
+
+  function toggleTrackingOrLogistics(rpNum, viewerRole) {
+    if (viewerRole !== "anna") return;
+    var methodSelect = document.getElementById("m-" + rpNum);
+    var trackingWrap = document.getElementById("trackingWrap-" + rpNum);
+    var logisticsWrap = document.getElementById("logisticsBtnWrap-" + rpNum);
+    var courierWrap = document.getElementById("annaIzpratenoWrap-" + rpNum);
+    if (!methodSelect || !trackingWrap || !logisticsWrap) return;
+
+    var val = annaMethodTrim_(methodSelect.value);
+    var isLog = isLogisticsMethod_(val);
+
+    if (currentView === "active") {
+      if (!val) {
+        trackingWrap.style.display = "none";
+        logisticsWrap.style.display = "none";
+        if (courierWrap) courierWrap.style.display = "none";
+      } else if (isLog) {
+        trackingWrap.style.display = "none";
+        logisticsWrap.style.display = "";
+        if (courierWrap) courierWrap.style.display = "none";
+      } else {
+        trackingWrap.style.display = "";
+        logisticsWrap.style.display = "none";
+        if (courierWrap) courierWrap.style.display = "";
+      }
+      return;
+    }
+
+    if (currentView === "ready") {
+      if (isLog) {
+        trackingWrap.style.display = "none";
+        logisticsWrap.style.display = "none";
+      } else {
+        trackingWrap.style.display = "";
+        logisticsWrap.style.display = "none";
+      }
+    }
+  }
+
+  function annaMethodTrim_(method) {
+    return String(method || "").trim();
+  }
+
+  function isLogisticsMethod_(method) {
+    var normalized = String(method || "").toLowerCase();
+    return normalized === "pallet" || normalized === "container";
+  }
+
+  function notifyLogisticsPlaceholder() {
+    alert("Информирай логистика - ще бъде свързано в следващата стъпка.");
+  }
+
+  function annaNotifyLogisticsReady(rpNum) {
+    var reviewerConfig = getReviewerDashboardConfig_();
+    var methodEl = document.getElementById("m-" + rpNum);
+    var method = methodEl ? methodEl.value : "";
+    if (!method && reviewerConfig && reviewerConfig.defaultLogisticsMethod) {
+      method = reviewerConfig.defaultLogisticsMethod;
+    }
+    var card = document.getElementById("card-" + rpNum);
+    if (card) card.style.opacity = "0.3";
+    google.script.run
+      .withSuccessHandler(function() {
+        refreshData();
+      })
+      .withFailureHandler(handleFailure)
+      .annaMarkReadyForLogistics(rpNum, method, simulatedUserEmail);
+  }
+
+  function reviewerMarkIpReadyForWarehouseFromUi(ipNum) {
+    var card = document.getElementById("card-" + ipNum);
+    if (card) card.style.opacity = "0.3";
+    google.script.run
+      .withSuccessHandler(function() {
+        refreshData();
+      })
+      .withFailureHandler(handleFailure)
+      .nikolayMarkIpReadyForWarehouse(ipNum, simulatedUserEmail);
+  }
+
+  function nikolayMarkIpReadyForWarehouseFromUi(ipNum) {
+    reviewerMarkIpReadyForWarehouseFromUi(ipNum);
+  }
+
+  function annaRevertReadyToActiveFromUi(rpNum) {
+    var card = document.getElementById("card-" + rpNum);
+    if (card) card.style.opacity = "0.3";
+    google.script.run
+      .withSuccessHandler(function() {
+        refreshData();
+      })
+      .withFailureHandler(handleFailure)
+      .annaRevertReadyToActive(rpNum, simulatedUserEmail);
+  }
+
+  function openDateModal(rpNum) {
+    setDateModalSubmitting_(false);
+    document.getElementById("modalRpNum").value = rpNum;
+    document.getElementById("modalNewDate").value = "";
+    document.getElementById("modalReason").value = "";
+    dateModal.show();
+  }
+
+  function setDateModalSubmitting_(busy) {
+    var submitBtn = document.getElementById("dateModalSubmitBtn");
+    var cancelBtn = document.getElementById("dateModalCancelBtn");
+    var closeBtn = document.querySelector("#dateModal .modal-header .btn-close");
+    var bodyEl = document.querySelector("#dateModal .modal-body");
+    if (!submitBtn) return;
+    if (busy) {
+      if (!submitBtn.dataset.labelOriginal) {
+        submitBtn.dataset.labelOriginal = submitBtn.textContent.trim();
+      }
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' +
+        '<span aria-live="polite">Запазване…</span>';
+      if (cancelBtn) cancelBtn.disabled = true;
+      if (closeBtn) {
+        closeBtn.disabled = true;
+        closeBtn.style.pointerEvents = "none";
+      }
+      if (bodyEl) {
+        bodyEl.querySelectorAll("input, textarea").forEach(function(el) {
+          el.disabled = true;
+        });
+      }
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitBtn.dataset.labelOriginal || "Запази и отложи";
+      if (cancelBtn) cancelBtn.disabled = false;
+      if (closeBtn) {
+        closeBtn.disabled = false;
+        closeBtn.style.pointerEvents = "";
+      }
+      if (bodyEl) {
+        bodyEl.querySelectorAll("input, textarea").forEach(function(el) {
+          el.disabled = false;
+        });
+      }
+    }
+  }
+
+  function submitDateChange() {
+    var rpNum = document.getElementById("modalRpNum").value;
+    var newDate = document.getElementById("modalNewDate").value;
+    var reason = document.getElementById("modalReason").value;
+
+    if (!newDate || !reason) {
+      alert("Моля попълнете и двете полета!");
+      return;
+    }
+
+    setDateModalSubmitting_(true);
+    google.script.run
+      .withSuccessHandler(function() {
+        setDateModalSubmitting_(false);
+        dateModal.hide();
+        refreshData();
+      })
+      .withFailureHandler(function(err) {
+        setDateModalSubmitting_(false);
+        handleFailure(err);
+      })
+      .updateDateFromWeb(rpNum, newDate, reason);
+  }
+
+  function handleFailure(error) {
+    setRefreshLoading_(false);
+    alert((error && error.message) ? error.message : "Възникна грешка.");
+  }
+
+  function initAdminDashboard_() {
+    if (!isAdminUser) return;
+    hasEnteredAdminView = true;
+    simulatedUserEmail = "";
+    document.getElementById("adminLauncher").style.display = "block";
+    document.getElementById("headerControls").style.display = "flex";
+    var simInp = document.getElementById("simulateEmailInline");
+    if (simInp) simInp.value = "";
+    ownRpsMode = false;
+    updateSimulationIndicator();
+    updateHeaderControls_();
+    applyViewToggleUi_();
+    updateDashboardSearchVisibility_();
+    refreshData();
+  }
+
+  function initAdminSimInput_() {
+    var inp = document.getElementById("simulateEmailInline");
+    if (!inp || !isAdminUser) return;
+    inp.addEventListener("keydown", function(ev) {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        applyInlineSimulation();
+      }
+    });
+  }
+
+  function applyInlineSimulation() {
+    var raw = String(document.getElementById("simulateEmailInline").value || "").trim();
+    if (!raw) {
+      simulatedUserEmail = "";
+      updateSimulationIndicator();
+      updateHeaderControls_();
+      refreshData();
+      return;
+    }
+    setSimulationAndLoad_(raw);
+  }
+
+  function setSimulationAndLoad_(email) {
+    var safeEmail = normalizeSimulationEmail_(email);
+    if (!/@meavo\.com$/.test(safeEmail)) {
+      alert("Please enter a valid @meavo.com email.");
+      return;
+    }
+    simulatedUserEmail = safeEmail;
+    hasEnteredAdminView = true;
+    document.getElementById("adminLauncher").style.display = "block";
+    document.getElementById("headerControls").style.display = "flex";
+    var simField = document.getElementById("simulateEmailInline");
+    if (simField) simField.value = simulatedUserEmail;
+    updateSimulationIndicator();
+    updateHeaderControls_();
+    refreshData();
+  }
+
+  function normalizeSimulationEmail_(value) {
+    var raw = String(value || "").trim().toLowerCase();
+    if (!raw) return "";
+    if (raw.indexOf("@") === -1) {
+      return raw + "@meavo.com";
+    }
+    return raw;
+  }
+
+  function updateSimulationIndicator() {
+    updateLoggedInAs_();
+  }
+
+  function isTodorDashboardMode_() {
+    var ev = getEffectiveViewerEmail_();
+    return TODOR_DASHBOARD_VIEWER_EMAILS_[ev] === true;
+  }
+
+  function isLogisticsViewer_() {
+    var ev = getEffectiveViewerEmail_();
+    return ev === "georgi.stoyanov@meavo.com" || ev === "nikola@meavo.com";
+  }
+
+  function isLogisticsMode_() {
+    return isLogisticsViewer_();
+  }
+
+  function changeTodorMainView(view) {
+    todorMainView = view || "iznos";
+    if (todorMainView === "iznos" && !todorIznosWeek) {
+      todorIznosWeek = "this_week";
+    }
+    updateTodorMainTabs_();
+    updateTodorIznosWeekUi_();
+    refreshData();
+  }
+
+  function setTodorIznosWeek_(week) {
+    if (week !== "this_week" && week !== "next_week") return;
+    todorIznosWeek = week;
+    updateTodorIznosWeekUi_();
+    refreshData();
+  }
+
+  function updateTodorMainTabs_() {
+    var mapping = {
+      iznos: document.getElementById("btnTodorIznos"),
+      availability: document.getElementById("btnTodorAvailability"),
+      ip: document.getElementById("btnTodorIp")
+    };
+    Object.keys(mapping).forEach(function(key) {
+      var el = mapping[key];
+      if (!el) return;
+      if (key === todorMainView) {
+        el.classList.add("view-toggle-active");
+        el.setAttribute("aria-selected", "true");
+      } else {
+        el.classList.remove("view-toggle-active");
+        el.setAttribute("aria-selected", "false");
+      }
+    });
+  }
+
+  function updateTodorIznosWeekUi_() {
+    var wrap = document.getElementById("todorIznosWeekWrap");
+    var btn = document.getElementById("todorIznosWeekBtn");
+    var btnThis = document.getElementById("todorIznosWeekThisBtn");
+    var btnNext = document.getElementById("todorIznosWeekNextBtn");
+    if (!wrap || !btn || !btnThis || !btnNext) return;
+
+    var show = (hasEnteredAdminView || !isAdminUser) && isTodorDashboardMode_() && todorMainView === "iznos";
+    wrap.style.display = show ? "inline-flex" : "none";
+    if (!show) return;
+
+    var labels = getLabels_("todor");
+    var thisLabel = labels.iznosWeekThis || "Тази седмица";
+    var nextLabel = labels.iznosWeekNext || "Следваща седмица";
+    var currentLabel = todorIznosWeek === "next_week" ? nextLabel : thisLabel;
+    btn.textContent = currentLabel;
+    btn.setAttribute("aria-label", labels.iznosWeekAria || "Седмица за изпращане");
+    btnThis.textContent = thisLabel;
+    btnNext.textContent = nextLabel;
+    btnThis.classList.toggle("active", todorIznosWeek === "this_week");
+    btnNext.classList.toggle("active", todorIznosWeek === "next_week");
+  }
+
+  function todorMarkIpDeliveredAtTopoliFromUi(ipNum, btnEl) {
+    var card = btnEl && btnEl.closest ? btnEl.closest(".card") : null;
+    if (card) card.style.opacity = "0.3";
+    if (btnEl) btnEl.disabled = true;
+    google.script.run
+      .withSuccessHandler(function() {
+        refreshData();
+      })
+      .withFailureHandler(function(err) {
+        if (btnEl) btnEl.disabled = false;
+        if (card) card.style.opacity = "1";
+        handleFailure(err);
+      })
+      .todorMarkIpDeliveredAtTopoli(ipNum, simulatedUserEmail);
+  }
+
+  function changeLogisticsView(view) {
+    logisticsView = view || "ready";
+    dashboardMarketFilter = "all";
+    updateLogisticsTabs_();
+    refreshData();
+  }
+
+  function updateLogisticsTabs_() {
+    var mapping = {
+      processing: document.getElementById("btnLogProcessing"),
+      ready: document.getElementById("btnLogReady"),
+      shipped: document.getElementById("btnLogShipped")
+    };
+    Object.keys(mapping).forEach(function(key) {
+      var el = mapping[key];
+      if (!el) return;
+      if (key === logisticsView) {
+        el.classList.add("view-toggle-active");
+        el.setAttribute("aria-selected", "true");
+      } else {
+        el.classList.remove("view-toggle-active");
+        el.setAttribute("aria-selected", "false");
+      }
+    });
+  }
+
+  function updateHeaderControls_() {
+    var viewAndRefreshWrap = document.getElementById("viewAndRefreshWrap");
+    var logisticsViewTabs = document.getElementById("logisticsViewTabs");
+    var todorViewTabs = document.getElementById("todorViewTabs");
+    var aupViewTabs = document.getElementById("aupViewTabs");
+    var adminOwnPartsViewTabs = document.getElementById("adminOwnPartsViewTabs");
+    var kalinMainViewTabs = document.getElementById("kalinMainViewTabs");
+    if (isKalinViewer_()) {
+      if (adminOwnPartsViewTabs) adminOwnPartsViewTabs.style.display = "none";
+      document.getElementById("newEntryBtn").style.display = "inline-block";
+      document.getElementById("standardLoggedPartsBtn").style.display = "none";
+      var ownRpsKalin = document.getElementById("ownRpsBtn");
+      if (ownRpsKalin) ownRpsKalin.style.display = "none";
+      if (kalinMainViewTabs) kalinMainViewTabs.style.display = "inline-flex";
+      shouldShowRefreshBtn = true;
+      document.getElementById("manualRefreshBtn").textContent = "Refresh";
+      viewAndRefreshWrap.style.display = "inline-flex";
+      if (logisticsViewTabs) logisticsViewTabs.style.display = "none";
+      if (todorViewTabs) todorViewTabs.style.display = "none";
+      var showAupTabs = kalinDashboardMode === "aup";
+      if (aupViewTabs) aupViewTabs.style.display = showAupTabs ? "inline-flex" : "none";
+      document.getElementById("viewTabs").style.display = showAupTabs ? "none" : "inline-flex";
+      var btnAnnaReadyKalin = document.getElementById("btnAnnaReady");
+      if (btnAnnaReadyKalin) btnAnnaReadyKalin.style.display = "none";
+      var btnArchiveKalin = document.getElementById("btnArchive");
+      if (btnArchiveKalin) btnArchiveKalin.style.display = "";
+      var btnCancelledKalin = document.getElementById("btnCancelled");
+      if (btnCancelledKalin) btnCancelledKalin.style.display = "";
+      updateKalinMainViewTabs_();
+      applyRefreshButtonState_();
+      applyTopButtonTranslations_("standard");
+      if (showAupTabs) updateActiveUrgentTabs_();
+      updateStandardRegionalButtons_();
+      updatePageTitle_(getEffectiveViewerEmail_());
+      updateDashboardSearchPlaceholder_();
+      updateDashboardSearchVisibility_();
+      return;
+    }
+    if (kalinMainViewTabs) kalinMainViewTabs.style.display = "none";
+    if (isTodorDashboardMode_()) {
+      if (adminOwnPartsViewTabs) adminOwnPartsViewTabs.style.display = "none";
+      document.getElementById("newEntryBtn").style.display = "none";
+      shouldShowRefreshBtn = true;
+      document.getElementById("manualRefreshBtn").textContent = "Обнови";
+      viewAndRefreshWrap.style.display = "inline-flex";
+      document.getElementById("viewTabs").style.display = "none";
+      var btnAnnaReadyTodor = document.getElementById("btnAnnaReady");
+      if (btnAnnaReadyTodor) btnAnnaReadyTodor.style.display = "none";
+      if (aupViewTabs) aupViewTabs.style.display = "none";
+      if (logisticsViewTabs) logisticsViewTabs.style.display = "none";
+      if (todorViewTabs) todorViewTabs.style.display = "inline-flex";
+      document.getElementById("standardLoggedPartsBtn").style.display = "none";
+      updateOwnRpsButton_();
+      applyRefreshButtonState_();
+      applyTopButtonTranslations_("todor");
+      updateTodorMainTabs_();
+      updateTodorIznosWeekUi_();
+      updatePageTitle_(getEffectiveViewerEmail_());
+      updateDashboardSearchPlaceholder_();
+      updateDashboardSearchVisibility_();
+      return;
+    }
+    if (todorViewTabs) todorViewTabs.style.display = "none";
+    var todorIznosWeekWrapHide = document.getElementById("todorIznosWeekWrap");
+    if (todorIznosWeekWrapHide) todorIznosWeekWrapHide.style.display = "none";
+    if (isLogisticsMode_()) {
+      if (adminOwnPartsViewTabs) adminOwnPartsViewTabs.style.display = "none";
+      document.getElementById("newEntryBtn").style.display = "none";
+      shouldShowRefreshBtn = true;
+      document.getElementById("manualRefreshBtn").textContent = "Refresh";
+      viewAndRefreshWrap.style.display = "inline-flex";
+      document.getElementById("viewTabs").style.display = "none";
+      var btnAnnaReadyLogistics = document.getElementById("btnAnnaReady");
+      if (btnAnnaReadyLogistics) btnAnnaReadyLogistics.style.display = "none";
+      if (aupViewTabs) aupViewTabs.style.display = "none";
+      if (logisticsViewTabs) logisticsViewTabs.style.display = "inline-flex";
+      document.getElementById("standardLoggedPartsBtn").style.display = "none";
+      updateOwnRpsButton_();
+      applyRefreshButtonState_();
+      applyTopButtonTranslations_("logistics");
+      updateStandardRegionalButtons_();
+      updateLogisticsTabs_();
+      updatePageTitle_(getEffectiveViewerEmail_());
+      updateDashboardSearchPlaceholder_();
+      updateDashboardSearchVisibility_();
+      return;
+    }
+    if (logisticsViewTabs) logisticsViewTabs.style.display = "none";
+    if (isActiveUrgentPanelsMode_()) {
+      if (adminOwnPartsViewTabs) adminOwnPartsViewTabs.style.display = "none";
+      document.getElementById("newEntryBtn").style.display = "inline-block";
+      shouldShowRefreshBtn = true;
+      document.getElementById("manualRefreshBtn").textContent = "Refresh";
+      viewAndRefreshWrap.style.display = "inline-flex";
+      document.getElementById("viewTabs").style.display = "none";
+      var btnAnnaReadyAup = document.getElementById("btnAnnaReady");
+      if (btnAnnaReadyAup) btnAnnaReadyAup.style.display = "none";
+      if (aupViewTabs) aupViewTabs.style.display = "inline-flex";
+      document.getElementById("standardLoggedPartsBtn").style.display = "inline-block";
+      updateOwnRpsButton_();
+      applyRefreshButtonState_();
+      updateActiveUrgentTabs_();
+      updateStandardRegionalButtons_();
+      updatePageTitle_(getEffectiveViewerEmail_());
+      updateDashboardSearchPlaceholder_();
+      updateDashboardSearchVisibility_();
+      return;
+    }
+    if (aupViewTabs) aupViewTabs.style.display = "none";
+    if (isAdminOwnPartsDashboard_()) {
+      document.getElementById("newEntryBtn").style.display = "inline-block";
+      shouldShowRefreshBtn = true;
+      document.getElementById("manualRefreshBtn").textContent = "Refresh";
+      document.getElementById("standardLoggedPartsBtn").style.display = "none";
+      var ownRpsAdmin = document.getElementById("ownRpsBtn");
+      if (ownRpsAdmin) ownRpsAdmin.style.display = "none";
+      viewAndRefreshWrap.style.display = "inline-flex";
+      document.getElementById("viewTabs").style.display = "none";
+      var btnAnnaReadyAdmin = document.getElementById("btnAnnaReady");
+      if (btnAnnaReadyAdmin) btnAnnaReadyAdmin.style.display = "none";
+      if (adminOwnPartsViewTabs) adminOwnPartsViewTabs.style.display = "inline-flex";
+      applyRefreshButtonState_();
+      applyTopButtonTranslations_("standard");
+      updateStandardRegionalButtons_();
+      updatePageTitle_(getEffectiveViewerEmail_());
+      updateDashboardSearchPlaceholder_();
+      updateDashboardSearchVisibility_();
+      return;
+    }
+    if (adminOwnPartsViewTabs) adminOwnPartsViewTabs.style.display = "none";
+    var effectiveViewer = getEffectiveViewerEmail_();
+    var role = getViewerRole_();
+    var reviewerConfig = getReviewerDashboardConfig_();
+    var showTabs = role === "anna" || role === "standard" || role === "ivan";
+    var newEntryBtnEl = document.getElementById("newEntryBtn");
+    var isNikolayViewer = effectiveViewer === "nikolay@meavo.com";
+    // Reviewer role normally hides the New Entry button; Nikolay is an exception
+    // because his button opens the standalone IP entry form, not the RP logger.
+    newEntryBtnEl.style.display = ((role === "anna" && !isNikolayViewer) || role === "ivan") ? "none" : "inline-block";
+    newEntryBtnEl.textContent = isNikolayViewer ? "Нов IP запис" : "New Entry Form";
+    shouldShowRefreshBtn = showTabs;
+    document.getElementById("standardLoggedPartsBtn").style.display = "none";
+    updateOwnRpsButton_();
+    viewAndRefreshWrap.style.display = showTabs ? "inline-flex" : "none";
+    document.getElementById("viewTabs").style.display = showTabs ? "inline-flex" : "none";
+    var btnAnnaReadyBar = document.getElementById("btnAnnaReady");
+    if (btnAnnaReadyBar) btnAnnaReadyBar.style.display = (role === "anna" || role === "ivan") ? "" : "none";
+    var btnArchiveBar = document.getElementById("btnArchive");
+    if (btnArchiveBar) btnArchiveBar.style.display = reviewerConfig && reviewerConfig.showArchive === false ? "none" : "";
+    var btnCancelledBar = document.getElementById("btnCancelled");
+    if (btnCancelledBar) btnCancelledBar.style.display = role === "ivan" ? "none" : "";
+    applyRefreshButtonState_();
+    applyTopButtonTranslations_(role);
+    updateStandardRegionalButtons_();
+    updatePageTitle_(effectiveViewer);
+    updateDashboardSearchPlaceholder_();
+    updateDashboardSearchVisibility_();
+  }
+
+  function getEffectiveViewerEmail_() {
+    return String(simulatedUserEmail || userEmail || "").trim().toLowerCase();
+  }
+
+  function isActiveUrgentPanelsMode_() {
+    var ev = String(getEffectiveViewerEmail_() || "").trim().toLowerCase();
+    if (ev === "kalin@meavo.com") return kalinDashboardMode === "aup";
+    if (ev === "yavor@meavo.com") return !standardLoggedPartsMode;
+    return false;
+  }
+
+  function isKalinAllRpsMode_() {
+    return isKalinViewer_() && kalinDashboardMode === "all";
+  }
+
+  function isKalinOwnRpsMode_() {
+    return isKalinViewer_() && kalinDashboardMode === "own";
+  }
+
+  function isOwnRpsEligibleViewer_() {
+    var ev = getEffectiveViewerEmail_();
+    return ev === "kalin@meavo.com" || ev === "yavor@meavo.com" || isAdminEmail_(ev);
+  }
+
+  function getOwnRpsButtonLabel_() {
+    var ev = getEffectiveViewerEmail_();
+    if (ev === "kalin@meavo.com") return "Kalin's RPs";
+    if (ev === "yavor@meavo.com") return "Yavor's RPs";
+    if (ev === "boyan@meavo.com") return "Boyan's RPs";
+    if (ev === "todor@meavo.com") return "Todor's RPs";
+    return "My RPs";
+  }
+
+  function updateOwnRpsButton_() {
+    var btn = document.getElementById("ownRpsBtn");
+    if (!btn) return;
+    if (isKalinViewer_()) {
+      ownRpsMode = false;
+      btn.style.display = "none";
+      return;
+    }
+    if (!isOwnRpsEligibleViewer_()) {
+      ownRpsMode = false;
+      btn.style.display = "none";
+      return;
+    }
+    btn.style.display = "inline-block";
+    btn.textContent = ownRpsMode ? "Back to default view" : getOwnRpsButtonLabel_();
+    btn.classList.remove("btn-outline-light", "btn-primary");
+    btn.classList.add(ownRpsMode ? "btn-primary" : "btn-outline-light");
+  }
+
+  function toggleOwnRpsMode() {
+    if (isKalinViewer_()) return;
+    if (!isOwnRpsEligibleViewer_()) return;
+    ownRpsMode = !ownRpsMode;
+    if (ownRpsMode) {
+      if (getEffectiveViewerEmail_() === "yavor@meavo.com" || getEffectiveViewerEmail_() === "kalin@meavo.com") {
+        standardLoggedPartsMode = true;
+      }
+      currentView = "active";
+      changeView("active");
+      return;
+    }
+    if (getEffectiveViewerEmail_() === "yavor@meavo.com" || getEffectiveViewerEmail_() === "kalin@meavo.com") {
+      standardLoggedPartsMode = false;
+    }
+    refreshData();
+  }
+
+  function isKalinViewer_() {
+    return getEffectiveViewerEmail_() === "kalin@meavo.com";
+  }
+
+  function changeKalinDashboardMode(mode) {
+    if (!isKalinViewer_()) return;
+    if (mode !== "aup" && mode !== "all" && mode !== "own") return;
+    kalinDashboardMode = mode;
+    ownRpsMode = false;
+    if (mode === "all" || mode === "own") {
+      currentView = "active";
+      if (mode === "all") {
+        dashboardItemFilter = "all";
+        dashboardFactoryFilter = "all";
+      }
+    }
+    updateKalinMainViewTabs_();
+    refreshData();
+  }
+
+  function updateKalinMainViewTabs_() {
+    var mapping = {
+      aup: document.getElementById("btnKalinAup"),
+      all: document.getElementById("btnKalinAllRps"),
+      own: document.getElementById("btnKalinOwnRps")
+    };
+    Object.keys(mapping).forEach(function(key) {
+      var el = mapping[key];
+      if (!el) return;
+      if (key === kalinDashboardMode) {
+        el.classList.add("view-toggle-active");
+        el.setAttribute("aria-selected", "true");
+      } else {
+        el.classList.remove("view-toggle-active");
+        el.setAttribute("aria-selected", "false");
+      }
+    });
+    var ownBtn = document.getElementById("btnKalinOwnRps");
+    if (ownBtn) ownBtn.textContent = "Kalin's RPs";
+  }
+
+  function toggleStandardLoggedPartsMode() {
+    if (isKalinViewer_()) return;
+    standardLoggedPartsMode = !standardLoggedPartsMode;
+    document.getElementById("standardLoggedPartsBtn").textContent = standardLoggedPartsMode ? "Active Urgent Panels" : "Standard Logged Parts";
+    refreshData();
+  }
+
+  function changeActiveUrgentPanelsView(view) {
+    activeUrgentPanelsView = view;
+    updateActiveUrgentTabs_();
+    refreshData();
+  }
+
+  function updateActiveUrgentTabs_() {
+    var mapping = {
+      unbriefed: document.getElementById("btnUnbriefed"),
+      inproduction: document.getElementById("btnInProduction"),
+      ready: document.getElementById("btnReady"),
+      shipped: document.getElementById("btnAupShipped")
+    };
+    Object.keys(mapping).forEach(function(key) {
+      var el = mapping[key];
+      if (!el) return;
+      if (key === activeUrgentPanelsView) {
+        el.classList.add("view-toggle-active");
+        el.setAttribute("aria-selected", "true");
+      } else {
+        el.classList.remove("view-toggle-active");
+        el.setAttribute("aria-selected", "false");
+      }
+    });
+  }
+
+  function openBriefModal(rpNum, reviewGroup) {
+    document.getElementById("briefRpNum").value = rpNum;
+    document.getElementById("briefFactoryLabel").textContent = reviewGroup || "-";
+    document.getElementById("briefProductionEta").value = "";
+    briefModal.show();
+  }
+
+  function confirmBrief() {
+    var rpNum = document.getElementById("briefRpNum").value;
+    var eta = document.getElementById("briefProductionEta").value;
+    if (!eta) {
+      alert("Please select Production ETA.");
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function() {
+        briefModal.hide();
+        refreshData();
+      })
+      .withFailureHandler(handleFailure)
+      .briefActiveUrgentPanel(rpNum, eta, simulatedUserEmail);
+  }
+
+  function openExistingPanelModal(rpNum, reviewGroup) {
+    document.getElementById("existingPanelRpNum").value = rpNum;
+    document.getElementById("existingPanelFactoryLabel").textContent = reviewGroup || "-";
+    document.getElementById("existingPanelBatch").value = "";
+    document.getElementById("existingPanelColor").value = "";
+    document.getElementById("existingPanelWarehouse").value = "";
+    existingPanelModal.show();
+  }
+
+  function confirmExistingPanel() {
+    var rpNum = document.getElementById("existingPanelRpNum").value;
+    var batch = document.getElementById("existingPanelBatch").value.trim();
+    var color = document.getElementById("existingPanelColor").value.trim();
+    var warehouse = document.getElementById("existingPanelWarehouse").value.trim();
+    if (!batch) {
+      alert("Please enter Batch.");
+      return;
+    }
+    if (!color) {
+      alert("Please enter Colour.");
+      return;
+    }
+    if (!warehouse) {
+      alert("Please select Warehouse.");
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function() {
+        existingPanelModal.hide();
+        refreshData();
+      })
+      .withFailureHandler(handleFailure)
+      .useExistingUrgentPanel(rpNum, batch, color, warehouse, simulatedUserEmail);
+  }
+
+  function markActiveUrgentPanelReadyFromUi(rpNum, btnEl) {
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.dataset.originalText = btnEl.dataset.originalText || btnEl.innerHTML;
+      btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Loading...';
+    }
+    google.script.run
+      .withSuccessHandler(function() {
+        refreshData();
+      })
+      .withFailureHandler(function(err) {
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.innerHTML = btnEl.dataset.originalText || 'Mark Ready';
+        }
+        handleFailure(err);
+      })
+      .markActiveUrgentPanelReady(rpNum, simulatedUserEmail);
+  }
+
+  function openEtaModal(rpNum, currentDate) {
+    document.getElementById("etaRpNum").value = rpNum;
+    document.getElementById("etaNewDate").value = currentDate || "";
+    etaModal.show();
+  }
+
+  function confirmEtaChange() {
+    var rpNum = document.getElementById("etaRpNum").value;
+    var newDate = document.getElementById("etaNewDate").value;
+    if (!newDate) {
+      alert("Please select a new date.");
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function() {
+        etaModal.hide();
+        refreshData();
+      })
+      .withFailureHandler(handleFailure)
+      .updateActiveUrgentPanelsEta(rpNum, newDate, simulatedUserEmail);
+  }
+
+  function getReviewerDashboardConfigByEmail_(email) {
+    var key = String(email || "").trim().toLowerCase();
+    if (key === "anna@meavo.com") {
+      return { brandSub: "Склад Аксаково", showArchive: true, allowDueDateEdit: true };
+    }
+    if (key === "nikolay@meavo.com") {
+      return {
+        brandSub: "Производство Аксаково",
+        showArchive: false,
+        showSourceFilter: true,
+        logisticsButtonOnly: true,
+        defaultLogisticsMethod: "Pallet",
+        allowDueDateEdit: true,
+        hideShippingAddressSection: true
+      };
+    }
+    if (key === "stefan@meavo.com") {
+      return {
+        brandSub: "Склад Казанлък",
+        showArchive: true,
+        allowDueDateEdit: true,
+        showItemTypeFilter: true,
+        showDashboardSort: true,
+        showActivePanelsPdfExport: true,
+        mergeInternalProduction: true,
+        panelLogisticsButtonOnly: true,
+        defaultLogisticsMethod: "Pallet"
+      };
+    }
+    return null;
+  }
+
+  function getReviewerDashboardConfig_() {
+    return getReviewerDashboardConfigByEmail_(getEffectiveViewerEmail_());
+  }
+
+  function updatePageBrandSub_() {
+    var el = document.getElementById("pageBrandSub");
+    if (!el) return;
+    if (isTodorDashboardMode_()) {
+      el.textContent = "Склад Тополи";
+      return;
+    }
+    if (isIvanDashboardMode_()) {
+      el.textContent = "Табло Иван";
+      return;
+    }
+    var reviewerConfig = getReviewerDashboardConfig_();
+    if (reviewerConfig) {
+      el.textContent = reviewerConfig.brandSub;
+      return;
+    }
+    if (isLogisticsViewer_()) {
+      el.textContent = "Logistics Dashboard";
+      return;
+    }
+    if (isActiveUrgentPanelsMode_()) {
+      el.textContent = "Urgent Panels Dashboard";
+      return;
+    }
+    if (isKalinAllRpsMode_()) {
+      el.textContent = "All RPs dashboard";
+      return;
+    }
+    el.textContent = "Operations dashboard";
+  }
+
+  function updatePageTitle_(effectiveViewer) {
+    var titleEl = document.getElementById("pageTitleText");
+    var emailEl = document.getElementById("pageTitleEmail");
+    var reviewerConfig = getReviewerDashboardConfigByEmail_(effectiveViewer);
+    var isReviewerView = !!reviewerConfig;
+    var isStandardUser = !isAdminUser && !isReviewerView && !isActiveUrgentPanelsMode_();
+
+    if (isTodorDashboardMode_()) {
+      titleEl.textContent = "Meavo Spare Parts";
+      emailEl.textContent = "";
+      updatePageBrandSub_();
+      return;
+    }
+
+    if (isIvanDashboardMode_()) {
+      titleEl.textContent = "Meavo Spare Parts";
+      emailEl.textContent = "";
+      updatePageBrandSub_();
+      return;
+    }
+
+    if (isReviewerView) {
+      titleEl.textContent = "Meavo Spare Parts";
+      emailEl.textContent = "";
+      updatePageBrandSub_();
+      return;
+    }
+
+    if (isLogisticsViewer_()) {
+      titleEl.textContent = "Meavo Spare Parts";
+      emailEl.textContent = "";
+      updatePageBrandSub_();
+      return;
+    }
+
+    if (isActiveUrgentPanelsMode_()) {
+      titleEl.textContent = "Meavo Spare Parts";
+      emailEl.textContent = "";
+      updatePageBrandSub_();
+      return;
+    }
+
+    if (isAdminUser && isAdminOwnPartsDashboard_()) {
+      titleEl.textContent = "Meavo Spare Parts";
+      emailEl.textContent = " (" + String(userEmail || "").trim() + ")";
+      updatePageBrandSub_();
+      return;
+    }
+
+    titleEl.textContent = "Meavo Spare Parts";
+    emailEl.textContent = isStandardUser ? " (" + String(userEmail || "").trim() + ")" : "";
+    updatePageBrandSub_();
+  }
+
+  function updateLoggedInAs_() {
+    var el = document.getElementById("loggedInAs");
+    if (!el) return;
+    var sim = String(simulatedUserEmail || "").trim();
+    if (sim) {
+      el.textContent = "Viewing as: " + sim;
+      el.classList.add("logged-in-as-simulated");
+    } else {
+      el.textContent = "Logged in as: " + String(userEmail || "").trim();
+      el.classList.remove("logged-in-as-simulated");
+    }
+  }
+
+  function setRefreshLoading_(loading) {
+    isRefreshing = !!loading;
+    applyRefreshButtonState_();
+  }
+
+  function applyRefreshButtonState_() {
+    var refreshBtn = document.getElementById("manualRefreshBtn");
+    var refreshLoaderBtn = document.getElementById("refreshLoaderBtn");
+    if (!refreshBtn || !refreshLoaderBtn) return;
+
+    if (!shouldShowRefreshBtn) {
+      refreshBtn.style.display = "none";
+      refreshLoaderBtn.style.display = "none";
+      return;
+    }
+
+    if (isRefreshing) {
+      refreshBtn.style.display = "none";
+      refreshLoaderBtn.style.display = "inline-block";
+    } else {
+      refreshBtn.style.display = "inline-block";
+      refreshLoaderBtn.style.display = "none";
+    }
+  }
+
+  function getViewerRole_() {
+    var effectiveViewer = getEffectiveViewerEmail_();
+    if (isKalinAllRpsMode_() || isKalinOwnRpsMode_()) return "standard";
+    if (ownRpsMode && isOwnRpsEligibleViewer_()) return "standard";
+    if (getReviewerDashboardConfigByEmail_(effectiveViewer)) return "anna";
+    if (isTodorDashboardMode_()) return "todor";
+    if (isIvanDashboardMode_()) return "ivan";
+    if (isLogisticsViewer_()) return "logistics";
+    if (isAdminEmail_(effectiveViewer)) return "admin";
+    return "standard";
+  }
+
+  function applyTopButtonTranslations_(role) {
+    var labels = getLabels_(role);
+    var refreshBtn = document.getElementById("manualRefreshBtn");
+    if (refreshBtn && labels.refresh) refreshBtn.textContent = labels.refresh;
+    var btnActive = document.getElementById("btnActive");
+    if (btnActive && labels.active) btnActive.textContent = labels.active;
+    var btnArchive = document.getElementById("btnArchive");
+    if (btnArchive && labels.archive) btnArchive.textContent = labels.archive;
+    var btnCancelled = document.getElementById("btnCancelled");
+    if (btnCancelled && labels.cancelled) btnCancelled.textContent = labels.cancelled;
+    var btnAnnaReady = document.getElementById("btnAnnaReady");
+    if (btnAnnaReady && labels.readyTab) btnAnnaReady.textContent = labels.readyTab;
+  }
+
+  function getLabels_(role) {
+    if (role === "todor") {
+      return {
+        model: "Модел",
+        color: "Цвят",
+        booth: "Кабина",
+        items: "Артикули",
+        clarification: "Уточнение",
+        notes: "Бележки",
+        factory: "Фабрика",
+        shippingWeek: "Седмица за изпращане",
+        pallet: "Палет",
+        shippingMethod: "Метод на изпращане",
+        status: "Статус",
+        urgentTag: "СПЕШНО",
+        refresh: "Обнови",
+        emptyThisWeek: "Няма RP за изпращане тази седмица (VAR / AKS).",
+        emptyNextWeek: "Няма RP за изпращане следващата седмица (VAR / AKS).",
+        emptyAvailability: "Няма RP с наличност на склад Тополи.",
+        emptyIp: "Няма записи за вътрешна продукция на склад Тополи.",
+        emptyHint: "Опитай друг изглед или изчисти търсенето.",
+        searchPlaceholder: "RP, IP, палет, фабрика, артикул, пазар...",
+        searchNoMatch: "Няма съвпадения за търсенето.",
+        searchClear: "Изчисти",
+        noDetails: "Няма данни за RP в Rep.Parts26.",
+        noLineItems: "Няма артикули в колоните L/M/N.",
+        ipTag: "ВП",
+        ipBatch: "Партида",
+        ipWarehouse: "Склад",
+        ipFactory: "Фабрика",
+        ipSourceRp: "Източник RP",
+        ipReason: "Причина",
+        iznosWeekThis: "Тази седмица",
+        iznosWeekNext: "Следваща седмица",
+        iznosWeekAria: "Седмица за изпращане",
+        acceptedAtTopoli: "Прието в Тополи"
+      };
+    }
+    if (role === "logistics") {
+      return {
+        model: "Model",
+        color: "Color",
+        items: "Items",
+        recipient: "Recipient",
+        market: "Market",
+        client: "Client",
+        address: "Address",
+        phone: "Phone",
+        clarification: "Clarification",
+        daysSinceReady: "Days since Ready",
+        pallet: "Pallet",
+        shippingWeek: "Shipping week",
+        shippingMethod: "Shipping method",
+        trackingNumber: "Tracking (col. Y)",
+        factory: "Factory",
+        urgentTag: "URGENT",
+        refresh: "Refresh",
+        active: "Active",
+        archive: "Shipped",
+        cancelled: "Cancelled",
+        emptyTitle: "No replacement parts in this view.",
+        emptyHint: "Try another tab or clear search.",
+        searchPlaceholder: "RP number, client, or market...",
+        searchNoMatch: "No orders match your search.",
+        searchClear: "Clear",
+        marketFilterAll: "All",
+        marketFilterAria: "Filter by market",
+        itemFilterAll: "Всички",
+        itemFilterParts: "Части",
+        itemFilterPanels: "Панели",
+        itemFilterAria: "Филтър по тип",
+        sortNewest: "Newest First",
+        sortOldest: "Oldest First",
+        sortAria: "Sort order"
+      };
+    }
+    if (role === "anna") {
+      return {
+        model: "Модел",
+        color: "Цвят",
+        items: "Артикули",
+        recipient: "Получател",
+        market: "Пазар",
+        client: "Клиент",
+        address: "Адрес",
+        phone: "Тел",
+        clarification: "Уточнение",
+        workshopNote: "Бележка Цех",
+        changeDueDate: "Промени",
+        save: "Запази",
+        markDone: "Изпратено",
+        returnToActive: "Върни в Активни",
+        bringBack: "Върни обратно",
+        cancelRp: "Отказ",
+        createNew: "Нов запис",
+        shippingMethod: "Метод",
+        trackingNumber: "Тракинг номер",
+        notifyLogistics: "Информирай логистика",
+        choose: "Избери",
+        refresh: "Ръчно обновяване",
+        active: "Активни",
+        readyTab: "Готови",
+        archive: "Изпратени",
+        cancelled: "Анулирани",
+        emptyTitle: "Няма намерени поръчки.",
+        emptyHint: "Смени изгледа или добави нов запис.",
+        searchPlaceholder: "RP, IP, партида, клиент, пазар...",
+        searchNoMatch: "Няма съвпадения за търсенето.",
+        searchClear: "Изчисти",
+        itemFilterAll: "Всички",
+        itemFilterParts: "Части",
+        itemFilterPanels: "Панели",
+        itemFilterAria: "Филтър по тип",
+        sourceFilterAll: "Всички",
+        sourceFilterRp: "Резервни Части",
+        sourceFilterIp: "Вътрешна Продукция",
+        sourceFilterAria: "Филтър по източник",
+        ipRecordTag: "ВП",
+        ipBatch: "Партида",
+        ipColour: "Цвят",
+        ipWarehouse: "Склад",
+        ipFactory: "Фабрика",
+        ipSourceRp: "Източник RP",
+        ipReason: "Причина",
+        ipStatus: "Статус",
+        ipItem: "Артикул",
+        ipReadyForWarehouse: "Готово за склад",
+        rowTypePart: "Част",
+        rowTypePanel: "Панел",
+        sortNewest: "Най-нови първо",
+        sortOldest: "Най-стари първо",
+        sortAria: "Подредба"
+      };
+    }
+    if (role === "ivan") {
+      return {
+        model: "Модел",
+        color: "Цвят",
+        items: "Артикули",
+        recipient: "Получател",
+        market: "Пазар",
+        client: "Клиент",
+        address: "Адрес",
+        phone: "Тел",
+        clarification: "Уточнение",
+        refresh: "Ръчно обновяване",
+        active: "Активни",
+        readyTab: "Готови",
+        archive: "Изпратени",
+        emptyTitle: "Няма намерени RP.",
+        emptyHint: "Смени изгледа или изчисти търсенето.",
+        searchPlaceholder: "RP номер, клиент, пазар, адрес...",
+        searchNoMatch: "Няма съвпадения за търсенето.",
+        searchClear: "Изчисти",
+        factoryFilterAll: "Всички",
+        factoryFilterAria: "Филтър по фабрика",
+        sortNewest: "Най-нови първо",
+        sortOldest: "Най-стари първо",
+        sortAria: "Подредба"
+      };
+    }
+    return {
+      model: "Model",
+      color: "Color",
+      items: "Items",
+      recipient: "Recipient",
+      market: "Market",
+      client: "Client",
+      address: "Address",
+      phone: "Phone",
+      clarification: "Clarification",
+      workshopNote: "Бележка Цех",
+      changeDueDate: "Change",
+      save: "Save",
+      markDone: "Mark Shipped",
+      returnToActive: "Return to Active",
+      bringBack: "Bring Back to Active",
+      cancelRp: "Cancel",
+      createNew: "Create New",
+      shippingMethod: "Shipping Method",
+      trackingNumber: "Tracking Number",
+      choose: "Choose",
+      refresh: "Refresh",
+      active: "Active",
+      archive: "Shipped",
+      cancelled: "Cancelled",
+      emptyTitle: "No orders found.",
+      emptyHint: "Try another view or create a new entry.",
+      searchPlaceholder: "RP number, client, or market...",
+      searchNoMatch: "No orders match your search.",
+      searchClear: "Clear",
+      sortNewest: "Newest First",
+      sortOldest: "Oldest First",
+      sortAria: "Sort order"
+    };
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value).replace(/`/g, "");
+  }
+
+  function escapeJs(value) {
+    return String(value == null ? "" : value)
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'");
+  }
+</script>
+</body>
+</html>
