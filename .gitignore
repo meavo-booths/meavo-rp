@@ -13,6 +13,7 @@ out/
 # build / tooling
 tsconfig.tsbuildinfo
 .drizzle/
+.prisma-schema/
 
 # OS
 .DS_Store
