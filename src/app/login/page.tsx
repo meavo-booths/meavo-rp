@@ -3,6 +3,8 @@ import { GoogleSignInButton } from "@/components/google-sign-in-button";
 const ERROR_MESSAGES: Record<string, string> = {
   DomainNotAllowed: "Only @meavo.com Google accounts can sign in.",
   AccessDenied: "Sign in was denied. Try again.",
+  NoAccess: "You do not have access to Meavo RP. Ask an admin to grant RP tool access.",
+  NotInvited: "Your account is not registered in Meavo. Contact an administrator.",
 };
 
 export default async function LoginPage({

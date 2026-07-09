@@ -1,5 +1,6 @@
 import { google, type sheets_v4 } from "googleapis";
 import { loadServerEnv } from "@/lib/env";
+import { parseGoogleServiceAccountJson } from "@/lib/google-service-account";
 
 export function getRepPartsSpreadsheetId(): string {
   const id = loadServerEnv().REP_PARTS_SPREADSHEET_ID;
@@ -11,10 +12,7 @@ export async function getSheetsClient(): Promise<sheets_v4.Sheets> {
   const json = loadServerEnv().GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!json) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not set");
 
-  const credentials = JSON.parse(json) as {
-    client_email: string;
-    private_key: string;
-  };
+  const credentials = parseGoogleServiceAccountJson(json);
 
   const auth = new google.auth.JWT({
     email: credentials.client_email,

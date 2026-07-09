@@ -78,6 +78,22 @@ export function mapBoothModelToAbbreviation(modelValue: string): string {
   return lookup[model] ?? modelValue.trim();
 }
 
+export function mapAbbreviationToBoothModel(storedModel: string): string {
+  const normalized = storedModel.trim().toUpperCase();
+  const lookup: Record<string, string> = {
+    SO: "Soho",
+    WS: "Workstation",
+    C2: "Camden 2",
+    C4: "Camden 4",
+    "H.O": "Haven One",
+    "H.F": "Haven Focus",
+    "H.2": "Haven Two",
+    "H.4": "Haven Four",
+    OTHER: "STOCK",
+  };
+  return lookup[normalized] ?? storedModel.trim();
+}
+
 export function formatItemTypeForSheet(
   items: LoggerItemInput[],
   modelValue: string,

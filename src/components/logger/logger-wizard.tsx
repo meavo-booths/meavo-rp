@@ -1,9 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
+import { createRpAction, updateRpAction } from "@/app/actions/rp";
+import { CatalogueModal } from "@/components/logger/catalogue-modal";
+import { Button, Card } from "@/components/ui";
+import type { CatalogueCategory } from "@/lib/reference-data/catalogue";
+import { getPanelsForModel } from "@/lib/reference-data/panel-options";
+import type { AddressBookEntry, PanelOptionsPayload } from "@/lib/reference-data/sheets";
 import type { LoggerFormInput, LoggerItemInput } from "@/lib/domain/rp-form-mapper";
+import {
+  issueTypeRequiresRpPhoto,
+  itemRequiresRpPhoto,
+  type RpPhotoUploadInput,
+} from "@/lib/domain/rp-photos";
 
 const ISSUE_TYPES = [
   "Factory Mistake",
@@ -55,22 +66,68 @@ function emptyForm(): LoggerFormInput {
   };
 }
 
-export function LoggerWizard() {
+export function LoggerWizard({
+  addressBook,
+  panelOptions,
+  catalogueCategories,
+  initialForm,
+  editRpNum,
+  similarRpNum,
+}: {
+  addressBook: AddressBookEntry[];
+  panelOptions: PanelOptionsPayload;
+  catalogueCategories: CatalogueCategory[];
+  initialForm?: LoggerFormInput & { rpNum?: string };
+  editRpNum?: string;
+  similarRpNum?: string;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<LoggerFormInput>(emptyForm);
+  const [form, setForm] = useState<LoggerFormInput>(
+    initialForm ? { ...initialForm, items: initialForm.items.length ? initialForm.items : [emptyItem()] } : emptyForm(),
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [addressBook, setAddressBook] = useState<
-    { address: string; recipient: string; phone: string; email: string }[]
-  >([]);
+  const [photoWarnings, setPhotoWarnings] = useState<string[]>([]);
+  const [catalogueOpen, setCatalogueOpen] = useState(false);
+  const [catalogueRow, setCatalogueRow] = useState<number | null>(null);
+  const [itemPhotos, setItemPhotos] = useState<Record<number, RpPhotoUploadInput>>({});
 
-  useEffect(() => {
-    void fetch("/api/address-book")
-      .then((r) => r.json())
-      .then((d) => setAddressBook(d.entries ?? []))
-      .catch(() => undefined);
-  }, []);
+  const panelList = getPanelsForModel(form.model, panelOptions);
+  const isEdit = Boolean(editRpNum);
+  const isSimilar = Boolean(similarRpNum);
+
+  async function readPhotoFile(
+    index: number,
+    file: File,
+  ): Promise<void> {
+    const allowed =
+      /^image\/(jpeg|png|webp|gif)$/i.test(file.type) ||
+      file.type === "application/pdf";
+    if (!allowed) {
+      setError("Photos must be JPEG, PNG, WebP, GIF, or PDF.");
+      return;
+    }
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result ?? "");
+        const payload = result.includes(",") ? result.split(",")[1] : result;
+        resolve(payload);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+    setItemPhotos((prev) => ({
+      ...prev,
+      [index]: {
+        itemIndex: index,
+        base64,
+        mimeType: file.type,
+        fileName: file.name,
+      },
+    }));
+  }
 
   function updateItem(index: number, patch: Partial<LoggerItemInput>) {
     setForm((prev) => ({
@@ -93,14 +150,14 @@ export function LoggerWizard() {
   async function submit() {
     setBusy(true);
     setError(null);
+    setPhotoWarnings([]);
     try {
-      const res = await fetch("/api/rp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to save");
+      const photos = Object.values(itemPhotos);
+      const result = isEdit
+        ? await updateRpAction({ ...form, rpNum: editRpNum! }, photos)
+        : await createRpAction(form, photos);
+      if (result.error) throw new Error(result.error);
+      if (result.photoWarnings?.length) setPhotoWarnings(result.photoWarnings);
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -113,19 +170,25 @@ export function LoggerWizard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Log RP</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">
+          {isEdit
+            ? `Edit ${editRpNum}`
+            : isSimilar
+              ? `Similar to ${similarRpNum}`
+              : "Log RP"}
+        </h1>
         <p className="text-sm text-slate-600">Step {step + 1} of 3</p>
       </div>
 
       {step === 0 ? (
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <Card className="space-y-4">
           <h2 className="font-medium">General info</h2>
           <label className="block text-sm">
             Market
             <select
               value={form.market}
               onChange={(e) => setForm({ ...form, market: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             >
               <option value="">Select market</option>
               {MARKETS.map((m) => (
@@ -145,7 +208,7 @@ export function LoggerWizard() {
                   urgency: e.target.value as "standard" | "urgent",
                 })
               }
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             >
               <option value="standard">Standard</option>
               <option value="urgent">Urgent</option>
@@ -156,7 +219,7 @@ export function LoggerWizard() {
             <select
               value={form.model}
               onChange={(e) => setForm({ ...form, model: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             >
               <option value="">Select model</option>
               {BOOTH_MODELS.map((m) => (
@@ -171,7 +234,7 @@ export function LoggerWizard() {
             <input
               value={form.boothId}
               onChange={(e) => setForm({ ...form, boothId: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </label>
           <label className="block text-sm">
@@ -179,21 +242,21 @@ export function LoggerWizard() {
             <input
               value={form.color}
               onChange={(e) => setForm({ ...form, color: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </label>
-        </section>
+        </Card>
       ) : null}
 
       {step === 1 ? (
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <Card className="space-y-4">
           <h2 className="font-medium">Items</h2>
           <label className="block text-sm">
             Issue type
             <select
               value={form.issueType}
               onChange={(e) => setForm({ ...form, issueType: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             >
               <option value="">Select issue type</option>
               {ISSUE_TYPES.map((t) => (
@@ -208,7 +271,7 @@ export function LoggerWizard() {
             <textarea
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
               rows={3}
             />
           </label>
@@ -217,7 +280,7 @@ export function LoggerWizard() {
               key={index}
               className="space-y-2 rounded-lg border border-slate-100 p-3"
             >
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <select
                   value={item.itemType}
                   onChange={(e) =>
@@ -225,7 +288,7 @@ export function LoggerWizard() {
                       itemType: e.target.value as "Part" | "Panel",
                     })
                   }
-                  className="rounded border border-slate-200 px-2 py-1 text-sm"
+                  className="rounded-lg border border-slate-200 px-2 py-1 text-sm"
                 >
                   <option value="Part">Part</option>
                   <option value="Panel">Panel</option>
@@ -234,8 +297,20 @@ export function LoggerWizard() {
                   value={item.qty}
                   onChange={(e) => updateItem(index, { qty: e.target.value })}
                   placeholder="Qty"
-                  className="w-20 rounded border border-slate-200 px-2 py-1 text-sm"
+                  className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-sm"
                 />
+                {item.itemType === "Part" ? (
+                  <Button
+                    variant="secondary"
+                    className="px-2 py-1 text-xs"
+                    onClick={() => {
+                      setCatalogueRow(index);
+                      setCatalogueOpen(true);
+                    }}
+                  >
+                    Catalogue
+                  </Button>
+                ) : null}
               </div>
               {item.itemType === "Part" ? (
                 <input
@@ -243,48 +318,84 @@ export function LoggerWizard() {
                   onChange={(e) => updateItem(index, { rpCode: e.target.value })}
                   onBlur={(e) => void lookupCode(index, e.target.value)}
                   placeholder="RP code (4 digits)"
-                  className="w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                />
+              ) : (
+                <select
+                  value={item.description}
+                  onChange={(e) =>
+                    updateItem(index, { description: e.target.value })
+                  }
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <option value="">Select panel</option>
+                  {panelList.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {item.itemType === "Part" ? (
+                <input
+                  value={item.description}
+                  onChange={(e) =>
+                    updateItem(index, { description: e.target.value })
+                  }
+                  placeholder="Description"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
                 />
               ) : null}
-              <input
-                value={item.description}
-                onChange={(e) =>
-                  updateItem(index, { description: e.target.value })
-                }
-                placeholder="Description"
-                className="w-full rounded border border-slate-200 px-3 py-2 text-sm"
-              />
               <input
                 value={item.itemNotes ?? ""}
                 onChange={(e) =>
                   updateItem(index, { itemNotes: e.target.value })
                 }
                 placeholder="Clarifications"
-                className="w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               />
+              {issueTypeRequiresRpPhoto(form.issueType) &&
+              itemRequiresRpPhoto(item, form.issueType) ? (
+                <label className="block text-xs text-slate-600">
+                  Panel photo (required for Factory Mistake / Faulty Unit)
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                    className="mt-1 block w-full text-sm"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void readPhotoFile(index, file);
+                    }}
+                  />
+                  {itemPhotos[index] ? (
+                    <span className="text-brand-700">
+                      Attached: {itemPhotos[index].fileName}
+                    </span>
+                  ) : null}
+                </label>
+              ) : null}
             </div>
           ))}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() =>
               setForm({ ...form, items: [...form.items, emptyItem()] })
             }
-            className="text-sm text-blue-600 hover:underline"
           >
             + Add item
-          </button>
-        </section>
+          </Button>
+        </Card>
       ) : null}
 
       {step === 2 ? (
-        <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <Card className="space-y-4">
           <h2 className="font-medium">Shipping</h2>
           <label className="block text-sm">
             Client
             <input
               value={form.client}
               onChange={(e) => setForm({ ...form, client: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </label>
           <label className="block text-sm">
@@ -303,7 +414,7 @@ export function LoggerWizard() {
                   email: match?.email ?? form.email,
                 });
               }}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
             <datalist id="address-book">
               {addressBook.map((entry) => (
@@ -316,7 +427,7 @@ export function LoggerWizard() {
             <input
               value={form.recipient}
               onChange={(e) => setForm({ ...form, recipient: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </label>
           <label className="block text-sm">
@@ -324,7 +435,7 @@ export function LoggerWizard() {
             <input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </label>
           <label className="block text-sm">
@@ -332,10 +443,10 @@ export function LoggerWizard() {
             <input
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="mt-1 w-full rounded border border-slate-200 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
             />
           </label>
-        </section>
+        </Card>
       ) : null}
 
       {error ? (
@@ -343,36 +454,36 @@ export function LoggerWizard() {
           {error}
         </p>
       ) : null}
+      {photoWarnings.length ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          RP saved, but some photos failed: {photoWarnings.join("; ")}
+        </p>
+      ) : null}
 
       <div className="flex gap-2">
         {step > 0 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => s - 1)}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm"
-          >
+          <Button variant="secondary" onClick={() => setStep((s) => s - 1)}>
             Back
-          </button>
+          </Button>
         ) : null}
         {step < 2 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => s + 1)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white"
-          >
-            Next
-          </button>
+          <Button onClick={() => setStep((s) => s + 1)}>Next</Button>
         ) : (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void submit()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {busy ? "Saving…" : "Submit RP"}
-          </button>
+          <Button disabled={busy} onClick={() => void submit()}>
+            {busy ? "Saving…" : isEdit ? "Update RP" : "Submit RP"}
+          </Button>
         )}
       </div>
+
+      <CatalogueModal
+        categories={catalogueCategories}
+        open={catalogueOpen}
+        onClose={() => setCatalogueOpen(false)}
+        onSelect={(code, description) => {
+          if (catalogueRow === null) return;
+          updateItem(catalogueRow, { rpCode: code, description });
+        }}
+      />
     </div>
   );
 }

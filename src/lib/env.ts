@@ -10,6 +10,7 @@ const ServerEnvSchema = z.object({
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
   RP_TOOL_CARD_ID: z.string().default("seed-rp-tool"),
+  MEAVO_APP_KEY: z.string().default("rp"),
   GATEWAY_URL: z.string().url().default("https://meavo.app"),
   GOOGLE_SERVICE_ACCOUNT_JSON: z.string().optional(),
   REP_PARTS_SPREADSHEET_ID: z.string().optional(),

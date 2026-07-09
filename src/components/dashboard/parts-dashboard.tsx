@@ -1,132 +1,157 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
+import { cancelRpAction } from "@/app/actions/rp";
+import {
+  annaReadyAction,
+  annaRevertReadyAction,
+  revertRpAction,
+  saveShipInfoAction,
+  shipRpAction,
+} from "@/app/actions/rp-mutations";
+import { Button, Card, Input } from "@/components/ui";
+import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import type { DashboardPartCard, PartsViewType } from "@/lib/domain/dashboard-parts";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 const TABS: { id: PartsViewType; label: string }[] = [
-  { id: "active", label: "Active" },
-  { id: "ready", label: "Ready" },
-  { id: "archive", label: "Shipped" },
-  { id: "cancelled", label: "Cancelled" },
+  { id: "active", label: "Активни" },
+  { id: "ready", label: "Готови" },
+  { id: "archive", label: "Изпратени" },
+  { id: "cancelled", label: "Отказани" },
 ];
 
 export function PartsDashboard({
   viewer,
+  initialParts,
+  initialView = "active",
+  title = "Dashboard",
+  regionalScope,
 }: {
   viewer: ViewerContext;
+  initialParts: DashboardPartCard[];
+  initialView?: PartsViewType;
+  title?: string;
+  regionalScope?: string;
 }) {
-  const [view, setView] = useState<PartsViewType>("active");
+  const router = useRouter();
+  const view = initialView;
   const [search, setSearch] = useState("");
-  const [parts, setParts] = useState<DashboardPartCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  useDashboardRefresh();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({ view });
-      if (search.trim()) params.set("q", search.trim());
-      const res = await fetch(`/api/dashboard/parts?${params}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to load");
-      setParts(data.parts ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
-  }, [view, search]);
+  const parts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return initialParts;
+    return initialParts.filter((part) =>
+      [part.rpNum, part.client, part.market, part.itemType, part.partDescription]
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [initialParts, search]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  function refresh() {
+    startTransition(() => router.refresh());
+  }
 
-  async function cancelRp(rpNum: string) {
-    if (!confirm(`Cancel ${rpNum}?`)) return;
-    const res = await fetch(`/api/rp/${encodeURIComponent(rpNum)}/cancel`, {
-      method: "POST",
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error ?? "Failed to cancel");
-      return;
-    }
-    void load();
+  function dashboardHref(nextView: PartsViewType, scope?: string) {
+    const params = new URLSearchParams();
+    params.set("view", nextView);
+    if (scope) params.set("scope", scope);
+    return `/dashboard?${params.toString()}`;
+  }
+
+  async function run(action: () => Promise<{ error?: string }>) {
+    const result = await action();
+    if (result.error) alert(result.error);
+    else refresh();
   }
 
   const showReadyTab = Boolean(viewer.reviewerConfig);
+  const isAnna = viewer.effectiveEmail === "anna@meavo.com";
+  const scopes = viewer.regionalScopes;
+  const activeScope = regionalScope ?? scopes[0];
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">
+            {title}
+          </h1>
           <p className="text-sm text-slate-600">
             Viewing as <strong>{viewer.effectiveEmail}</strong>
-            {viewer.reviewerConfig ? " (reviewer)" : ""}
           </p>
         </div>
         <Link
           href="/log"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
         >
-          New RP
+          Нов RP
         </Link>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      {scopes.length > 1 ? (
+        <nav className="flex flex-wrap gap-1">
+          {scopes.map((scope) => (
+            <Link
+              key={scope}
+              href={dashboardHref(view, scope)}
+              className={`rounded-md px-3 py-1 text-xs ${
+                activeScope === scope
+                  ? "bg-brand-600 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              {scope.replace(/_/g, " ")}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
+      <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
         {TABS.filter((tab) => tab.id !== "ready" || showReadyTab).map((tab) => (
-          <button
+          <Link
             key={tab.id}
-            type="button"
-            onClick={() => setView(tab.id)}
-            className={`rounded-full px-3 py-1 text-sm ${
+            href={dashboardHref(tab.id, activeScope)}
+            className={`rounded-md px-3 py-1.5 text-sm ${
               view === tab.id
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-700 ring-1 ring-slate-200"
+                ? "bg-white text-brand-700 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             {tab.label}
-          </button>
+          </Link>
         ))}
-      </div>
+      </nav>
 
-      <input
+      <Input
         type="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search RP, client, market…"
-        className="w-full max-w-md rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+        placeholder="Търсене RP, клиент, пазар…"
       />
 
-      {loading ? <p className="text-sm text-slate-500">Loading…</p> : null}
-      {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          {error}
-        </p>
-      ) : null}
+      {pending ? <p className="text-sm text-slate-500">Обновяване…</p> : null}
 
-      {!loading && !error && parts.length === 0 ? (
-        <p className="text-sm text-slate-500">No parts in this view.</p>
+      {parts.length === 0 ? (
+        <p className="text-sm text-slate-500">Няма записи в този изглед.</p>
       ) : null}
 
       <div className="grid gap-3">
         {parts.map((part) => (
-          <article
-            key={part.id}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-          >
+          <Card key={part.id}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
                   {part.rpNum}
                   {part.urgency === "urgent" ? (
                     <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                      Urgent
+                      Спешно
                     </span>
                   ) : null}
                 </h2>
@@ -138,43 +163,116 @@ export function PartsDashboard({
                 {part.canEditRp ? (
                   <Link
                     href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
-                    className="rounded border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
                   >
-                    Edit
+                    Редакция
                   </Link>
                 ) : null}
-                {view === "active" && part.userId === viewer.effectiveEmail ? (
-                  <button
-                    type="button"
-                    onClick={() => void cancelRp(part.rpNum)}
-                    className="rounded border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+                <Link
+                  href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
+                >
+                  Подобен RP
+                </Link>
+                {view === "active" &&
+                part.userId === viewer.effectiveEmail ? (
+                  <Button
+                    variant="danger"
+                    className="px-3 py-1"
+                    onClick={() =>
+                      void run(() => cancelRpAction(part.rpNum))
+                    }
                   >
-                    Cancel
-                  </button>
+                    Отказ
+                  </Button>
+                ) : null}
+                {isAnna && view === "active" ? (
+                  <Button
+                    className="px-3 py-1"
+                    onClick={() => void run(() => annaReadyAction(part.rpNum))}
+                  >
+                    Готов за логистика
+                  </Button>
+                ) : null}
+                {isAnna && view === "ready" ? (
+                  <Button
+                    variant="secondary"
+                    className="px-3 py-1"
+                    onClick={() =>
+                      void run(() => annaRevertReadyAction(part.rpNum))
+                    }
+                  >
+                    Върни в активни
+                  </Button>
+                ) : null}
+                {part.userId === viewer.effectiveEmail && view === "archive" ? (
+                  <Button
+                    variant="secondary"
+                    className="px-3 py-1"
+                    onClick={() => void run(() => revertRpAction(part.rpNum))}
+                  >
+                    Върни активен
+                  </Button>
                 ) : null}
               </div>
             </div>
             <dl className="mt-3 grid gap-1 text-sm text-slate-700 sm:grid-cols-2">
               <div>
-                <dt className="text-slate-500">Client</dt>
+                <dt className="text-slate-500">Клиент</dt>
                 <dd>{part.client || "—"}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Due</dt>
+                <dt className="text-slate-500">Срок</dt>
                 <dd>{part.dueDate || "—"}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Model / Booth</dt>
+                <dt className="text-slate-500">Модел / Партида</dt>
                 <dd>
                   {part.model || "—"} / {part.boothId || "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Description</dt>
+                <dt className="text-slate-500">Описание</dt>
                 <dd>{part.partDescription || part.itemType || "—"}</dd>
               </div>
+              {part.shipMethod ? (
+                <div>
+                  <dt className="text-slate-500">Доставка</dt>
+                  <dd>
+                    {part.shipMethod} {part.tracking ? `· ${part.tracking}` : ""}
+                  </dd>
+                </div>
+              ) : null}
             </dl>
-          </article>
+            {view === "ready" && isAnna ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  className="px-3 py-1 text-xs"
+                  onClick={() =>
+                    void run(() =>
+                      shipRpAction(part.rpNum, part.shipMethod ?? "Pallet", part.tracking ?? ""),
+                    )
+                  }
+                >
+                  Маркирай изпратен
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs"
+                  onClick={() => {
+                    const method = prompt("Ship method", part.shipMethod ?? "");
+                    const tracking = prompt("Tracking", part.tracking ?? "");
+                    if (method === null) return;
+                    void run(() =>
+                      saveShipInfoAction(part.rpNum, method, tracking ?? ""),
+                    );
+                  }}
+                >
+                  Запази доставка
+                </Button>
+              </div>
+            ) : null}
+          </Card>
         ))}
       </div>
     </div>

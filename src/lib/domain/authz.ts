@@ -14,12 +14,11 @@ export type ReviewerDashboardConfig = {
 const ADMIN_EMAILS = new Set(["boyan@meavo.com", "todor@meavo.com"]);
 
 const LOGISTICS_VIEWER_EMAILS = new Set([
-  "anna@meavo.com",
-  "todor@meavo.com",
+  "georgi.stoyanov@meavo.com",
+  "nikola@meavo.com",
 ]);
 
 const ACTIVE_URGENT_PANELS_EMAILS = new Set([
-  "boyan@meavo.com",
   "yavor@meavo.com",
   "kalin@meavo.com",
 ]);
@@ -44,7 +43,13 @@ const REVIEWER_DASHBOARD_CONFIGS: Record<string, ReviewerDashboardConfig> = {
 };
 
 const STANDARD_REGIONAL_SCOPES: Record<string, string[]> = {
-  "dimitar@meavo.com": ["BG", "RO"],
+  "vojtech@meavo.com": ["all_markets"],
+  "hedi@meavo.com": ["fr_ch", "usa", "iberia", "de_balkans", "czechia"],
+  "carla@meavo.com": ["uk"],
+  "eftychia@meavo.com": ["uk"],
+  "dimitar@meavo.com": ["de_balkans", "france"],
+  "rosalia@meavo.com": ["usa"],
+  "giulia@meavo.com": ["iberia"],
 };
 
 export function normalizeEmail(email: string | null | undefined): string {

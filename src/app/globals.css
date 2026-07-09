@@ -3,13 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --mv-ink: #1a1a1a;
-  --mv-muted: #6b7280;
-  --mv-accent: #2563eb;
-  --mv-bg: #f8fafc;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
-  color: var(--mv-ink);
-  background: var(--mv-bg);
+  color: var(--foreground);
+  background: var(--background);
 }

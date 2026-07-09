@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 
 import { loadServerEnv } from "@/lib/env";
+import { parseGoogleServiceAccountJson } from "@/lib/google-service-account";
 import {
   ADDRESS_BOOK_SPREADSHEET_ID,
   PANEL_OPTIONS_SPREADSHEET_ID,
@@ -16,10 +17,7 @@ export type AddressBookEntry = {
 async function getAuthSheets() {
   const json = loadServerEnv().GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!json) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not set");
-  const credentials = JSON.parse(json) as {
-    client_email: string;
-    private_key: string;
-  };
+  const credentials = parseGoogleServiceAccountJson(json);
   const auth = new google.auth.JWT({
     email: credentials.client_email,
     key: credentials.private_key,

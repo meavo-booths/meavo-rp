@@ -27,10 +27,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         name: user.name ?? (profile?.name as string | undefined),
         image: user.image ?? (profile?.picture as string | undefined),
         validate: async (existingUser) => {
-          const access = await prisma.toolCardAccess.findFirst({
+          const access = await prisma.toolCardAccess.findUnique({
             where: {
-              userId: existingUser.id,
-              cardId: RP_TOOL_CARD_ID,
+              userId_cardId: {
+                userId: existingUser.id,
+                cardId: RP_TOOL_CARD_ID,
+              },
             },
           });
           return Boolean(access);
@@ -49,10 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async jwt({ token, user }) {
-      if (user?.id) {
-        token.id = user.id;
-        token.rpAccess = true;
-      }
+      if (user?.id) token.id = user.id;
       if (user?.email) token.email = user.email;
       if (user?.name) token.name = user.name;
       return token;
@@ -64,9 +63,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token.email) {
         session.user.email = token.email as string;
         session.user.name = (token.name as string) ?? session.user.name;
-      }
-      if (session.user) {
-        session.user.rpAccess = Boolean(token.rpAccess);
       }
       return session;
     },

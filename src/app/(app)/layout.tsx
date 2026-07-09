@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { AdminSimulateBar } from "@/components/admin-simulate-bar";
-import { AppHeader } from "@/components/app-header";
+import { Nav } from "@/components/nav";
 import { requireRpAccess } from "@/lib/meavo-auth";
 import { getSimulatedEmail, resolveViewerContext } from "@/lib/viewer-context";
 
@@ -19,8 +19,8 @@ export default async function AppLayout({
 
   return (
     <>
-      <AppHeader viewer={viewer} />
-      <main className="mx-auto max-w-6xl space-y-4 px-4 py-8">
+      <Nav />
+      <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-4 sm:py-8">
         {viewer.isAdmin ? (
           <AdminSimulateBar initialEmail={simulatedEmail} />
         ) : null}

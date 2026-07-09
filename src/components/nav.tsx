@@ -1,0 +1,53 @@
+import { MeavoNavBar } from "@meavo/navigation";
+import { getAccessibleTools } from "@meavo/navigation/server";
+
+import { signOutAction } from "@/app/actions/rp";
+import { auth } from "@/lib/auth";
+import { isAdminUser } from "@/lib/domain/authz";
+import { prisma } from "@/lib/prisma";
+
+const GATEWAY_URL = process.env.GATEWAY_URL ?? "https://meavo.app";
+
+const NAV_LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/log", label: "Log RP" },
+  { href: "/log/ip", label: "Log IP" },
+];
+
+function resolveRpToolId(
+  options: Awaited<ReturnType<typeof getAccessibleTools>>,
+): string {
+  const linked = options.find((o) => o.linkedAppKey === "rp");
+  if (linked) return linked.id;
+  const byUrl = options.find((o) => o.url.includes("rp.meavo"));
+  if (byUrl) return byUrl.id;
+  const byName = options.find((o) => /rp/i.test(o.name));
+  return byName?.id ?? "gateway";
+}
+
+export async function Nav() {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  const admin = isAdminUser(session.user.email);
+  const toolOptions = await getAccessibleTools(prisma, {
+    userId: session.user.id,
+    isAdmin: admin,
+    gatewayUrl: GATEWAY_URL,
+  });
+
+  return (
+    <MeavoNavBar
+      links={NAV_LINKS}
+      logoHref="/dashboard"
+      toolSwitcher={{
+        currentId: resolveRpToolId(toolOptions),
+        options: toolOptions,
+      }}
+      userName={session.user.name}
+      userEmail={session.user.email}
+      userImage={session.user.image}
+      signOutAction={signOutAction}
+    />
+  );
+}

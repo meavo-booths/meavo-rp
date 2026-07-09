@@ -56,13 +56,7 @@ function isOrderedOnAmazonStatus(status: string): boolean {
   return status.trim().toLowerCase() === "ordered on amazon";
 }
 
-function matchesRegionalMarket(scope: string, market: string | null): boolean {
-  const m = (market ?? "").trim().toUpperCase();
-  const s = scope.trim().toUpperCase();
-  if (!s || !m) return false;
-  if (s === "ALL") return true;
-  return m === s || m.startsWith(`${s}-`) || m.includes(s);
-}
+import { matchesRegionalScope } from "@/lib/domain/regional-markets";
 
 function isReviewerDashboardEligibleRow(
   itemType: string | null,
@@ -213,7 +207,7 @@ export async function getDashboardParts(options: {
       if (rowOwner !== ownerEmail) {
         if (!scopes.length) return false;
         const marketOk = scopes.some((scope) =>
-          matchesRegionalMarket(scope, row.market),
+          matchesRegionalScope(scope, row.market),
         );
         if (!marketOk) return false;
       }

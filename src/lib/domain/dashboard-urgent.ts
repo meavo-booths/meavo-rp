@@ -1,0 +1,55 @@
+import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
+import { getDashboardParts } from "@/lib/domain/dashboard-parts";
+import type { ViewerContext } from "@/lib/viewer-context";
+
+export type UrgentPanelView =
+  | "unbriefed"
+  | "in_production"
+  | "ready"
+  | "shipped";
+
+function isPanelItem(itemType: string | null): boolean {
+  const t = (itemType ?? "").toUpperCase();
+  return !["PART", "PARTS", "STOCK", "SPARE"].some((x) => t.includes(x));
+}
+
+function matchesFactory(
+  reviewGroup: string | null,
+  factory: string,
+): boolean {
+  const g = (reviewGroup ?? "").toUpperCase();
+  return g.includes(factory.toUpperCase());
+}
+
+export async function getUrgentPanelCards(
+  viewer: ViewerContext,
+  panelView: UrgentPanelView,
+  factoryFilter?: string,
+): Promise<DashboardPartCard[]> {
+  const all = await getDashboardParts({ viewer, viewType: "all" });
+  return all.filter((part) => {
+    if (part.urgency !== "urgent") return false;
+    if (!isPanelItem(part.itemType)) return false;
+    if (factoryFilter && !matchesFactory(part.reviewGroup, factoryFilter)) {
+      return false;
+    }
+    const status = (part.status ?? "").trim();
+    if (panelView === "unbriefed") return !status || status === "Briefed";
+    if (panelView === "in_production") return status === "In Production";
+    if (panelView === "ready") return status === "Ready";
+    if (panelView === "shipped") return status === "Shipped";
+    return true;
+  });
+}
+
+export async function getKalinAllRpsCards(
+  viewer: ViewerContext,
+  viewType: "active" | "archive" | "cancelled" = "active",
+  factoryFilter?: string,
+): Promise<DashboardPartCard[]> {
+  const all = await getDashboardParts({ viewer, viewType });
+  if (!factoryFilter) return all;
+  return all.filter((p) =>
+    (p.reviewGroup ?? "").toUpperCase().includes(factoryFilter.toUpperCase()),
+  );
+}

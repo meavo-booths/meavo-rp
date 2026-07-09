@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
+import { runUnbriefedUrgentPanelsCheck } from "@/lib/integrations/slack/rp-slack";
 
-/** Unbriefed urgent panel escalations — port from UnbriefedUrgentPanelSlackBot.js */
 export async function GET(request: Request) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, message: "unbriefed-panels stub" });
+  try {
+    const result = await runUnbriefedUrgentPanelsCheck();
+    return NextResponse.json({ ok: true, ...result });
+  } catch (error) {
+    console.error("unbriefed-panels cron failed:", error);
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
+  }
 }

@@ -103,7 +103,10 @@ export async function resolveViewerContext(
     role,
     reviewerConfig: getReviewerDashboardConfig(effectiveEmail),
     regionalScopes: getRegionalScopes(effectiveEmail),
-    defaultDashboardPath: defaultPathForRole(role),
+    defaultDashboardPath:
+      normalizeEmail(effectiveEmail) === KALIN_EMAIL
+        ? "/dashboard/kalin"
+        : defaultPathForRole(role),
   };
 }
 
