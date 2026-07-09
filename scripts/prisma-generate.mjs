@@ -26,7 +26,7 @@ if (!schema.includes("binaryTargets")) {
   schema = schema.replace(
     "generator client {",
     `generator client {
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]`,
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]`,
   );
 }
 
