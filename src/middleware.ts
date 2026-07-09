@@ -1,5 +1,10 @@
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
+
+import { authConfig } from "@/lib/auth.config";
+
+/** Edge-safe auth — do not import `@/lib/auth` here (it pulls in Prisma). */
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
