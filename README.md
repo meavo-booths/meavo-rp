@@ -21,7 +21,8 @@ Shared Neon Postgres (via `@meavo/db`) is the system of record. The existing **R
 | [docs/domain.md](docs/domain.md) | Personas, glossary, mutations, GAS port index |
 | [docs/data-model.md](docs/data-model.md) | Prisma tables (`RpRequest`, sync outbox, …) |
 | [AGENTS.md](AGENTS.md) | Quick orientation for AI coding agents |
-| `.cursor/rules/meavo-rp.mdc` | Always-on Cursor rule — natural prompts → right files |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Branching, PR checklist, cross-repo bumps |
+| [.cursor/rules/](.cursor/rules/) | Always-on Cursor rules (core, security) + path-scoped (ui, domain, api, legacy) |
 
 See [docs/architecture.md](docs/architecture.md) for sibling-repo audit and composite choices.
 

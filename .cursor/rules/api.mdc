@@ -1,0 +1,37 @@
+---
+description: API routes, Server Actions, and HTTP handlers for meavo-rp
+globs:
+  - src/app/api/**
+  - src/app/actions/**
+---
+
+# API & Server Action rules
+
+Keep handlers **thin** — validate input, call `src/lib/domain/`, map errors to HTTP/action responses.
+
+## Auth
+
+- Server Actions: `requireActionSession()` from `src/lib/api/require-session.ts` first.
+- API routes: `requireApiSession()` (returns `{ error }` response on failure) — middleware does NOT protect `/api/*`.
+- Cron routes: verify `CRON_SECRET` Bearer via `isAuthorizedCronRequest` (`src/lib/cron-auth.ts`), then gate on automation source with `gateCronOrRun` (`src/lib/cron-gate.ts`).
+- Never import edge-incompatible DB auth in `middleware.ts` — use `@/lib/auth.config` only.
+
+## Validation
+
+- Zod schemas at the boundary; env access through `src/lib/env.ts` (`loadServerEnv()`).
+
+## Responses
+
+- Server Actions return `{ error?: string }` (plus optional payload fields); call `revalidatePath()` for affected dashboards after writes.
+- API routes return `NextResponse.json`; cron handlers return `{ ok, skipped?, reason? }`.
+- Never return stack traces to clients in production.
+
+## Cron routes
+
+`/api/cron/*`: sheet-sync, unbriefed-panels, kaz-panel-slack, rp-slack, factory-fill, export-sync, var-panel-slack, factory-deadline-slack — schedules in `vercel.json`. Collectors live in `src/lib/domain/`; routes only auth + gate + call.
+
+## Do NOT
+
+- Put business rules inline in route handlers
+- Skip auth on routes exposed to the internet
+- Bypass automation toggles when adding a new cron or Slack notification

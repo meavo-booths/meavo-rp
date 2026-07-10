@@ -1,0 +1,45 @@
+---
+description: Meavo security standards for meavo-rp
+alwaysApply: true
+---
+
+# Security rules — Meavo org standard
+
+Org standard (see STANDARDS.md §4 in meavo-agent-templates). Deviations for this repo are listed at the bottom.
+
+## Auth at every layer
+
+- Verify auth independently in: middleware (pages), section layouts, Server Actions, and API routes.
+- Middleware passes `/api/*` through — never assume an API route is protected.
+- This repo's auth gates: `requireRpAccess()` in `src/lib/meavo-auth.ts` (pages/layouts), `requireActionSession()` / `requireApiSession()` in `src/lib/api/require-session.ts` (Server Actions / API routes).
+- Tool card gating: check `ToolCardAccess` for `RP_TOOL_CARD_ID` (`seed-rp-tool`) at login AND on every authenticated request, so revocation in gateway Admin takes effect immediately. Never look up the card by `linkedAppKey` at runtime.
+- Role routing on top of the tool-card gate: `src/lib/viewer-context.ts` + `src/lib/domain/authz.ts` decide per-persona permissions — enforce them in domain functions, not only in UI.
+
+## Sessions & credentials
+
+- NextAuth v5 JWT sessions; Google OAuth only, invite-only — the user must already exist in the shared gateway `User` table.
+- Session user carries `id` via `src/types/next-auth.d.ts`.
+- Admin simulation: `boyan@meavo.com` / `todor@meavo.com` may act as any `@meavo.com` user via the `rp_simulate_email` cookie — resolve the effective user through `resolveViewerContext`, never trust the cookie directly.
+
+## Routes & rendering
+
+- Cron routes: `CRON_SECRET` Bearer auth on every `/api/cron/*` handler via `isAuthorizedCronRequest` (`src/lib/cron-auth.ts`); automation source gating via `gateCronOrRun` (`src/lib/cron-gate.ts`).
+- `export const dynamic = "force-dynamic"` on authenticated layouts and DB-touching pages.
+- Never return stack traces to clients in production.
+
+## Headers & content
+
+- `next.config.ts` sets: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`.
+- Uploads (RP photos): Vercel Blob, Server Action body limit 10 MB, validate MIME + extension (`src/lib/domain/rp-photos.ts`).
+
+## Secrets
+
+- No secrets in client code, comments, or committed files.
+- Document env var names in `.env.example` only — never values.
+
+## Repo-specific deviations
+
+- No Credentials provider: Google OAuth only, so bcrypt password rules and the shared `LoginThrottle` table are N/A here.
+- Session is not extended with `systemRole` / `hrAccess` — roles are derived per-request from email via `viewer-context.ts` / `authz.ts`.
+- `X-Frame-Options` is `DENY` (stricter than the org's `SAMEORIGIN`).
+- Admin simulation cookie (`rp_simulate_email`) is an RP-specific pattern — do not copy into new apps.

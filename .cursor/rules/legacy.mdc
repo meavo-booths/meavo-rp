@@ -1,0 +1,25 @@
+---
+description: Legacy GAS reference subtree rules for meavo-rp
+globs:
+  - legacy-gas/**
+---
+
+# Legacy reference code
+
+This path is **read-only parity reference** — not the live deployment target.
+
+## Runtime constraints
+
+Google Apps Script: no ES modules (`import`/`export`), UI calls the server via `google.script.run`, GAS globals (`SpreadsheetApp`, `Session`, `CacheService`, `PropertiesService`) are available.
+
+## Do NOT
+
+- Treat this tree as the system of record after production cutover
+- Port new features here — implement in `src/lib/domain/` instead
+- Use `import`/`export` in these files
+
+## Porting workflow
+
+1. Find behaviour in `legacy-gas/WebAppLogic.js`, `LoggerLogic.js`, `index.html`, `Logger.html`, or `Other scripts/`
+2. Implement in `src/lib/domain/`
+3. Document the mapping in `docs/domain.md` legacy port index

@@ -1,0 +1,44 @@
+---
+description: Meavo UI standards (desktop + mobile) for meavo-rp
+globs:
+  - src/app/**
+  - src/components/**
+---
+
+# UI rules — Meavo design system
+
+Org standard (see STANDARDS.md §5 in meavo-agent-templates). Deviations for this repo are listed at the bottom.
+
+## Components
+
+- Use the in-house kit in `src/components/ui.tsx`: `Card`, `Button` (primary/secondary/danger/ghost), `Input`, `Textarea`, `PageHeader`.
+- Do NOT add shadcn, Radix, MUI, or any external component library.
+- Top nav and tool switcher come from `@meavo/navigation` — do not build a custom header.
+
+## Palette & visual language
+
+- Primary actions: brand green `bg-brand-600 hover:bg-brand-700` (#30A46C / #0C8F61).
+- Neutrals: Tailwind `slate` scale. Errors: `text-sm text-red-600`.
+- Cards: `rounded-xl border border-slate-200 bg-white shadow-sm`. Inputs/buttons: `rounded-lg`.
+- Page titles: `text-xl sm:text-2xl font-semibold text-slate-900`. Body: `text-sm text-slate-600`.
+- Focus: `focus:ring-brand-100 focus:border-brand-500`.
+
+## Responsive (required on every page)
+
+- Mobile-first: style for narrow viewport, add `sm:` / `lg:` overrides upward.
+- Main container: `mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-8`.
+- Grids: `grid gap-6 sm:grid-cols-2 lg:grid-cols-3`.
+- Wide tables must degrade on mobile — stacked cards or `overflow-x-auto`, never clipped columns.
+- Touch targets ≥ 44px; no hover-only affordances for critical actions.
+- Check new pages at 375px and 1280px before opening a PR.
+
+## Rendering
+
+- Server Components by default; `"use client"` only for interactive leaves (dashboards, logger wizards, modals).
+- Modals: accessible custom pattern — focus trap, Escape closes, `role="dialog"`.
+
+## Repo-specific deviations
+
+- Dashboard and logger UI strings are **Bulgarian** by design — keep the existing language unless asked.
+- The kit has no `Select` component — native `<select>` elements styled inline are the current pattern.
+- Field-staff dashboards are heavily mobile-used; treat 375px rendering as a first-class requirement, not a check-box.

@@ -1,0 +1,29 @@
+---
+description: Domain layer patterns for meavo-rp
+globs:
+  - src/lib/domain/**
+---
+
+# Domain module rules
+
+Business logic lives here — **not** in route handlers, React components, or API route files.
+
+## Patterns
+
+1. Mutations take an entity number (`rpNum` / `ipNum`) plus the acting user's email where permissions matter; they throw `Error` with a user-facing message on failure (Server Actions map it to `{ error }`).
+2. After Prisma writes that must reach the Rep.Parts26 sheet, call `enqueueSheetSync("rp"|"ip", entityId)` from `panel-orders.ts`.
+3. Authorization: use `authz.ts` helpers (`getReviewerDashboardConfig`, `isAdminUser`, `isWorkshopNoteViewerForFactory`, …) and `viewer-context.ts` — enforce server-side, not only in UI.
+4. Slack / sheet side effects go through `src/lib/integrations/` and must respect automation toggles (`automation-settings.ts`) — fire-and-forget with `.catch`, never block the mutation.
+5. Reuse existing modules — search `src/lib/domain/` before adding new files.
+
+## File naming
+
+Verb-noun or entity-concern, one concern per file: `rp-create.ts`, `rp-mutations.ts`, `ip-mutations.ts`, `dashboard-parts.ts`, `factory-fill.ts`.
+
+## When matching legacy behaviour
+
+Search `legacy-gas/WebAppLogic.js` and `legacy-gas/LoggerLogic.js` first, port the behaviour here, and keep edge cases (status strings, sorting, note formats) byte-compatible with the sheet.
+
+## Mutation map
+
+See `docs/domain.md` for persona permissions and status transitions.

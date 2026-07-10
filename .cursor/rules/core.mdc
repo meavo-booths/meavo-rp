@@ -1,0 +1,71 @@
+---
+description: Core stack, layout, and guardrails for meavo-rp
+alwaysApply: true
+---
+
+Environment: Next.js 15 App Router web app (rp.meavo.app). NOT Google Apps Script — only `legacy-gas/` is GAS, kept as read-only parity reference.
+
+## Stack
+
+- Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 3
+- Prisma 6 via `@meavo/db` (shared Neon Postgres — system of record)
+- NextAuth v5 (Google) + gateway `ToolCardAccess` for `RP_TOOL_CARD_ID`
+- `@vercel/blob` for RP photos; `pdf-lib` for Stefan panel PDF export
+- `googleapis` service account → async write-only backup to Rep.Parts26 sheet
+- Vercel Cron jobs under `/api/cron/*` (see `vercel.json`); Slack via `SLACK_BOT_TOKEN`
+- `@meavo/navigation` shared header
+
+## Do NOT
+
+- Use ES module `import`/`export` in files that must run in GAS (only `legacy-gas/` is GAS)
+- Run `npm run db:push` or edit the Prisma schema in this repo — schema lives in **meavo-db**
+- Deploy or treat `legacy-gas/` as the live app after production cutover
+- Import `@/lib/auth` (Prisma) from `middleware.ts` — use `@/lib/auth.config` only (edge-safe)
+- Forget `enqueueSheetSync` after Prisma writes that must reach Rep.Parts26
+- Add external component libraries (shadcn/Radix/MUI) — in-house kit only
+- Translate Bulgarian UI strings — they are intentional; keep existing language unless asked
+- Fire Slack/sheet automations unconditionally — respect admin automation toggles (GAS vs Webapp) and `RP_NOTIFICATIONS_FORCE_OFF`
+
+## Code layout
+
+| Area | Path |
+|------|------|
+| Pages (App Router) | `src/app/(app)/` |
+| Server Actions | `src/app/actions/` |
+| API routes (cron, health, lookups) | `src/app/api/` |
+| Business logic | `src/lib/domain/` |
+| Sheet/Slack integrations | `src/lib/integrations/` |
+| Reference data (catalogue, address book, markets) | `src/lib/reference-data/` |
+| Dashboard UI | `src/components/dashboard/` |
+| Logger wizards | `src/components/logger/` |
+| Auth & roles | `src/lib/auth.ts`, `src/lib/domain/authz.ts`, `src/lib/viewer-context.ts` |
+| Sheet column indices | `src/lib/integrations/rp-sheet-columns.ts` |
+| Legacy GAS reference (read-only) | `legacy-gas/` |
+
+## Data flow
+
+```
+Browser → Server Actions / API → Neon (Prisma)
+ → Vercel Blob (photos)
+ → rp_sheet_sync_outbox → cron sheet-sync → Rep.Parts26
+Crons → domain collectors → Slack / sheet / export tables
+```
+
+Every mutation that should appear in the sheet must call `enqueueSheetSync("rp"|"ip", entityId)` from `src/lib/domain/panel-orders.ts`.
+
+## Commands
+
+- `npm run dev` — dev server on port 3003
+- `npm run typecheck` — `tsc --noEmit` (the CI gate; no test suite)
+- `npm run build` — prisma generate + next build
+
+## Docs for agents
+
+- `AGENTS.md` — quick orientation
+- `docs/architecture.md` — stack, siblings, data flow
+- `docs/domain.md` — personas, glossary, mutations, status machine
+- `docs/data-model.md` — Prisma tables used by this app
+
+## Porting / legacy
+
+When matching legacy behaviour, search `legacy-gas/WebAppLogic.js` and `legacy-gas/LoggerLogic.js` first. The Next.js port lives in `src/lib/domain/` (not in components or route handlers).
