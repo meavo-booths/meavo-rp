@@ -1,6 +1,11 @@
 import { MeavoNavBar } from "@meavo/navigation";
-import { getAccessibleTools } from "@meavo/navigation/server";
+import { getAccessibleTools, getNotifications } from "@meavo/navigation/server";
 
+import {
+  markAllNotificationsReadAction,
+  markNotificationReadAction,
+  refreshNotificationsAction,
+} from "@/app/actions/notifications";
 import { signOutAction } from "@/app/actions/rp";
 import { auth } from "@/lib/auth";
 import { isAdminUser } from "@/lib/domain/authz";
@@ -30,11 +35,14 @@ export async function Nav() {
   if (!session?.user?.id) return null;
 
   const admin = isAdminUser(session.user.email);
-  const toolOptions = await getAccessibleTools(prisma, {
-    userId: session.user.id,
-    isAdmin: admin,
-    gatewayUrl: GATEWAY_URL,
-  });
+  const [toolOptions, notificationFeed] = await Promise.all([
+    getAccessibleTools(prisma, {
+      userId: session.user.id,
+      isAdmin: admin,
+      gatewayUrl: GATEWAY_URL,
+    }),
+    getNotifications(prisma, { userId: session.user.id }),
+  ]);
 
   return (
     <MeavoNavBar
@@ -48,6 +56,12 @@ export async function Nav() {
       userEmail={session.user.email}
       userImage={session.user.image}
       signOutAction={signOutAction}
+      notifications={{
+        initial: notificationFeed,
+        refresh: refreshNotificationsAction,
+        markRead: markNotificationReadAction,
+        markAllRead: markAllNotificationsReadAction,
+      }}
     />
   );
 }

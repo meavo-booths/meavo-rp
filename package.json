@@ -18,8 +18,8 @@
     "schema": "node_modules/@meavo/db/prisma/schema.prisma"
   },
   "dependencies": {
-    "@meavo/db": "git+https://github.com/meavo-booths/meavo-db.git#v0.7.0",
-    "@meavo/navigation": "git+https://github.com/meavo-booths/meavo-navigation.git#v0.1.2",
+    "@meavo/db": "github:meavo-booths/meavo-db#v0.14.0",
+    "@meavo/navigation": "github:meavo-booths/meavo-navigation#v0.2.0",
     "@prisma/client": "^6.19.3",
     "@vercel/blob": "^2.4.0",
     "googleapis": "^144.0.0",
