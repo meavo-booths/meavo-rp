@@ -123,4 +123,8 @@ export async function cancelRpRequest(
     data: { status: "Cancelled", updatedAt: new Date() },
   });
   await enqueueSheetSync("rp", row.id, "upsert", executor);
+  // GAS cancelRp: tell logistics when an RP leaves Ready via cancellation.
+  if (status === "Ready") {
+    void notifyAfterRpMutation(row.rpNum, "left_ready");
+  }
 }

@@ -10,6 +10,7 @@ import type { CatalogueCategory } from "@/lib/reference-data/catalogue";
 import { getPanelsForModel } from "@/lib/reference-data/panel-options";
 import type { AddressBookEntry, PanelOptionsPayload } from "@/lib/reference-data/sheets";
 import type { LoggerFormInput, LoggerItemInput } from "@/lib/domain/rp-form-mapper";
+import { buildMarketOptions, isValidMarket } from "@/lib/reference-data/markets";
 import {
   issueTypeRequiresRpPhoto,
   itemRequiresRpPhoto,
@@ -24,7 +25,7 @@ const ISSUE_TYPES = [
   "Wear and Tear",
 ];
 
-const MARKETS = ["BG", "RO", "UK", "DE", "FR", "IT", "ES", "US", "Other"];
+const MARKET_OPTIONS = buildMarketOptions();
 
 const BOOTH_MODELS = [
   "Soho",
@@ -185,18 +186,23 @@ export function LoggerWizard({
           <h2 className="font-medium">General info</h2>
           <label className="block text-sm">
             Market
-            <select
+            <input
+              list="market-options"
               value={form.market}
               onChange={(e) => setForm({ ...form, market: e.target.value })}
+              placeholder="Start typing a country…"
               className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
-            >
-              <option value="">Select market</option>
-              {MARKETS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
+            />
+            <datalist id="market-options">
+              {MARKET_OPTIONS.map((m) => (
+                <option key={m} value={m} />
               ))}
-            </select>
+            </datalist>
+            {form.market && !isValidMarket(form.market) ? (
+              <span className="mt-1 block text-xs text-red-600">
+                Please select a valid country from the Market suggestions.
+              </span>
+            ) : null}
           </label>
           <label className="block text-sm">
             Urgency
@@ -467,7 +473,26 @@ export function LoggerWizard({
           </Button>
         ) : null}
         {step < 2 ? (
-          <Button onClick={() => setStep((s) => s + 1)}>Next</Button>
+          <Button
+            onClick={() => {
+              if (step === 0) {
+                if (!form.market.trim()) {
+                  setError("Market is required.");
+                  return;
+                }
+                if (!isValidMarket(form.market)) {
+                  setError(
+                    "Please select a valid country from the Market suggestions.",
+                  );
+                  return;
+                }
+              }
+              setError(null);
+              setStep((s) => s + 1);
+            }}
+          >
+            Next
+          </Button>
         ) : (
           <Button disabled={busy} onClick={() => void submit()}>
             {busy ? "Saving…" : isEdit ? "Update RP" : "Submit RP"}

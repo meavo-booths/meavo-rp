@@ -28,8 +28,12 @@ export type TodorScheduleEntry = {
   rpCode: string;
   pallet: string;
   header: string;
-  isoWeek?: number;
-  isoYear?: number;
+  /** Raw shipping-week code from the section header, e.g. "VS26-28". */
+  shippingWeekCode: string;
+  factoryCode: string;
+  factoryName: string;
+  yearSuffix: string;
+  isoWeek: number;
 };
 
 export type TodorDashboardPart = {
@@ -39,6 +43,8 @@ export type TodorDashboardPart = {
   shipMethod: string | null;
   reviewGroup: string | null;
   pallet?: string | null;
+  shippingWeekCode?: string | null;
+  factoryName?: string | null;
   source: "iznos" | "warehouse" | "ip" | "rp";
 };
 
@@ -71,7 +77,11 @@ function extractRpCodes(text: string): string[] {
   return out;
 }
 
-function getIsoWeekContext(date = new Date()): { weekNum: number; isoYear: number } {
+function getIsoWeekContext(date = new Date()): {
+  weekNum: number;
+  isoYear: number;
+  yearSuffix: string;
+} {
   const d = new Date(date);
   d.setHours(12, 0, 0, 0);
   d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
@@ -84,7 +94,47 @@ function getIsoWeekContext(date = new Date()): { weekNum: number; isoYear: numbe
         ((week1.getDay() + 6) % 7)) /
         7,
     );
-  return { weekNum, isoYear: d.getFullYear() };
+  return {
+    weekNum,
+    isoYear: d.getFullYear(),
+    yearSuffix: String(d.getFullYear() % 100).padStart(2, "0"),
+  };
+}
+
+function getNextIsoWeekContext(): ReturnType<typeof getIsoWeekContext> {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return getIsoWeekContext(d);
+}
+
+const SHIPPING_WEEK_FACTORY_NAMES: Record<string, string> = {
+  VS: "VAR",
+  AS: "AKS",
+  KS: "KAZ",
+};
+
+/** Only VAR/AKS shipping weeks feed the Todor Износ schedule (GAS parity). */
+const TODOR_SHIPPING_FACTORY_CODES = new Set(["VS", "AS"]);
+
+/** Ported from GAS parseShippingWeekCode_ — e.g. "VS26-28". */
+function parseShippingWeekCode(raw: string): {
+  raw: string;
+  factoryCode: string;
+  factoryName: string;
+  yearSuffix: string;
+  weekNum: number;
+} | null {
+  const compact = norm(raw).toUpperCase().replace(/\s+/g, "");
+  if (!compact) return null;
+  const m = compact.match(/^(VS|AS|KS)(\d{2})-(\d{1,2})$/);
+  if (!m) return null;
+  return {
+    raw: norm(raw),
+    factoryCode: m[1],
+    factoryName: SHIPPING_WEEK_FACTORY_NAMES[m[1]] ?? "",
+    yearSuffix: m[2],
+    weekNum: Number(m[3]),
+  };
 }
 
 async function readIznosRows(): Promise<string[][]> {
@@ -103,7 +153,6 @@ export async function buildIznosRpScheduleEntries(): Promise<TodorScheduleEntry[
     const body = data.slice(IZNOS_CONFIG.startRow - Math.max(1, IZNOS_CONFIG.startRow - 1));
     let currentHeader = "";
     const out: TodorScheduleEntry[] = [];
-    const ctx = getIsoWeekContext();
 
     for (let i = 0; i < body.length; i++) {
       const row = body[i] ?? [];
@@ -114,6 +163,10 @@ export async function buildIznosRpScheduleEntries(): Promise<TodorScheduleEntry[
       }
       const rawRp = norm(row[IZNOS_CONFIG.colRpCodes]);
       if (!rawRp || !currentHeader) continue;
+      const parsed = parseShippingWeekCode(currentHeader);
+      if (!parsed || !TODOR_SHIPPING_FACTORY_CODES.has(parsed.factoryCode)) {
+        continue;
+      }
       const codes = extractRpCodes(rawRp);
       const pallet = norm(row[IZNOS_CONFIG.colPallet]);
       if (!pallet) continue;
@@ -123,8 +176,11 @@ export async function buildIznosRpScheduleEntries(): Promise<TodorScheduleEntry[
           rpCode: code,
           pallet,
           header: currentHeader,
-          isoWeek: ctx.weekNum,
-          isoYear: ctx.isoYear,
+          shippingWeekCode: parsed.raw || currentHeader,
+          factoryCode: parsed.factoryCode,
+          factoryName: parsed.factoryName,
+          yearSuffix: parsed.yearSuffix,
+          isoWeek: parsed.weekNum,
         });
       }
     }
@@ -164,6 +220,8 @@ async function buildRpDetailsIndex(): Promise<Map<string, TodorDashboardPart>> {
   });
   const map = new Map<string, TodorDashboardPart>();
   for (const row of rows) {
+    // Cancelled RPs never supply Износ details (GAS isTodorCancelledStatus_).
+    if (norm(row.status).toLowerCase() === "cancelled") continue;
     const key = normalizeRpCode(row.rpNum);
     map.set(key, {
       rpNum: row.rpNum,
@@ -177,20 +235,43 @@ async function buildRpDetailsIndex(): Promise<Map<string, TodorDashboardPart>> {
   return map;
 }
 
+/** RPs currently at Topoli warehouse (GAS buildTopoliWarehouseParts_). */
+export async function getTodorTopoliRpParts(): Promise<TodorDashboardPart[]> {
+  const rows = await prisma.rpRequest.findMany({
+    where: {
+      currentLocation: { equals: "Topoli warehouse", mode: "insensitive" },
+    },
+    select: {
+      rpNum: true,
+      market: true,
+      status: true,
+      shipMethod: true,
+      reviewGroup: true,
+    },
+    orderBy: { rpNum: "desc" },
+  });
+  return rows
+    .filter((row) => {
+      const status = norm(row.status).toLowerCase();
+      return status !== "shipped" && status !== "cancelled";
+    })
+    .map((row) => ({
+      rpNum: row.rpNum,
+      market: row.market,
+      status: row.status,
+      shipMethod: row.shipMethod,
+      reviewGroup: row.reviewGroup,
+      factoryName: row.reviewGroup,
+      source: "warehouse" as const,
+    }));
+}
+
 export async function getTodorDashboardParts(
   view: "iznos" | "all" | "availability" | "ip" | "cancelled",
   week: "this" | "next" = "this",
 ): Promise<TodorDashboardPart[]> {
   if (view === "availability") {
-    const ips = await getTodorTopoliIpCards();
-    return ips.map((ip) => ({
-      rpNum: ip.ipNum,
-      market: null,
-      status: ip.status,
-      shipMethod: null,
-      reviewGroup: ip.factory,
-      source: "warehouse" as const,
-    }));
+    return getTodorTopoliRpParts();
   }
 
   if (view === "ip") {
@@ -209,7 +290,18 @@ export async function getTodorDashboardParts(
   const details = await buildRpDetailsIndex();
   const parts: TodorDashboardPart[] = [];
 
-  for (const entry of schedule) {
+  // GAS parity: Износ views show only the requested ISO week; "all" is
+  // unfiltered schedule + Topoli RP + Topoli IP with dedup by RP number.
+  const ctx = week === "next" ? getNextIsoWeekContext() : getIsoWeekContext();
+  const weekFiltered =
+    view === "all"
+      ? schedule
+      : schedule.filter(
+          (entry) =>
+            entry.yearSuffix === ctx.yearSuffix && entry.isoWeek === ctx.weekNum,
+        );
+
+  for (const entry of weekFiltered) {
     const detail = details.get(entry.rpCode);
     parts.push({
       rpNum: entry.rpNum,
@@ -218,11 +310,14 @@ export async function getTodorDashboardParts(
       shipMethod: detail?.shipMethod ?? null,
       reviewGroup: detail?.reviewGroup ?? null,
       pallet: entry.pallet,
+      shippingWeekCode: entry.shippingWeekCode,
+      factoryName: entry.factoryName,
       source: "iznos",
     });
   }
 
   if (view === "all") {
+    parts.push(...(await getTodorTopoliRpParts()));
     const ips = await getTodorTopoliIpCards();
     for (const ip of ips) {
       parts.push({

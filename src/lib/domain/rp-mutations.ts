@@ -176,6 +176,17 @@ export async function updateWorkshopNote(
   await enqueueSheetSync("ip", ip.id);
 }
 
+/** Legacy note format from GAS updateDateFromWeb: "[dd/MM Delayed: reason]". */
+function appendDelayNote(existing: string | null, reason: string): string {
+  const now = new Date();
+  const stamp = `${String(now.getDate()).padStart(2, "0")}/${String(
+    now.getMonth() + 1,
+  ).padStart(2, "0")}`;
+  const delayNote = `[${stamp} Delayed: ${reason}]`;
+  const current = (existing ?? "").trim();
+  return current ? `${current} | ${delayNote}` : delayNote;
+}
+
 export async function updateDueDate(
   recordType: "rp" | "ip",
   recordNum: string,
@@ -185,30 +196,35 @@ export async function updateDueDate(
   const due = newDate ? new Date(newDate) : null;
   if (recordType === "rp") {
     const row = await findRp(recordNum);
-    const notes = [row.notes, reason].filter(Boolean).join(" — ");
+    const statusBefore = (row.status ?? "").trim();
     await prisma.rpRequest.update({
       where: { id: row.id },
       data: {
         dueDate: due,
         status: "Delayed",
-        notes,
+        notes: appendDelayNote(row.notes, reason),
         updatedAt: new Date(),
       },
     });
     await enqueueSheetSync("rp", row.id);
+    // GAS updateDateFromWeb: shipping "no longer ready" when leaving Ready,
+    // plus an urgent-channel resync in all cases.
+    void notifyAfterRpMutation(
+      row.rpNum,
+      statusBefore === "Ready" ? "ready_reverted" : "status_changed",
+    );
     return;
   }
   const ip = await prisma.rpInternalProductionRow.findUnique({
     where: { ipNum: recordNum.trim() },
   });
   if (!ip) throw new Error("IP not found");
-  const notes = [ip.notes, reason].filter(Boolean).join(" — ");
   await prisma.rpInternalProductionRow.update({
     where: { id: ip.id },
     data: {
       deadline: due,
       status: "Delayed",
-      notes,
+      notes: appendDelayNote(ip.notes, reason),
       updatedAt: new Date(),
     },
   });

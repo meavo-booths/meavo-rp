@@ -36,12 +36,17 @@ export async function getUrgentPanelCards(
     if (factoryFilter && !matchesFactory(part.reviewGroup, factoryFilter)) {
       return false;
     }
+    // Bucketing mirrors GAS matchesActiveUrgentPanelsStatus_: Briefed counts
+    // as "in production"; unbriefed is everything outside the named statuses.
     const status = (part.status ?? "").trim();
-    if (panelView === "unbriefed") return !status || status === "Briefed";
-    if (panelView === "in_production") return status === "In Production";
+    if (panelView === "in_production") {
+      return status === "In Production" || status === "Briefed";
+    }
     if (panelView === "ready") return status === "Ready";
     if (panelView === "shipped") return status === "Shipped";
-    return true;
+    return !["In Production", "Briefed", "Ready", "Shipped", "Cancelled"].includes(
+      status,
+    );
   });
 }
 

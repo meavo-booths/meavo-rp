@@ -26,6 +26,8 @@ export type RpSlackMutationEvent =
   | "status_changed"
   | "ready_marked"
   | "ready_reverted"
+  /** RP left Ready via cancel — shipping notice only, no urgent-channel resync. */
+  | "left_ready"
   | "factory_assigned";
 
 function norm(value: string | null | undefined): string {
@@ -174,19 +176,26 @@ async function maybeNotifyPalletReady(row: RpRequest): Promise<void> {
   await setSlackAutomationState(key, "1");
 }
 
+/**
+ * RP left Ready (not shipped) — logistics must not ship or assign pallet.
+ * Mirrors GAS notifyShippingSlackNoLongerReady_: pallet/container rows only,
+ * posts to the logistics channel (never the urgent thread channel).
+ */
 export async function notifyShippingNoLongerReady(
   row: RpRequest,
   newStatus: string,
 ): Promise<void> {
+  const method = norm(row.shipMethod).toLowerCase();
+  if (method !== "pallet" && method !== "container") return;
+
   await prisma.rpAutomationState.deleteMany({
     where: { key: palletReadyKey(row.rpNum) },
   });
   const text = [
-    ":arrow_backward: *No longer Ready*",
-    `*RP:* ${row.rpNum}`,
-    `*New status:* ${newStatus || "—"}`,
+    `:warning: *${row.rpNum}* was *Ready*, now *${norm(newStatus) || "—"}*.`,
+    "Do not ship or assign pallet/container for this RP until logistics is informed again.",
   ].join("\n");
-  await postChannelMessage(RP_SLACK_CONFIG.channelId, text);
+  await postChannelMessage(RP_SLACK_CONFIG.logisticsChannelId, text);
 }
 
 export async function notifyAfterRpMutation(
@@ -214,6 +223,9 @@ export async function notifyAfterRpMutation(
     if (event === "ready_reverted") {
       await notifyShippingNoLongerReady(row, row.status ?? "");
       await maybeNotifyUrgentChannel(row);
+    }
+    if (event === "left_ready") {
+      await notifyShippingNoLongerReady(row, row.status ?? "");
     }
     if (event === "factory_assigned") {
       await maybeNotifyUrgentChannel(row);

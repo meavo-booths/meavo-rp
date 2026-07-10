@@ -132,7 +132,8 @@ export function UrgentPanelsDashboard({
                   Промени ETA
                 </Button>
               ) : null}
-              {view === "in_production" ? (
+              {view === "in_production" &&
+              (part.status ?? "").trim().toLowerCase() === "in production" ? (
                 <Button
                   className="px-3 py-1 text-xs"
                   onClick={() => void run(() => markUrgentReadyAction(part.rpNum))}
