@@ -1,0 +1,51 @@
+# Contributing — <!-- FILL: repo name -->
+
+## Before you open a PR
+
+- [ ] Changes are scoped to the request — no drive-by refactors
+- [ ] `<!-- FILL: lint command -->` passes
+- [ ] `<!-- FILL: test command or "No test suite — manual check documented" -->`
+- [ ] Agent docs updated if you added routes, domain modules, crons, or auth rules
+- [ ] <!-- FILL: e.g. enqueueSheetSync called after writes that must reach external systems -->
+
+## Branch naming
+
+<!-- FILL: e.g. feature/short-description, fix/issue-123, docs/agent-docs -->
+
+## Commit messages
+
+<!-- FILL: e.g. imperative mood, complete sentences: "Add factory-fill cron guard" -->
+
+## Code placement
+
+| Layer | Location |
+|-------|----------|
+| <!-- FILL: UI/pages --> | <!-- FILL: path --> |
+| <!-- FILL: API / actions --> | <!-- FILL: path --> |
+| <!-- FILL: business logic --> | <!-- FILL: path --> |
+| <!-- FILL: integrations --> | <!-- FILL: path --> |
+
+## Cross-repo dependencies
+
+<!-- FILL: how to bump @meavo/db, @meavo/navigation, etc. Or "N/A". -->
+
+## Schema changes
+
+<!-- FILL: e.g. Only in meavo-db — tag release, bump git ref in package.json, redeploy. Or N/A. -->
+
+## PR description
+
+Include:
+
+1. **What** changed (user-visible or API behaviour)
+2. **Why** (link issue if any)
+3. **How to verify** (commands or manual steps)
+4. **Out of scope** (what you intentionally did not change)
+
+## Agent-assisted PRs
+
+If an AI agent wrote the code:
+
+- Verify paths and business rules against `docs/domain.md`
+- Reject placeholder text (`<!-- FILL:`) in merged files
+- Ensure no secrets in diff

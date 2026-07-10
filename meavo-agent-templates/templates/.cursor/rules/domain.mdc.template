@@ -1,0 +1,28 @@
+---
+description: Domain layer patterns for <!-- FILL: repo name -->
+globs:
+  - <!-- FILL: e.g. src/lib/domain/** -->
+---
+
+# Domain module rules
+
+Business logic lives here — **not** in route handlers, React components, or API route files.
+
+## Patterns
+
+1. <!-- FILL: e.g. Mutations accept viewer context + entity id; return typed result or throw domain error -->
+2. <!-- FILL: e.g. After Prisma writes that must sync externally, call enqueue function -->
+3. <!-- FILL: e.g. Authorization checks via canX(viewer, entity) before mutations -->
+4. Reuse existing modules — search `<!-- FILL: domain path -->` before adding new files.
+
+## File naming
+
+<!-- FILL: e.g. rp-create.ts, rp-mutations.ts — verb-noun, one concern per file -->
+
+## When matching legacy behaviour
+
+<!-- FILL: e.g. Search legacy-gas/Foo.js first; port into domain/, not components. Or delete section. -->
+
+## Mutation map
+
+See `docs/domain.md` for persona permissions and status transitions.

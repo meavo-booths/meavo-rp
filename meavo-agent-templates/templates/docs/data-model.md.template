@@ -1,0 +1,35 @@
+# Data model — <!-- FILL: repo name -->
+
+<!-- FILL: where canonical schema lives, e.g. meavo-db prisma/schema.prisma -->
+
+Local reference: <!-- FILL: e.g. node_modules/@meavo/db/prisma/schema.prisma or prisma/schema.prisma -->
+
+**Do not edit schema in this repo** unless this repo *is* the schema owner. <!-- FILL: clarify -->
+
+Pinned version: <!-- FILL: package.json ref or migration tool version -->
+
+## Entity relationship
+
+```
+<!-- FILL: simplified ER diagram in ASCII -->
+```
+
+## Core tables / models
+
+### `<!-- FILL: ModelName -->` → `<!-- FILL: table_name -->`
+
+<!-- FILL: purpose of entity -->
+
+| Field | Notes |
+|-------|-------|
+| <!-- FILL --> | <!-- FILL --> |
+
+<!-- OPTIONAL: repeat ### sections for other models -->
+
+## Sync / external copies
+
+<!-- FILL: outbox tables, sheet row maps, event streams. Or "N/A — DB is sole system of record". -->
+
+## Queries agents should reuse
+
+<!-- FILL: existing repository modules, Prisma helpers, avoid raw SQL unless documented -->

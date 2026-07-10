@@ -1,0 +1,44 @@
+---
+description: Core stack, layout, and guardrails for <!-- FILL: repo name -->
+alwaysApply: true
+---
+
+Environment: <!-- FILL: e.g. Next.js 15 App Router at app.example.com. NOT legacy X. -->
+
+## Stack
+
+<!-- FILL: bullet list matching AGENTS.md -->
+
+## Do NOT
+
+<!-- FILL: same hard rules as AGENTS.md — keep in sync -->
+
+## Code layout
+
+| Area | Path |
+|------|------|
+| <!-- FILL: pages / UI --> | <!-- FILL: path --> |
+| <!-- FILL: API / actions --> | <!-- FILL: path --> |
+| <!-- FILL: domain logic --> | <!-- FILL: path --> |
+| <!-- FILL: integrations --> | <!-- FILL: path --> |
+| <!-- FILL: auth --> | <!-- FILL: path --> |
+| <!-- FILL: tests --> | <!-- FILL: path --> |
+
+## Data flow
+
+```
+<!-- FILL: ASCII diagram — Browser → API → DB → external services -->
+```
+
+<!-- FILL: side-effect rule, e.g. "Every mutation that should reach X must call enqueueY()" -->
+
+## Docs for agents
+
+- `AGENTS.md` — quick orientation
+- `docs/architecture.md` — stack, siblings, data flow
+- `docs/domain.md` — business rules, mutation map <!-- delete if N/A -->
+- `docs/data-model.md` — database tables <!-- delete if N/A -->
+
+## Porting / legacy
+
+<!-- FILL: where legacy reference code lives and that Next.js/modern path is src/lib/domain/. Or delete section. -->

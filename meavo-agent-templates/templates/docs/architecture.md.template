@@ -1,0 +1,52 @@
+# Architecture — <!-- FILL: repo / app name -->
+
+<!-- FILL: 1–2 sentence summary and production URL if any -->
+
+**Further reading:**
+- [domain.md](domain.md) — business rules, personas, mutation map <!-- delete if N/A -->
+- [data-model.md](data-model.md) — database tables <!-- delete if N/A -->
+- [AGENTS.md](../AGENTS.md) — quick orientation for AI agents
+
+## Sibling repos (meavo-booths)
+
+<!-- FILL: table — which org repos this borrows from or writes to -->
+
+| Repo | Relationship |
+|------|----------------|
+| <!-- FILL --> | <!-- FILL --> |
+
+## Stack decisions
+
+<!-- FILL: why Prisma/meavo-db, NextAuth, Vercel, etc. — only what applies -->
+
+## Repository layout
+
+```
+<!-- FILL: tree of top-level src/ or packages/ — keep to 2–3 levels deep -->
+```
+
+## Data flow
+
+```
+<!-- FILL: detailed flow — user action → persistence → side effects -->
+```
+
+## API surface
+
+<!-- FILL: REST routes, Server Actions pattern, webhooks, or "N/A — library only" -->
+
+## Scheduled jobs
+
+<!-- FILL: cron table (path, schedule, purpose) or "N/A" -->
+
+## Environment variables
+
+Document names only (see `.env.example`):
+
+| Variable | Purpose |
+|----------|---------|
+| <!-- FILL --> | <!-- FILL --> |
+
+## Deployment
+
+<!-- FILL: Vercel project, npm publish, internal runner, etc. -->

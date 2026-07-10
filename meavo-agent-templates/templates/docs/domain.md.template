@@ -1,0 +1,40 @@
+# Domain reference — <!-- FILL: repo name -->
+
+Business rules and **where to change what**. For stack see [architecture.md](architecture.md). For tables see [data-model.md](data-model.md).
+
+## Glossary
+
+| Term | Meaning |
+|------|---------|
+| <!-- FILL --> | <!-- FILL --> |
+
+## Status / state values
+
+<!-- FILL: tables of status enums, transitions, or "N/A" -->
+
+## Roles / personas
+
+<!-- FILL: who sees what, resolved in which modules -->
+
+| Role / email pattern | Route or scope | Permissions |
+|----------------------|----------------|-------------|
+| <!-- FILL --> | <!-- FILL --> | <!-- FILL --> |
+
+## Mutation map
+
+| Change | Domain module | Action / API | Notes |
+|--------|---------------|--------------|-------|
+| <!-- FILL --> | <!-- FILL --> | <!-- FILL --> | <!-- FILL --> |
+
+## Authorization
+
+- Resolved in: <!-- FILL: paths to authz.ts, viewer-context, etc. -->
+- <!-- FILL: key rules agents get wrong without docs -->
+
+## Legacy port index
+
+<!-- OPTIONAL: map legacy functions → modern domain modules. Delete if no legacy. -->
+
+| Legacy | Modern |
+|--------|--------|
+| <!-- FILL --> | <!-- FILL --> |

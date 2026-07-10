@@ -1,0 +1,25 @@
+---
+description: Legacy / read-only subtree rules for <!-- FILL: repo name -->
+globs:
+  - <!-- FILL: e.g. legacy-gas/** -->
+---
+
+# Legacy reference code
+
+This path is **read-only parity reference** — not the live deployment target.
+
+## Runtime constraints
+
+<!-- FILL: e.g. Google Apps Script — no ES modules, use google.script.run, GAS globals -->
+
+## Do NOT
+
+- Treat this tree as the system of record after production cutover
+- Port new features here — implement in <!-- FILL: modern path --> instead
+- Use `import`/`export` if runtime is GAS
+
+## Porting workflow
+
+1. Find behaviour in legacy files
+2. Implement in `<!-- FILL: domain path -->`
+3. Document mapping in `docs/domain.md` legacy port index

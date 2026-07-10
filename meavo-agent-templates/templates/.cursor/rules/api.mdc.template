@@ -1,0 +1,35 @@
+---
+description: API routes, Server Actions, and HTTP handlers for <!-- FILL: repo name -->
+globs:
+  - <!-- FILL: e.g. src/app/api/** -->
+  - <!-- FILL: e.g. src/app/actions/** -->
+---
+
+# API & Server Action rules
+
+Keep handlers **thin** — validate input, call `<!-- FILL: domain path -->`, map errors to HTTP/action responses.
+
+## Auth
+
+- <!-- FILL: e.g. requireActionSession() in every Server Action -->
+- <!-- FILL: e.g. app-level access gate function -->
+- <!-- FILL: e.g. Cron routes: verify CRON_SECRET header -->
+- Never import edge-incompatible DB auth in `middleware.ts` — use `<!-- FILL: auth.config path -->`.
+
+## Validation
+
+<!-- FILL: e.g. Zod at boundary; env via src/lib/env.ts -->
+
+## Responses
+
+<!-- FILL: error shape, status codes, revalidatePath after mutations -->
+
+## Cron routes
+
+<!-- FILL: list /api/cron/* and that collectors live in domain/. Or delete section. -->
+
+## Do NOT
+
+- Put business rules inline in route handlers
+- Skip auth on routes exposed to the internet
+- Return stack traces to clients in production

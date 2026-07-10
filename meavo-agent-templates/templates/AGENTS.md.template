@@ -1,0 +1,70 @@
+# Agent guide — <!-- FILL: repo short name, e.g. meavo-sales -->
+
+Quick orientation for AI agents working in this repo. Read this before exploring blindly.
+
+**Cursor:** `.cursor/rules/core.mdc` is always applied. See also `domain.mdc` and `api.mdc` when editing matching paths.
+
+## What this repo does
+
+<!-- FILL: 1–3 sentences — what the product/package does and who uses it -->
+
+## Stack
+
+<!-- FILL: bullet list — language, framework, ORM, auth, hosting, key libraries -->
+
+## First files to read
+
+| Task | Start here |
+|------|------------|
+| <!-- FILL: common task 1 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 2 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 3 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 4 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 5 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 6 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 7 --> | <!-- FILL: path(s) --> |
+| <!-- FILL: common task 8 --> | <!-- FILL: path(s) --> |
+| Auth & access | <!-- FILL: e.g. src/lib/auth.ts, middleware.ts, authz module --> |
+| DB schema | <!-- FILL: meavo-db path or "N/A — no database" --> |
+| Tests | <!-- FILL: test dir + how to run --> |
+
+## Do NOT
+
+<!-- FILL: 5–10 hard rules, one per line, e.g. -->
+<!-- - Edit Prisma schema in this repo — schema lives in meavo-db -->
+<!-- - Import Prisma auth from middleware (edge) — use auth.config only -->
+<!-- - Deploy legacy-gas/ as the live app -->
+<!-- - Commit secrets or .env.local -->
+
+## Commands
+
+```bash
+<!-- FILL: install command, e.g. npm install -->
+<!-- FILL: dev command -->
+<!-- FILL: test command (or "N/A") -->
+<!-- FILL: lint command -->
+<!-- FILL: build command -->
+```
+
+## Conventions
+
+1. <!-- FILL: e.g. Domain logic in src/lib/domain/ — keep routes/actions thin -->
+2. <!-- FILL: e.g. Side effects after writes — enqueue sync, revalidatePath, etc. -->
+3. <!-- FILL: e.g. Server Actions use requireActionSession() or equivalent -->
+4. <!-- FILL: optional further conventions -->
+
+## Scoped task template (preferred from user)
+
+```
+Area/route: <!-- e.g. /dashboard/foo or package name -->
+Behaviour: [what should happen]
+Reference: [legacy file or doc, if any]
+Out of scope: [auth / other packages / etc.]
+```
+
+## Related docs
+
+- [docs/architecture.md](docs/architecture.md) — stack, layout, data flow
+- [docs/domain.md](docs/domain.md) — business rules, personas, mutation map <!-- delete line if N/A -->
+- [docs/data-model.md](docs/data-model.md) — database tables <!-- delete line if N/A -->
+- [CONTRIBUTING.md](CONTRIBUTING.md) — PR process
