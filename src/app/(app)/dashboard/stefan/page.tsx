@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { PartsDashboard } from "@/components/dashboard/parts-dashboard";
-import { RoleIpDashboard } from "@/components/dashboard/role-ip-dashboard";
 import { StefanPdfExport } from "@/components/dashboard/stefan-pdf-export";
 import { getDashboardParts } from "@/lib/domain/dashboard-parts";
-import { getIpDashboardCards } from "@/lib/domain/dashboard-ip";
+import {
+  getIpDashboardCards,
+  mergeRpAndIpCards,
+} from "@/lib/domain/dashboard-ip";
 import { auth } from "@/lib/auth";
 import { resolveViewerContext } from "@/lib/viewer-context";
 
@@ -30,19 +32,18 @@ export default async function StefanDashboardPage({
     getIpDashboardCards({ factoryTokens: ["KAZ"], viewType: view }),
   ]);
 
+  // GAS getStefanDashboardData: RP + IP in one sorted feed.
+  const merged = mergeRpAndIpCards(rpParts, ipCards);
+
   return (
     <div className="space-y-6">
       <StefanPdfExport parts={rpParts} />
       <PartsDashboard
         viewer={viewer}
-        initialParts={rpParts}
+        initialParts={merged}
         initialView={viewType}
-        title="Стефан — KAZ панели (RP)"
-      />
-      <RoleIpDashboard
-        title="Internal Production — KAZ"
-        cards={ipCards}
-        role="stefan"
+        title="Стефан — Склад Казанлък"
+        basePath="/dashboard/stefan"
       />
     </div>
   );

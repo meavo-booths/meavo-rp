@@ -22,6 +22,8 @@ export type PartsViewType =
 
 export type DashboardPartCard = {
   id: string;
+  /** "rp" (default) or "ip" for merged Internal Production rows. */
+  recordType: "rp" | "ip";
   rpNum: string;
   dueDate: string | null;
   market: string | null;
@@ -113,6 +115,7 @@ function toCard(row: RpRequest, viewerEmail: string): DashboardPartCard {
   });
   return {
     id: row.id,
+    recordType: "rp",
     rpNum: row.rpNum,
     dueDate: row.dueDate?.toISOString().slice(0, 10) ?? null,
     market: row.market,

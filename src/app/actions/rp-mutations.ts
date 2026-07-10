@@ -217,9 +217,9 @@ export async function updateWorkshopNoteAction(
   recordNum: string,
   note: string,
 ): Promise<ActionResult> {
-  await requireActionSession();
+  const { viewer } = await requireActionSession();
   try {
-    await updateWorkshopNote(recordType, recordNum, note);
+    await updateWorkshopNote(recordType, recordNum, note, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {

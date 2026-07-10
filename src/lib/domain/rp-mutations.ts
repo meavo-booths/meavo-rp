@@ -1,3 +1,8 @@
+import {
+  isPanelLikeItemTypeForWorkshopNote,
+  isWorkshopNoteViewerForFactory,
+  normalizeWorkshopFactoryGroup,
+} from "@/lib/domain/authz";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
 import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
@@ -151,13 +156,30 @@ export async function markActiveUrgentPanelReady(rpNum: string): Promise<void> {
   void notifyAfterRpMutation(rpNum, "ready_marked");
 }
 
+/** GAS updateWorkshopNoteFromWeb parity: KAZ/VAR panel rows, allowed viewers only. */
+function assertWorkshopNoteAllowed(
+  actorEmail: string,
+  factoryValue: string | null,
+  itemType: string | null,
+): void {
+  const group = normalizeWorkshopFactoryGroup(factoryValue);
+  if (!group || !isWorkshopNoteViewerForFactory(actorEmail, group)) {
+    throw new Error("Access denied.");
+  }
+  if (!isPanelLikeItemTypeForWorkshopNote(itemType)) {
+    throw new Error("Workshop note is not available for this item type.");
+  }
+}
+
 export async function updateWorkshopNote(
   recordType: "rp" | "ip",
   recordNum: string,
   note: string,
+  actorEmail: string,
 ): Promise<void> {
   if (recordType === "rp") {
     const row = await findRp(recordNum);
+    assertWorkshopNoteAllowed(actorEmail, row.reviewGroup, row.itemType);
     await prisma.rpRequest.update({
       where: { id: row.id },
       data: { workshopNote: note.trim(), updatedAt: new Date() },
@@ -169,6 +191,7 @@ export async function updateWorkshopNote(
     where: { ipNum: recordNum.trim() },
   });
   if (!ip) throw new Error("IP not found");
+  assertWorkshopNoteAllowed(actorEmail, ip.factory, ip.panel);
   await prisma.rpInternalProductionRow.update({
     where: { id: ip.id },
     data: { workshopNote: note.trim(), updatedAt: new Date() },

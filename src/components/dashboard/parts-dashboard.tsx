@@ -8,14 +8,17 @@ import { cancelRpAction } from "@/app/actions/rp";
 import {
   annaReadyAction,
   annaRevertReadyAction,
+  nikolayIpReadyAction,
   revertRpAction,
   saveShipInfoAction,
   shipRpAction,
+  stefanIpReadyAction,
   updateDueDateAction,
   updateWorkshopNoteAction,
 } from "@/app/actions/rp-mutations";
 import { Button, Card, Input } from "@/components/ui";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
+import { canEditWorkshopNote } from "@/lib/domain/authz";
 import type { DashboardPartCard, PartsViewType } from "@/lib/domain/dashboard-parts";
 import type { ViewerContext } from "@/lib/viewer-context";
 
@@ -26,35 +29,57 @@ const TABS: { id: PartsViewType; label: string }[] = [
   { id: "cancelled", label: "Отказани" },
 ];
 
+const SOURCE_FILTERS: { id: "all" | "rp" | "ip"; label: string }[] = [
+  { id: "all", label: "Всички" },
+  { id: "rp", label: "Резервни Части" },
+  { id: "ip", label: "Вътрешна Продукция" },
+];
+
+function isPartLikeItemType(itemType: string | null): boolean {
+  const t = (itemType ?? "").trim().toUpperCase();
+  return ["PART", "PARTS", "STOCK", "SPARE"].some((token) => t.includes(token));
+}
+
 export function PartsDashboard({
   viewer,
   initialParts,
   initialView = "active",
   title = "Dashboard",
   regionalScope,
+  basePath = "/dashboard",
 }: {
   viewer: ViewerContext;
   initialParts: DashboardPartCard[];
   initialView?: PartsViewType;
   title?: string;
   regionalScope?: string;
+  basePath?: string;
 }) {
   const router = useRouter();
   const view = initialView;
   const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "rp" | "ip">("all");
   const [pending, startTransition] = useTransition();
   useDashboardRefresh();
 
+  const hasIpRecords = useMemo(
+    () => initialParts.some((part) => part.recordType === "ip"),
+    [initialParts],
+  );
+
   const parts = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return initialParts;
-    return initialParts.filter((part) =>
-      [part.rpNum, part.client, part.market, part.itemType, part.partDescription]
+    return initialParts.filter((part) => {
+      if (sourceFilter !== "all" && part.recordType !== sourceFilter) {
+        return false;
+      }
+      if (!q) return true;
+      return [part.rpNum, part.client, part.market, part.itemType, part.partDescription]
         .join(" ")
         .toLowerCase()
-        .includes(q),
-    );
-  }, [initialParts, search]);
+        .includes(q);
+    });
+  }, [initialParts, search, sourceFilter]);
 
   function refresh() {
     startTransition(() => router.refresh());
@@ -64,7 +89,7 @@ export function PartsDashboard({
     const params = new URLSearchParams();
     params.set("view", nextView);
     if (scope) params.set("scope", scope);
-    return `/dashboard?${params.toString()}`;
+    return `${basePath}?${params.toString()}`;
   }
 
   async function run(action: () => Promise<{ error?: string }>) {
@@ -73,9 +98,21 @@ export function PartsDashboard({
     else refresh();
   }
 
-  const showReadyTab = Boolean(viewer.reviewerConfig);
-  const canEditWorkshop = Boolean(viewer.reviewerConfig);
-  const isAnna = viewer.effectiveEmail === "anna@meavo.com";
+  const reviewerConfig = viewer.reviewerConfig;
+  const showReadyTab = Boolean(reviewerConfig);
+  const canEditDueDate = Boolean(reviewerConfig);
+  const viewerEmail = viewer.effectiveEmail;
+  const isAnna = viewerEmail === "anna@meavo.com";
+  const logisticsButtonOnly = Boolean(reviewerConfig?.logisticsButtonOnly);
+  const panelLogisticsButtonOnly = Boolean(
+    reviewerConfig?.panelLogisticsButtonOnly,
+  );
+  const ipReadyAction =
+    viewerEmail === "nikolay@meavo.com"
+      ? nikolayIpReadyAction
+      : viewerEmail === "stefan@meavo.com"
+        ? stefanIpReadyAction
+        : null;
   const scopes = viewer.regionalScopes;
   const activeScope = regionalScope ?? scopes[0];
 
@@ -132,6 +169,25 @@ export function PartsDashboard({
         ))}
       </nav>
 
+      {hasIpRecords ? (
+        <nav className="flex flex-wrap gap-1">
+          {SOURCE_FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              onClick={() => setSourceFilter(filter.id)}
+              className={`rounded-md px-3 py-1 text-xs ${
+                sourceFilter === filter.id
+                  ? "bg-brand-600 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
+
       <Input
         type="search"
         value={search}
@@ -146,12 +202,29 @@ export function PartsDashboard({
       ) : null}
 
       <div className="grid gap-3">
-        {parts.map((part) => (
+        {parts.map((part) => {
+          const isIp = part.recordType === "ip";
+          const showLogisticsNotify =
+            !isIp &&
+            view === "active" &&
+            (logisticsButtonOnly ||
+              (panelLogisticsButtonOnly && !isPartLikeItemType(part.itemType)));
+          const workshopEditable = canEditWorkshopNote(
+            viewerEmail,
+            part.reviewGroup,
+            part.itemType,
+          );
+          return (
           <Card key={part.id}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
                   {part.rpNum}
+                  {isIp ? (
+                    <span className="ml-2 rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-900">
+                      Вътрешна продукция
+                    </span>
+                  ) : null}
                   {part.urgency === "urgent" ? (
                     <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
                       Спешно
@@ -159,11 +232,13 @@ export function PartsDashboard({
                   ) : null}
                 </h2>
                 <p className="text-sm text-slate-600">
-                  {part.itemType} · {part.market} · {part.status || "Active"}
+                  {isIp
+                    ? `${part.itemType ?? "—"} · ${part.reviewGroup ?? "—"} · ${part.status || "Active"}`
+                    : `${part.itemType} · ${part.market} · ${part.status || "Active"}`}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {part.canEditRp ? (
+                {!isIp && part.canEditRp ? (
                   <Link
                     href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
                     className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
@@ -171,13 +246,16 @@ export function PartsDashboard({
                     Редакция
                   </Link>
                 ) : null}
-                <Link
-                  href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
-                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
-                >
-                  Подобен RP
-                </Link>
-                {view === "active" &&
+                {!isIp ? (
+                  <Link
+                    href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
+                    className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
+                  >
+                    Подобен RP
+                  </Link>
+                ) : null}
+                {!isIp &&
+                view === "active" &&
                 part.userId === viewer.effectiveEmail ? (
                   <Button
                     variant="danger"
@@ -189,7 +267,23 @@ export function PartsDashboard({
                     Отказ
                   </Button>
                 ) : null}
-                {isAnna && view === "active" ? (
+                {showLogisticsNotify ? (
+                  <Button
+                    className="px-3 py-1"
+                    onClick={() => void run(() => annaReadyAction(part.rpNum))}
+                  >
+                    Информирай логистика
+                  </Button>
+                ) : null}
+                {isIp && view === "active" && ipReadyAction ? (
+                  <Button
+                    className="px-3 py-1"
+                    onClick={() => void run(() => ipReadyAction(part.rpNum))}
+                  >
+                    Готово за склад
+                  </Button>
+                ) : null}
+                {!isIp && isAnna && view === "active" ? (
                   <Button
                     className="px-3 py-1"
                     onClick={() => void run(() => annaReadyAction(part.rpNum))}
@@ -197,7 +291,7 @@ export function PartsDashboard({
                     Готов за логистика
                   </Button>
                 ) : null}
-                {isAnna && view === "ready" ? (
+                {!isIp && isAnna && view === "ready" ? (
                   <Button
                     variant="secondary"
                     className="px-3 py-1"
@@ -208,7 +302,9 @@ export function PartsDashboard({
                     Върни в активни
                   </Button>
                 ) : null}
-                {part.userId === viewer.effectiveEmail && view === "archive" ? (
+                {!isIp &&
+                part.userId === viewer.effectiveEmail &&
+                view === "archive" ? (
                   <Button
                     variant="secondary"
                     className="px-3 py-1"
@@ -246,43 +342,60 @@ export function PartsDashboard({
                   </dd>
                 </div>
               ) : null}
-              {canEditWorkshop ? (
+              {workshopEditable || canEditDueDate ? (
                 <div className="sm:col-span-2">
-                  <dt className="text-slate-500">Бележка цех</dt>
+                  <dt className="text-slate-500">
+                    {workshopEditable ? "Бележка цех" : "Срок"}
+                  </dt>
                   <dd className="mt-1 flex flex-wrap gap-2">
-                    <span>{part.workshopNote || "—"}</span>
-                    <Button
-                      variant="secondary"
-                      className="px-2 py-0.5 text-xs"
-                      onClick={() => {
-                        const note = prompt("Бележка цех", part.workshopNote ?? "");
-                        if (note === null) return;
-                        void run(() =>
-                          updateWorkshopNoteAction("rp", part.rpNum, note),
-                        );
-                      }}
-                    >
-                      Редакция
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="px-2 py-0.5 text-xs"
-                      onClick={() => {
-                        const newDate = prompt("Нов срок (YYYY-MM-DD)", part.dueDate ?? "");
-                        if (!newDate) return;
-                        const reason = prompt("Причина за промяна") ?? "";
-                        void run(() =>
-                          updateDueDateAction("rp", part.rpNum, newDate, reason),
-                        );
-                      }}
-                    >
-                      Срок
-                    </Button>
+                    {workshopEditable ? (
+                      <>
+                        <span>{part.workshopNote || "—"}</span>
+                        <Button
+                          variant="secondary"
+                          className="px-2 py-0.5 text-xs"
+                          onClick={() => {
+                            const note = prompt("Бележка цех", part.workshopNote ?? "");
+                            if (note === null) return;
+                            void run(() =>
+                              updateWorkshopNoteAction(
+                                part.recordType,
+                                part.rpNum,
+                                note,
+                              ),
+                            );
+                          }}
+                        >
+                          Редакция
+                        </Button>
+                      </>
+                    ) : null}
+                    {canEditDueDate ? (
+                      <Button
+                        variant="secondary"
+                        className="px-2 py-0.5 text-xs"
+                        onClick={() => {
+                          const newDate = prompt("Нов срок (YYYY-MM-DD)", part.dueDate ?? "");
+                          if (!newDate) return;
+                          const reason = prompt("Причина за промяна") ?? "";
+                          void run(() =>
+                            updateDueDateAction(
+                              part.recordType,
+                              part.rpNum,
+                              newDate,
+                              reason,
+                            ),
+                          );
+                        }}
+                      >
+                        Срок
+                      </Button>
+                    ) : null}
                   </dd>
                 </div>
               ) : null}
             </dl>
-            {view === "ready" && isAnna ? (
+            {!isIp && view === "ready" && isAnna ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   className="px-3 py-1 text-xs"
@@ -311,7 +424,8 @@ export function PartsDashboard({
               </div>
             ) : null}
           </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

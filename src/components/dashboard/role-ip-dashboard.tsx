@@ -3,13 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-import {
-  nikolayIpReadyAction,
-  stefanIpReadyAction,
-  todorIpDeliveredAction,
-  updateWorkshopNoteAction,
-} from "@/app/actions/rp-mutations";
-import { Button, Card, Textarea } from "@/components/ui";
+import { todorIpDeliveredAction } from "@/app/actions/rp-mutations";
+import { Button, Card } from "@/components/ui";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import type { IpDashboardCard } from "@/lib/domain/dashboard-ip";
 
@@ -20,7 +15,7 @@ export function RoleIpDashboard({
 }: {
   title: string;
   cards: IpDashboardCard[];
-  role: "nikolay" | "stefan" | "todor";
+  role: "todor";
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -51,28 +46,13 @@ export function RoleIpDashboard({
                   {card.sourceRp ? (
                     <p className="text-xs text-slate-500">RP: {card.sourceRp}</p>
                   ) : null}
+                  {card.workshopNote ? (
+                    <p className="text-xs text-slate-500">
+                      Бележка цех: {card.workshopNote}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {role === "nikolay" ? (
-                    <Button
-                      className="px-3 py-1 text-xs"
-                      onClick={() =>
-                        void run(() => nikolayIpReadyAction(card.ipNum))
-                      }
-                    >
-                      Готово за склад
-                    </Button>
-                  ) : null}
-                  {role === "stefan" ? (
-                    <Button
-                      className="px-3 py-1 text-xs"
-                      onClick={() =>
-                        void run(() => stefanIpReadyAction(card.ipNum))
-                      }
-                    >
-                      Готово за склад
-                    </Button>
-                  ) : null}
                   {role === "todor" ? (
                     <Button
                       className="px-3 py-1 text-xs"
@@ -84,20 +64,6 @@ export function RoleIpDashboard({
                     </Button>
                   ) : null}
                 </div>
-              </div>
-              <div className="mt-2">
-                <Textarea
-                  label="Бележка цех"
-                  defaultValue={card.workshopNote ?? ""}
-                  rows={2}
-                  onBlur={(e) => {
-                    const note = e.target.value;
-                    if (note === (card.workshopNote ?? "")) return;
-                    void run(() =>
-                      updateWorkshopNoteAction("ip", card.ipNum, note),
-                    );
-                  }}
-                />
               </div>
             </Card>
           ))}

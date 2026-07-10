@@ -6,6 +6,11 @@ import { Button } from "@/components/ui";
 import type { CatalogueCategory } from "@/lib/reference-data/catalogue";
 import { getCatalogueDriveThumbnailUrl } from "@/lib/reference-data/catalogue-images";
 
+function isStandardPartnerYes(value: string | undefined): boolean {
+  const sp = (value ?? "").trim().toLowerCase();
+  return sp === "yes" || sp === "y" || sp === "true" || sp === "1";
+}
+
 export function CatalogueModal({
   categories,
   open,
@@ -15,7 +20,7 @@ export function CatalogueModal({
   categories: CatalogueCategory[];
   open: boolean;
   onClose: () => void;
-  onSelect: (code: string, description: string) => void;
+  onSelect: (code: string, description: string, standardPartner: boolean) => void;
 }) {
   const [activeCategory, setActiveCategory] = useState(
     categories[0]?.category ?? "",
@@ -88,14 +93,22 @@ export function CatalogueModal({
                   key={`${row.code}-${i}`}
                   type="button"
                   onClick={() => {
-                    onSelect(row.code ?? "", row.description ?? "");
+                    onSelect(
+                      row.code ?? "",
+                      row.description ?? "",
+                      isStandardPartnerYes(row.standardPartner),
+                    );
                     onClose();
                   }}
                   className="flex gap-3 rounded-lg border border-slate-200 p-3 text-left hover:border-brand-500"
                 >
-                  {row.imageFileId ? (
+                  {row.photoUrl || row.imageFileId ? (
                     <img
-                      src={getCatalogueDriveThumbnailUrl(row.imageFileId) ?? ""}
+                      src={
+                        row.photoUrl ??
+                        getCatalogueDriveThumbnailUrl(row.imageFileId ?? "") ??
+                        ""
+                      }
                       alt=""
                       className="h-12 w-12 shrink-0 rounded object-cover bg-slate-100"
                     />
@@ -103,7 +116,15 @@ export function CatalogueModal({
                   <div>
                   <div className="text-sm font-medium">{row.description}</div>
                   {row.code ? (
-                    <div className="text-xs text-slate-500">RP {row.code}</div>
+                    <div className="text-xs text-slate-500">
+                      RP {row.code}
+                      {row.booth ? ` · ${row.booth}` : ""}
+                    </div>
+                  ) : null}
+                  {isStandardPartnerYes(row.standardPartner) ? (
+                    <div className="text-xs font-medium text-amber-700">
+                      Standard partner item
+                    </div>
                   ) : null}
                   </div>
                 </button>

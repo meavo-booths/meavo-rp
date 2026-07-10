@@ -3,6 +3,7 @@ import {
   getDashboardParts,
   getDashboardPartsAllOwners,
 } from "@/lib/domain/dashboard-parts";
+import { getIpDashboardCards, mergeRpAndIpCards } from "@/lib/domain/dashboard-ip";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 export type UrgentPanelView =
@@ -55,9 +56,14 @@ export async function getKalinAllRpsCards(
   viewType: "active" | "archive" | "cancelled" = "active",
   factoryFilter?: string,
 ): Promise<DashboardPartCard[]> {
-  return getDashboardPartsAllOwners({
-    viewer,
-    viewType,
-    factoryFilter,
-  });
+  // GAS getKalinAllRpsDashboardData: RP rows from all owners merged with IP
+  // rows from all three factories in one sorted feed.
+  const [rpCards, ipCards] = await Promise.all([
+    getDashboardPartsAllOwners({ viewer, viewType, factoryFilter }),
+    getIpDashboardCards({
+      factoryTokens: factoryFilter ? [factoryFilter] : ["AKS", "VAR", "KAZ"],
+      viewType,
+    }),
+  ]);
+  return mergeRpAndIpCards(rpCards, ipCards);
 }

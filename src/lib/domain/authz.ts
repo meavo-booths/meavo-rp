@@ -9,6 +9,10 @@ export type ReviewerDashboardConfig = {
   excludedItemTypes?: string[];
   showSourceFilter?: boolean;
   mergeInternalProduction?: boolean;
+  /** All active RP rows get a single "Информирай логистика" button (Nikolay). */
+  logisticsButtonOnly?: boolean;
+  /** Panel RP rows get the logistics-notify button; parts keep ship controls (Stefan). */
+  panelLogisticsButtonOnly?: boolean;
 };
 
 const ADMIN_EMAILS = new Set(["boyan@meavo.com", "todor@meavo.com"]);
@@ -34,11 +38,13 @@ const REVIEWER_DASHBOARD_CONFIGS: Record<string, ReviewerDashboardConfig> = {
     excludedItemTypes: ["PART", "PARTS", "STOCK", "SPARE"],
     showSourceFilter: true,
     mergeInternalProduction: true,
+    logisticsButtonOnly: true,
   },
   "stefan@meavo.com": {
     allowedReviewGroups: ["KAZ"],
     allowAllItemTypes: true,
     mergeInternalProduction: true,
+    panelLogisticsButtonOnly: true,
   },
 };
 
@@ -106,4 +112,53 @@ export function assertAdmin(email: string | null | undefined): void {
   if (!isAdminUser(email)) {
     throw new Error("Admin access required");
   }
+}
+
+/** Port of GAS normalizeFactoryGroup_ — only KAZ/VAR carry workshop notes. */
+export function normalizeWorkshopFactoryGroup(
+  value: string | null | undefined,
+): "KAZ" | "VAR" | "" {
+  const upper = (value ?? "").trim().toUpperCase();
+  if (upper === "KAZ" || upper === "VAR") return upper;
+  return "";
+}
+
+/** Port of GAS isPanelLikeItemTypeForWorkshopNote_. */
+export function isPanelLikeItemTypeForWorkshopNote(
+  itemType: string | null | undefined,
+): boolean {
+  const upper = (itemType ?? "").trim().toUpperCase();
+  return !["PART", "PARTS", "STOCK", "SPARE"].some((t) => upper.includes(t));
+}
+
+/** Port of GAS isWorkshopNoteViewerForFactory_ — KAZ: Stefan/Kalin; VAR: Boyan/Yavor/Ivan/Kalin. */
+export function isWorkshopNoteViewerForFactory(
+  viewerEmail: string | null | undefined,
+  factoryGroup: string,
+): boolean {
+  const ev = normalizeEmail(viewerEmail);
+  if (factoryGroup === "KAZ") {
+    return ev === "stefan@meavo.com" || ev === "kalin@meavo.com";
+  }
+  if (factoryGroup === "VAR") {
+    return (
+      ev === "boyan@meavo.com" ||
+      ev === "yavor@meavo.com" ||
+      ev === "ivan@meavo.com" ||
+      ev === "kalin@meavo.com"
+    );
+  }
+  return false;
+}
+
+/** Combined check: factory group present + panel-like item + allowed viewer. */
+export function canEditWorkshopNote(
+  viewerEmail: string | null | undefined,
+  factoryValue: string | null | undefined,
+  itemType: string | null | undefined,
+): boolean {
+  const group = normalizeWorkshopFactoryGroup(factoryValue);
+  if (!group) return false;
+  if (!isPanelLikeItemTypeForWorkshopNote(itemType)) return false;
+  return isWorkshopNoteViewerForFactory(viewerEmail, group);
 }

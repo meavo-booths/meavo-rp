@@ -92,6 +92,9 @@ export function LoggerWizard({
   const [photoWarnings, setPhotoWarnings] = useState<string[]>([]);
   const [catalogueOpen, setCatalogueOpen] = useState(false);
   const [catalogueRow, setCatalogueRow] = useState<number | null>(null);
+  const [standardPartnerFlags, setStandardPartnerFlags] = useState<
+    Record<number, boolean>
+  >({});
   const [itemPhotos, setItemPhotos] = useState<Record<number, RpPhotoUploadInput>>({});
 
   const panelList = getPanelsForModel(form.model, panelOptions);
@@ -143,6 +146,10 @@ export function LoggerWizard({
     if (!/^\d{4}$/.test(code)) return;
     const res = await fetch(`/api/spare-parts/${code}`);
     const data = await res.json();
+    setStandardPartnerFlags((prev) => ({
+      ...prev,
+      [index]: Boolean(data.standardPartnerYes),
+    }));
     if (data.found) {
       updateItem(index, { description: data.description, rpCode: data.code });
     }
@@ -319,13 +326,26 @@ export function LoggerWizard({
                 ) : null}
               </div>
               {item.itemType === "Part" ? (
-                <input
-                  value={item.rpCode ?? ""}
-                  onChange={(e) => updateItem(index, { rpCode: e.target.value })}
-                  onBlur={(e) => void lookupCode(index, e.target.value)}
-                  placeholder="RP code (4 digits)"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                />
+                <>
+                  {standardPartnerFlags[index] ? (
+                    <p className="text-xs font-medium text-amber-700">
+                      Standard partner item, please check partner stock first.
+                    </p>
+                  ) : null}
+                  <input
+                    value={item.rpCode ?? ""}
+                    onChange={(e) => {
+                      updateItem(index, { rpCode: e.target.value });
+                      setStandardPartnerFlags((prev) => ({
+                        ...prev,
+                        [index]: false,
+                      }));
+                    }}
+                    onBlur={(e) => void lookupCode(index, e.target.value)}
+                    placeholder="RP code (4 digits)"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  />
+                </>
               ) : (
                 <select
                   value={item.description}
@@ -504,9 +524,13 @@ export function LoggerWizard({
         categories={catalogueCategories}
         open={catalogueOpen}
         onClose={() => setCatalogueOpen(false)}
-        onSelect={(code, description) => {
+        onSelect={(code, description, standardPartner) => {
           if (catalogueRow === null) return;
           updateItem(catalogueRow, { rpCode: code, description });
+          setStandardPartnerFlags((prev) => ({
+            ...prev,
+            [catalogueRow]: standardPartner,
+          }));
         }}
       />
     </div>
