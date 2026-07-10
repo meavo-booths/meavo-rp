@@ -2,6 +2,7 @@ import type { Prisma, RpUrgency } from "@prisma/client";
 
 import { mintNextIpNum } from "@/lib/domain/ip-numbers";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { maybeNotifyNikolayAksIp } from "@/lib/integrations/slack/rp-slack-bot";
 import { mapBoothModelToAbbreviation } from "@/lib/domain/rp-form-mapper";
 import { computeShippingDeadlineFromUrgency } from "@/lib/domain/working-days";
 import { prisma } from "@/lib/prisma";
@@ -86,6 +87,7 @@ export async function processNewIpEntry(
       const created = await tx.rpInternalProductionRow.create({ data });
       createdIpNums.push(ipNum);
       await enqueueSheetSync("ip", created.id, "upsert", tx);
+      void maybeNotifyNikolayAksIp(created);
     }
   });
 

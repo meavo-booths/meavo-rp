@@ -36,7 +36,10 @@ function formatOrderSent(value: Date | null | undefined): string {
 }
 
 /** Build a full Rep.Parts26 row from a Neon rp_requests record. */
-export function rpRequestToSheetRow(row: RpRow): string[] {
+export function rpRequestToSheetRow(
+  row: RpRow,
+  photoUrl?: string | null,
+): string[] {
   const values: string[] = [];
   values[RP_COLUMN.RP_NUM] = row.rpNum ?? "";
   values[RP_COLUMN.ENTRY_DATE] = formatDate(row.entryDate);
@@ -68,6 +71,7 @@ export function rpRequestToSheetRow(row: RpRow): string[] {
   values[RP_COLUMN.CURRENT_LOCATION] = row.currentLocation ?? "";
   values[RP_COLUMN.WORKSHOP_NOTE] = resolveWorkshopNoteForSheetSync(row);
   values[RP_COLUMN.ORDER_SENT] = formatOrderSent(row.orderSentAt);
+  values[RP_COLUMN.RP_PHOTO] = photoUrl ?? "";
   return padRow(values, RP_LAST_COLUMN);
 }
 

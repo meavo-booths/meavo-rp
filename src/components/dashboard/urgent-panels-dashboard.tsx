@@ -8,6 +8,7 @@ import {
   briefUrgentPanelAction,
   markUrgentReadyAction,
   updateUrgentEtaAction,
+  useExistingPanelForRpAction,
 } from "@/app/actions/rp-mutations";
 import { Button, Card } from "@/components/ui";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
@@ -86,6 +87,7 @@ export function UrgentPanelsDashboard({
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {view === "unbriefed" ? (
+                <>
                 <Button
                   className="px-3 py-1 text-xs"
                   onClick={() => {
@@ -96,6 +98,26 @@ export function UrgentPanelsDashboard({
                 >
                   Brief
                 </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs"
+                  onClick={() => {
+                    const warehouse = prompt("Warehouse (Topoli / Alliance / NY Warehouse / SF Warehouse)", "Topoli");
+                    if (!warehouse) return;
+                    const batch = prompt("Batch", part.boothId ?? "") ?? "";
+                    const color = prompt("Colour", part.color ?? "") ?? "";
+                    void run(() =>
+                      useExistingPanelForRpAction(part.rpNum, {
+                        batch,
+                        color,
+                        warehouse,
+                      }),
+                    );
+                  }}
+                >
+                  Use existing panel
+                </Button>
+                </>
               ) : null}
               {view === "in_production" ? (
                 <Button

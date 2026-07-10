@@ -4,14 +4,14 @@ import Link from "next/link";
 
 import { Card } from "@/components/ui";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
-import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
-import type { LogisticsView } from "@/lib/domain/dashboard-logistics";
+import type { LogisticsPartCard, LogisticsView } from "@/lib/domain/dashboard-logistics";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 const TABS: { id: LogisticsView; label: string }[] = [
   { id: "processing", label: "В обработка" },
   { id: "ready", label: "Готови за изпращане" },
   { id: "shipped", label: "Изпратени" },
+  { id: "all", label: "Всички" },
 ];
 
 export function LogisticsDashboard({
@@ -20,7 +20,7 @@ export function LogisticsDashboard({
   view,
 }: {
   viewer: ViewerContext;
-  parts: DashboardPartCard[];
+  parts: LogisticsPartCard[];
   view: LogisticsView;
 }) {
   useDashboardRefresh();
@@ -49,10 +49,17 @@ export function LogisticsDashboard({
             <h2 className="font-semibold">{part.rpNum}</h2>
             <p className="text-sm text-slate-600">
               {part.itemType} · {part.market} · {part.status}
+              {part.factoryDisplay ? ` · ${part.factoryDisplay}` : ""}
             </p>
             <p className="mt-1 text-sm">
               {part.shipMethod || "—"} {part.tracking ? `· ${part.tracking}` : ""}
             </p>
+            {part.daysSinceReady != null ? (
+              <p className="text-xs text-slate-500">
+                Ready {part.daysSinceReady} day(s) ago
+                {part.pallet ? ` · Pallet ${part.pallet}` : ""}
+              </p>
+            ) : null}
           </Card>
         ))}
       </div>

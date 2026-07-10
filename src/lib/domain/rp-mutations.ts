@@ -1,5 +1,6 @@
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
+import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { prisma } from "@/lib/prisma";
 
 function isPalletOrContainer(method: string | null | undefined): boolean {
@@ -35,6 +36,7 @@ export async function updatePartToShipped(
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "status_changed");
 }
 
 export async function revertToActive(rpNum: string, actorEmail: string): Promise<void> {
@@ -80,6 +82,7 @@ export async function annaMarkReadyForLogistics(rpNum: string): Promise<void> {
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "ready_marked");
 }
 
 export async function annaRevertReadyToActive(rpNum: string): Promise<void> {
@@ -96,6 +99,7 @@ export async function annaRevertReadyToActive(rpNum: string): Promise<void> {
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "ready_reverted");
 }
 
 export async function briefActiveUrgentPanel(
@@ -112,6 +116,7 @@ export async function briefActiveUrgentPanel(
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "status_changed");
 }
 
 export async function updateActiveUrgentPanelsEta(
@@ -127,6 +132,7 @@ export async function updateActiveUrgentPanelsEta(
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "status_changed");
 }
 
 export async function markActiveUrgentPanelReady(rpNum: string): Promise<void> {
@@ -142,6 +148,7 @@ export async function markActiveUrgentPanelReady(rpNum: string): Promise<void> {
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "ready_marked");
 }
 
 export async function updateWorkshopNote(

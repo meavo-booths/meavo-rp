@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { PartsDashboard } from "@/components/dashboard/parts-dashboard";
-import { getDashboardParts } from "@/lib/domain/dashboard-parts";
+import { getIvanDashboardParts } from "@/lib/domain/dashboard-parts";
 import { auth } from "@/lib/auth";
 import { resolveViewerContext } from "@/lib/viewer-context";
 
@@ -25,7 +25,7 @@ export default async function IvanDashboardPage({
         ? "archive"
         : "active";
 
-  const parts = await getDashboardParts({ viewer, viewType });
+  const parts = await getIvanDashboardParts(viewer, viewType);
 
   return (
     <PartsDashboard

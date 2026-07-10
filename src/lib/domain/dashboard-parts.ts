@@ -256,3 +256,59 @@ export function isAdminOwnPartsMode(
 ): boolean {
   return adminOwnLoggedParts && isAdminUser(viewer.sessionEmail);
 }
+
+const ALL_OWNER_FACTORIES = ["AKS", "VAR", "KAZ"];
+
+function matchesAllOwnersFactory(reviewGroup: string | null): boolean {
+  const g = (reviewGroup ?? "").trim().toUpperCase();
+  return ALL_OWNER_FACTORIES.some((f) => g.includes(f));
+}
+
+/** Port of getPartsDataAllOwners_ — AKS/VAR/KAZ, no owner filter. */
+export async function getDashboardPartsAllOwners(options: {
+  viewer: ViewerContext;
+  viewType?: PartsViewType;
+  factoryFilter?: string;
+  search?: string;
+}): Promise<DashboardPartCard[]> {
+  const viewType = options.viewType ?? "active";
+  const rows = await prisma.rpRequest.findMany({ orderBy: { rpNum: "desc" } });
+  const search = (options.search ?? "").trim().toLowerCase();
+  const factoryFilter = options.factoryFilter?.toUpperCase();
+
+  const filtered = rows.filter((row) => {
+    if (!matchesAllOwnersFactory(row.reviewGroup)) return false;
+    if (factoryFilter && !(row.reviewGroup ?? "").toUpperCase().includes(factoryFilter)) {
+      return false;
+    }
+    const status = (row.status ?? "").trim();
+    if (!matchesViewType(viewType, status, false)) return false;
+    if (search) {
+      const haystack = [row.rpNum, row.client, row.market, row.itemType, row.userId]
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const viewerForEdit = getEffectiveUserEmail(
+    options.viewer.sessionEmail,
+    options.viewer.isSimulating ? options.viewer.effectiveEmail : null,
+    options.viewer.isAdmin,
+  );
+
+  return sortCards(
+    filtered.map((row) => toCard(row, viewerForEdit)),
+    viewType,
+    false,
+  );
+}
+
+/** Ivan dashboard — all factories, read-only all-owners loader. */
+export async function getIvanDashboardParts(
+  viewer: ViewerContext,
+  viewType: PartsViewType = "active",
+): Promise<DashboardPartCard[]> {
+  return getDashboardPartsAllOwners({ viewer, viewType });
+}

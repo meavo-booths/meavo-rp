@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
 import type { CatalogueCategory } from "@/lib/reference-data/catalogue";
+import { getCatalogueDriveThumbnailUrl } from "@/lib/reference-data/catalogue-images";
 
 export function CatalogueModal({
   categories,
@@ -90,12 +91,21 @@ export function CatalogueModal({
                     onSelect(row.code ?? "", row.description ?? "");
                     onClose();
                   }}
-                  className="rounded-lg border border-slate-200 p-3 text-left hover:border-brand-500"
+                  className="flex gap-3 rounded-lg border border-slate-200 p-3 text-left hover:border-brand-500"
                 >
+                  {row.imageFileId ? (
+                    <img
+                      src={getCatalogueDriveThumbnailUrl(row.imageFileId) ?? ""}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded object-cover bg-slate-100"
+                    />
+                  ) : null}
+                  <div>
                   <div className="text-sm font-medium">{row.description}</div>
                   {row.code ? (
                     <div className="text-xs text-slate-500">RP {row.code}</div>
                   ) : null}
+                  </div>
                 </button>
               ))}
             </div>

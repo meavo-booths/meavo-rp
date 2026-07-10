@@ -1,5 +1,8 @@
 import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
-import { getDashboardParts } from "@/lib/domain/dashboard-parts";
+import {
+  getDashboardParts,
+  getDashboardPartsAllOwners,
+} from "@/lib/domain/dashboard-parts";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 export type UrgentPanelView =
@@ -47,9 +50,9 @@ export async function getKalinAllRpsCards(
   viewType: "active" | "archive" | "cancelled" = "active",
   factoryFilter?: string,
 ): Promise<DashboardPartCard[]> {
-  const all = await getDashboardParts({ viewer, viewType });
-  if (!factoryFilter) return all;
-  return all.filter((p) =>
-    (p.reviewGroup ?? "").toUpperCase().includes(factoryFilter.toUpperCase()),
-  );
+  return getDashboardPartsAllOwners({
+    viewer,
+    viewType,
+    factoryFilter,
+  });
 }

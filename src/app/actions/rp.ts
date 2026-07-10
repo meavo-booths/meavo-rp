@@ -8,6 +8,10 @@ import { assertAdmin } from "@/lib/domain/authz";
 import type { LoggerFormInput } from "@/lib/domain/rp-form-mapper";
 import { normalizeLoggerItems, shouldSplitItemsIntoSeparateRps } from "@/lib/domain/rp-form-mapper";
 import { processNewRpEntry, cancelRpRequest } from "@/lib/domain/rp-create";
+import {
+  cacheLoggerSubmitResult,
+  getCachedLoggerSubmitResult,
+} from "@/lib/domain/logger-submit-idempotency";
 import type { RpPhotoUploadInput } from "@/lib/domain/rp-photos";
 import {
   uploadRpPhotosForRequest,
@@ -58,10 +62,21 @@ async function attachPhotos(
 export async function createRpAction(
   form: LoggerFormInput,
   photos?: RpPhotoUploadInput[],
+  submitKey?: string,
 ): Promise<ActionResult> {
   const { viewer } = await requireActionSession();
   try {
+    if (submitKey) {
+      const cached = await getCachedLoggerSubmitResult(submitKey);
+      if (cached) {
+        const rpNums = cached.split(",");
+        return { rpNum: rpNums[0], rpNums };
+      }
+    }
     const result = await processNewRpEntry(form, viewer.effectiveEmail);
+    if (submitKey) {
+      await cacheLoggerSubmitResult(submitKey, result.rpNums);
+    }
     const photoWarnings = await attachPhotos(result.rpNums, form, photos);
     revalidatePath("/dashboard");
     return {

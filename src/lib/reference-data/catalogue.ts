@@ -38,6 +38,12 @@ async function getSheets() {
   return google.sheets({ version: "v4", auth });
 }
 
+export function lookupStandardPartnerYes(code: string): boolean {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return false;
+  return normalized.startsWith("SP-") || normalized.startsWith("RP-");
+}
+
 export async function getCatalogueData(): Promise<CatalogueCategory[]> {
   const sheets = await getSheets();
   const categories: CatalogueCategory[] = [];

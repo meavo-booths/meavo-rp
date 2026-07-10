@@ -101,7 +101,13 @@ export async function processSheetSyncOutbox(): Promise<SheetSyncResult> {
         });
         if (!row) throw new Error(`RP ${item.entityId} not found`);
 
-        const values = [rpRequestToSheetRow(row)];
+        const photos = await prisma.rpPhoto.findMany({
+          where: { rpRequestId: item.entityId },
+          orderBy: { createdAt: "asc" },
+          take: 1,
+        });
+        const photoUrl = photos[0]?.url ?? "";
+        const values = [rpRequestToSheetRow(row, photoUrl)];
         let rowNumber = await findSheetRow("rp", item.entityId, rpSheetName);
 
         if (rowNumber) {

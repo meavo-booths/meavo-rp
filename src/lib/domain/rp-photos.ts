@@ -3,6 +3,7 @@ import { put } from "@vercel/blob";
 import type { LoggerItemInput } from "@/lib/domain/rp-form-mapper";
 import { loadServerEnv } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 
 const ISSUE_TYPES_REQUIRING_PHOTO = new Set(["Factory Mistake", "Faulty Unit"]);
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -93,6 +94,7 @@ export async function uploadRpPhotosForRequest(
           byteSize: buffer.byteLength,
         },
       });
+      await enqueueSheetSync("rp", rpRequestId);
     } catch (error) {
       warnings.push(
         error instanceof Error

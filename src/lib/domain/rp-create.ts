@@ -2,6 +2,8 @@ import type { Prisma, RpRequest, RpUrgency } from "@prisma/client";
 
 import type { DbExecutor } from "@/lib/db/executor";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { recalculateFactoryFillForRpId } from "@/lib/domain/factory-fill";
+import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { mintNextRpNum } from "@/lib/domain/rp-numbers";
 import {
   assertRpReasonWhenRequired,
@@ -75,6 +77,8 @@ async function createSingleRp(
   const created = await executor.rpRequest.create({ data });
   await upsertRpLineItemsFromRow(created.id, created as RpRequest, executor);
   await enqueueSheetSync("rp", created.id, "upsert", executor);
+  await recalculateFactoryFillForRpId(created.id);
+  void notifyAfterRpMutation(rpNum, "created");
   return rpNum;
 }
 

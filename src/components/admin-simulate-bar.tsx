@@ -53,6 +53,12 @@ export function AdminSimulateBar({
         >
           Clear
         </Button>
+        <a
+          href="/admin/automations"
+          className="rounded-lg border border-violet-300 bg-white px-3 py-1.5 text-sm text-violet-900 hover:bg-violet-100"
+        >
+          Automations
+        </a>
       </div>
       {status ? <p className="mt-2 text-violet-800">{status}</p> : null}
     </div>

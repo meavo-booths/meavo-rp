@@ -9,6 +9,7 @@
     { "path": "/api/cron/rp-slack", "schedule": "*/10 * * * *" },
     { "path": "/api/cron/factory-fill", "schedule": "0 6 * * *" },
     { "path": "/api/cron/export-sync", "schedule": "0 7 * * *" },
-    { "path": "/api/cron/var-panel-slack", "schedule": "0 9 * * 1" }
+    { "path": "/api/cron/var-panel-slack", "schedule": "0 9 * * 1" },
+    { "path": "/api/cron/factory-deadline-slack", "schedule": "30 10 * * 1-5" }
   ]
 }

@@ -1,0 +1,6 @@
+# Build artifacts — slow down search/indexing
+.next/
+out/
+.vercel/
+node_modules/
+.prisma-schema/

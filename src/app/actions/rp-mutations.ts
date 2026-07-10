@@ -29,7 +29,12 @@ import {
   updateWorkshopNote,
 } from "@/lib/domain/rp-mutations";
 import { markPanelsFromStock } from "@/lib/domain/stock-replacement";
-import type { MarkPanelsFromStockInput } from "@/lib/domain/stock-replacement";
+import type {
+  MarkPanelsFromStockInput,
+  StockPanelDetails,
+} from "@/lib/domain/stock-replacement";
+import { isPanelLineItem } from "@/lib/domain/rp-line-items";
+import { prisma } from "@/lib/prisma";
 
 export type ActionResult = { error?: string };
 
@@ -169,6 +174,37 @@ export async function useExistingPanelAction(
   }
   try {
     await markPanelsFromStock({ ...input, actorEmail: viewer.effectiveEmail });
+    revalidateDashboards();
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed" };
+  }
+}
+
+export async function useExistingPanelForRpAction(
+  rpNum: string,
+  stockDetails: StockPanelDetails,
+): Promise<ActionResult> {
+  const { viewer } = await requireActionSession();
+  if (!isActiveUrgentPanelsUser(viewer.effectiveEmail)) {
+    return { error: "Access denied" };
+  }
+  try {
+    const row = await prisma.rpRequest.findUnique({ where: { rpNum } });
+    if (!row) return { error: "RP not found" };
+    const lineItems = await prisma.rpLineItem.findMany({
+      where: { rpRequestId: row.id, fulfillment: "pending" },
+    });
+    const lineItemIds = lineItems.filter(isPanelLineItem).map((item) => item.id);
+    if (!lineItemIds.length) {
+      return { error: "No pending panel line items on this RP" };
+    }
+    await markPanelsFromStock({
+      rpId: row.id,
+      lineItemIds,
+      stockDetails,
+      actorEmail: viewer.effectiveEmail,
+    });
     revalidateDashboards();
     return {};
   } catch (e) {

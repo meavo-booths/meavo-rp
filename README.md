@@ -13,6 +13,16 @@ Shared Neon Postgres (via `@meavo/db`) is the system of record. The existing **R
 - `pdf-lib` for Stefan panel PDF export
 - `googleapis` for sheet backup
 
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/architecture.md](docs/architecture.md) | Stack, repo layout, data flow, API surface |
+| [docs/domain.md](docs/domain.md) | Personas, glossary, mutations, GAS port index |
+| [docs/data-model.md](docs/data-model.md) | Prisma tables (`RpRequest`, sync outbox, …) |
+| [AGENTS.md](AGENTS.md) | Quick orientation for AI coding agents |
+| `.cursor/rules/meavo-rp.mdc` | Always-on Cursor rule — natural prompts → right files |
+
 See [docs/architecture.md](docs/architecture.md) for sibling-repo audit and composite choices.
 
 ## Setup
@@ -47,8 +57,25 @@ npm run import:sheets
 | `/api/cron/factory-fill` | daily 06:00 UTC |
 | `/api/cron/export-sync` | daily 07:00 UTC |
 | `/api/cron/var-panel-slack` | Mon 09:00 UTC |
+| `/api/cron/factory-deadline-slack` | Mon–Fri 10:30 UTC |
 
 Protect with `Authorization: Bearer $CRON_SECRET`.
+
+**Automation source toggles:** `/admin/automations` (admin only). Each function defaults to **GAS** — Next.js crons and mutation hooks no-op until flipped to **Webapp**. Set `RP_NOTIFICATIONS_FORCE_OFF=true` for emergency kill-switch.
+
+### GAS → Webapp cutover matrix
+
+| Automation key | GAS script | Disable GAS trigger |
+|----------------|------------|---------------------|
+| `unbriefed_slack` | `UnbriefedUrgentPanelSlackBot.js` | Time-driven every 15 min |
+| `kaz_panel_slack` | `KazPanelOrderSlackAutomation.js` | Every 2h + Mon 09:00 + daily 10:00 |
+| `var_panel_slack` | `VarPanelOrderSlackAutomation.js` | Monday 09:00 |
+| `rp_slack` | `RPSlackBot.js` | onEdit + time-driven sweeps |
+| `factory_deadline_slack` | `RPSlackBot.js` (factory deadline) | Daily 10:30 Mon–Fri |
+| `factory_fill` | `FactoryFillAutomation.js` | onEdit + daily 06:00 |
+| `export_sync` | `ExportAutomation.js` | Daily |
+
+**Smoke after each flip:** hit the matching `/api/cron/*` with `CRON_SECRET`, verify Vercel logs show `skipped: false`, confirm no duplicate Slack for 48h, then disable the GAS trigger row above.
 
 ## Migration status
 
@@ -61,7 +88,8 @@ Protect with `Authorization: Bearer $CRON_SECRET`.
 - [x] Phase 3: Regional scopes, Kalin modes, Todor export views, Stefan PDF export
 - [x] Phase 4: RP edit/similar, catalogue modal, Blob photos, factory-fill + export crons
 - [x] Phase 5: Slack cron routes + `vercel.json` schedules
-- [ ] Production cutover (parallel validation, disable GAS web app)
+- [x] Phase 6: Admin automation toggles + full Slack/factory/export ports
+- [ ] Production cutover (flip automations one-by-one, disable GAS triggers)
 
 ## Production cutover checklist
 
@@ -70,8 +98,8 @@ Run **rp.meavo.app** in parallel with GAS until each persona signs off:
 1. **Env on Vercel:** `DATABASE_URL`, `AUTH_*`, `RP_TOOL_CARD_ID`, `GOOGLE_SERVICE_ACCOUNT_JSON` (valid single-line JSON), `REP_PARTS_SPREADSHEET_ID`, `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`, `SLACK_BOT_TOKEN`
 2. **Smoke per persona:** standard logger + dashboard, Anna ready/ship, Nikolay IP, Stefan workshop note + PDF, logistics read-only, Kalin AUP, Todor export/topoli, Ivan read-only
 3. **Sheet sync:** confirm cron writes match Rep.Parts26 columns A–AE; check lag < 10 min
-4. **Slack:** verify unbriefed/KAZ/VAR/RP bots post to correct channels (set `SLACK_*_CHANNEL` env vars as needed)
-5. **Disable GAS:** stop web app deployment; keep sheet as backup; document in ops runbook
+4. **Automations:** open `/admin/automations`; flip one row GAS → Webapp; disable matching GAS trigger; smoke-test cron + Slack for 48h
+5. **Disable GAS:** when all rows = Webapp, stop GAS web app; keep sheet as backup; document in ops runbook
 
 ## GAS reference
 

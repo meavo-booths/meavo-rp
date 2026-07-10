@@ -11,6 +11,8 @@ import {
   revertRpAction,
   saveShipInfoAction,
   shipRpAction,
+  updateDueDateAction,
+  updateWorkshopNoteAction,
 } from "@/app/actions/rp-mutations";
 import { Button, Card, Input } from "@/components/ui";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
@@ -72,6 +74,7 @@ export function PartsDashboard({
   }
 
   const showReadyTab = Boolean(viewer.reviewerConfig);
+  const canEditWorkshop = Boolean(viewer.reviewerConfig);
   const isAnna = viewer.effectiveEmail === "anna@meavo.com";
   const scopes = viewer.regionalScopes;
   const activeScope = regionalScope ?? scopes[0];
@@ -240,6 +243,41 @@ export function PartsDashboard({
                   <dt className="text-slate-500">Доставка</dt>
                   <dd>
                     {part.shipMethod} {part.tracking ? `· ${part.tracking}` : ""}
+                  </dd>
+                </div>
+              ) : null}
+              {canEditWorkshop ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-slate-500">Бележка цех</dt>
+                  <dd className="mt-1 flex flex-wrap gap-2">
+                    <span>{part.workshopNote || "—"}</span>
+                    <Button
+                      variant="secondary"
+                      className="px-2 py-0.5 text-xs"
+                      onClick={() => {
+                        const note = prompt("Бележка цех", part.workshopNote ?? "");
+                        if (note === null) return;
+                        void run(() =>
+                          updateWorkshopNoteAction("rp", part.rpNum, note),
+                        );
+                      }}
+                    >
+                      Редакция
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="px-2 py-0.5 text-xs"
+                      onClick={() => {
+                        const newDate = prompt("Нов срок (YYYY-MM-DD)", part.dueDate ?? "");
+                        if (!newDate) return;
+                        const reason = prompt("Причина за промяна") ?? "";
+                        void run(() =>
+                          updateDueDateAction("rp", part.rpNum, newDate, reason),
+                        );
+                      }}
+                    >
+                      Срок
+                    </Button>
                   </dd>
                 </div>
               ) : null}
