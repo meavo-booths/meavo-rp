@@ -51,6 +51,9 @@ function titleForPath(
   if (pathname.startsWith("/admin/automations")) {
     return "Automations";
   }
+  if (pathname.startsWith("/admin/data")) {
+    return "Neon data";
+  }
 
   // Default /dashboard — own RPs for standard + admin
   if (

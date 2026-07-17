@@ -98,6 +98,7 @@ export function AutomationSettingsForm({
           <tbody>
             {rows.map((row) => {
               const source = settings[row.key];
+              const isGas = source === "gas";
               return (
                 <tr key={row.key} className="border-b border-slate-100 align-top">
                   <td className="py-3 pr-4">
@@ -114,34 +115,57 @@ export function AutomationSettingsForm({
                     <div className="text-slate-400">{row.gasTriggerHint}</div>
                   </td>
                   <td className="py-3 pr-4">
-                    <div className="flex gap-2">
-                      <Button
-                        variant={source === "gas" ? "primary" : "secondary"}
-                        className="px-3 py-1 text-xs"
-                        disabled={pending || forceOff}
-                        onClick={() => void setSource(row.key, "gas")}
+                    <div className="space-y-1.5">
+                      <div
+                        className={`text-xs font-semibold ${
+                          isGas ? "text-emerald-700" : "text-amber-800"
+                        }`}
                       >
-                        GAS
-                      </Button>
-                      <Button
-                        variant={source === "webapp" ? "primary" : "secondary"}
-                        className="px-3 py-1 text-xs"
-                        disabled={pending || forceOff}
-                        onClick={() => void setSource(row.key, "webapp")}
+                        Active: {isGas ? "GAS" : "Webapp"}
+                      </div>
+                      <div
+                        className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5"
+                        role="group"
+                        aria-label={`Source for ${row.label}`}
                       >
-                        Webapp
-                      </Button>
+                        <button
+                          type="button"
+                          disabled={pending || forceOff}
+                          aria-pressed={isGas}
+                          className={`rounded-md px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                            isGas
+                              ? "bg-emerald-600 text-white shadow-sm"
+                              : "text-slate-600 hover:bg-white"
+                          }`}
+                          onClick={() => void setSource(row.key, "gas")}
+                        >
+                          GAS
+                        </button>
+                        <button
+                          type="button"
+                          disabled={pending || forceOff}
+                          aria-pressed={!isGas}
+                          className={`rounded-md px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                            !isGas
+                              ? "bg-amber-600 text-white shadow-sm"
+                              : "text-slate-600 hover:bg-white"
+                          }`}
+                          onClick={() => void setSource(row.key, "webapp")}
+                        >
+                          Webapp
+                        </button>
+                      </div>
                     </div>
                   </td>
                   <td className="py-3 text-xs text-slate-600">
-                    {source === "webapp" ? (
+                    {isGas ? (
+                      <span className="text-slate-500">
+                        Webapp cron/hooks no-op — GAS handles this.
+                      </span>
+                    ) : (
                       <span className="text-amber-800">
                         Disable the GAS trigger for {row.gasScript} before relying
                         on Webapp.
-                      </span>
-                    ) : (
-                      <span className="text-slate-500">
-                        Webapp cron/hooks no-op — GAS handles this.
                       </span>
                     )}
                   </td>

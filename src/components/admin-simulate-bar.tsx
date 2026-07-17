@@ -92,6 +92,9 @@ export function AdminSimulateBar({
         <a href="/admin/automations" className={actionBtnClass}>
           Automations
         </a>
+        <a href="/admin/data" className={actionBtnClass}>
+          Neon data
+        </a>
       </form>
       {error ? (
         <p className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-amber-950">
