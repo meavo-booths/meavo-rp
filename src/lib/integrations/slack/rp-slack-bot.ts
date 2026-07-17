@@ -19,16 +19,21 @@ import {
   PART_ITEM_VALUES,
   RP_SLACK_CONFIG,
 } from "@/lib/integrations/slack/slack-config";
-import { getWorkingHoursBetween } from "@/lib/integrations/slack/slack-working-hours";
+import {
+  getDateKeyInScriptTz,
+  getHourInScriptTz,
+  isWorkingWeekdayInScriptTz,
+} from "@/lib/integrations/slack/script-timezone";
 
 export type RpSlackMutationEvent =
   | "created"
   | "status_changed"
   | "ready_marked"
   | "ready_reverted"
-  /** RP left Ready via cancel — shipping notice only, no urgent-channel resync. */
+  /** RP left Ready via cancel — shipping notice only. */
   | "left_ready"
-  | "factory_assigned";
+  | "factory_assigned"
+  | "ship_info_changed";
 
 function norm(value: string | null | undefined): string {
   return (value ?? "").trim();
@@ -40,6 +45,16 @@ function hashMessage(text: string): string {
 
 function isPartItem(itemType: string | null): boolean {
   return PART_ITEM_VALUES.has(norm(itemType).toUpperCase());
+}
+
+function isPartsOrStockItem(itemType: string | null): boolean {
+  const k = norm(itemType).toUpperCase();
+  return k === "PARTS" || k === "STOCK";
+}
+
+function isPalletOrContainer(method: string | null | undefined): boolean {
+  const m = norm(method).toLowerCase();
+  return m === "pallet" || m === "container";
 }
 
 function normalizeFactory(factory: string | null): string {
@@ -58,6 +73,9 @@ function buildUrgentSlackMessage(row: RpRequest, status: string): string {
     `*Ship method:* ${row.shipMethod ?? ""}`,
   ];
   if (row.tracking) lines.push(`*Tracking:* ${row.tracking}`);
+  if (row.dueDate) {
+    lines.push(`*ETA:* ${row.dueDate.toISOString().slice(0, 10)}`);
+  }
   return lines.join("\n");
 }
 
@@ -67,6 +85,10 @@ function nikolayDmKey(kind: string, num: string): string {
 
 function palletReadyKey(rpNum: string): string {
   return `UPS_PALLET_READY_${norm(rpNum)}`;
+}
+
+function notReadyKey(rpNum: string): string {
+  return `UPS_NOTREADY_${norm(rpNum)}`;
 }
 
 function urgentFactoryInstantKey(rpNum: string): string {
@@ -112,6 +134,7 @@ async function maybeNotifyNikolayAksRp(row: RpRequest): Promise<void> {
 export async function maybeNotifyNikolayAksIp(
   row: RpInternalProductionRow,
 ): Promise<void> {
+  if (!(await shouldRunInWebapp("rp_slack"))) return;
   if (!isNikolayAksPanelIp(row)) return;
   const key = nikolayDmKey("IP", row.ipNum);
   if (await hasSlackAutomationState(key)) return;
@@ -145,23 +168,38 @@ async function maybeNotifyUrgentFactoryInstant(row: RpRequest): Promise<void> {
   await setSlackAutomationState(key, "1");
 }
 
-async function maybeNotifyUrgentChannel(row: RpRequest): Promise<void> {
+async function clearUrgentFactoryDmKeys(rpNum: string): Promise<void> {
+  await prisma.rpAutomationState.deleteMany({
+    where: {
+      key: {
+        in: [
+          urgentFactoryInstantKey(rpNum),
+          urgentFactoryDelayedKey(rpNum),
+        ],
+      },
+    },
+  });
+}
+
+async function maybeNotifyUrgentChannel(
+  row: RpRequest,
+  force = false,
+): Promise<void> {
   if (row.urgency !== "urgent") return;
   const status = norm(row.status);
   const message = buildUrgentSlackMessage(row, status);
   const hashKey = `UPS_HASH_${row.rpNum}`;
   const newHash = hashMessage(message);
   const oldHash = await getSlackAutomationState(hashKey);
-  if (oldHash === newHash) return;
+  if (!force && oldHash === newHash) return;
   await postChannelMessage(RP_SLACK_CONFIG.channelId, message);
   await setSlackAutomationState(hashKey, newHash);
 }
 
 async function maybeNotifyPalletReady(row: RpRequest): Promise<void> {
   const status = norm(row.status).toUpperCase();
-  const method = norm(row.shipMethod).toLowerCase();
   if (status !== "READY") return;
-  if (method !== "pallet" && method !== "container") return;
+  if (!isPalletOrContainer(row.shipMethod)) return;
   const key = palletReadyKey(row.rpNum);
   if (await hasSlackAutomationState(key)) return;
   const text = [
@@ -176,26 +214,25 @@ async function maybeNotifyPalletReady(row: RpRequest): Promise<void> {
   await setSlackAutomationState(key, "1");
 }
 
-/**
- * RP left Ready (not shipped) — logistics must not ship or assign pallet.
- * Mirrors GAS notifyShippingSlackNoLongerReady_: pallet/container rows only,
- * posts to the logistics channel (never the urgent thread channel).
- */
 export async function notifyShippingNoLongerReady(
   row: RpRequest,
   newStatus: string,
 ): Promise<void> {
-  const method = norm(row.shipMethod).toLowerCase();
-  if (method !== "pallet" && method !== "container") return;
+  if (!isPalletOrContainer(row.shipMethod)) return;
 
   await prisma.rpAutomationState.deleteMany({
     where: { key: palletReadyKey(row.rpNum) },
   });
+
+  const dedupeKey = notReadyKey(row.rpNum);
+  if (await hasSlackAutomationState(dedupeKey)) return;
+
   const text = [
-    `:warning: *${row.rpNum}* was *Ready*, now *${norm(newStatus) || "—"}*.`,
+    `:warning: *${row.rpNum}* was *Ready*, now *${newStatus || "—"}*.`,
     "Do not ship or assign pallet/container for this RP until logistics is informed again.",
   ].join("\n");
   await postChannelMessage(RP_SLACK_CONFIG.logisticsChannelId, text);
+  await setSlackAutomationState(dedupeKey, String(Date.now()));
 }
 
 export async function notifyAfterRpMutation(
@@ -213,26 +250,50 @@ export async function notifyAfterRpMutation(
       await maybeNotifyNikolayAksRp(row);
       await maybeNotifyUrgentFactoryInstant(row);
     }
-    if (event === "status_changed" || event === "created") {
-      await maybeNotifyUrgentChannel(row);
+    if (event === "factory_assigned") {
+      await clearUrgentFactoryDmKeys(row.rpNum);
+      await maybeNotifyNikolayAksRp(row);
     }
-    if (event === "ready_marked") {
+    if (
+      event === "status_changed" ||
+      event === "created" ||
+      event === "ship_info_changed"
+    ) {
+      await maybeNotifyUrgentChannel(
+        row,
+        event === "status_changed" || event === "ship_info_changed",
+      );
+    }
+    if (event === "ready_marked" || event === "ship_info_changed") {
       await maybeNotifyPalletReady(row);
-      await maybeNotifyUrgentChannel(row);
-    }
-    if (event === "ready_reverted") {
-      await notifyShippingNoLongerReady(row, row.status ?? "");
-      await maybeNotifyUrgentChannel(row);
     }
     if (event === "left_ready") {
       await notifyShippingNoLongerReady(row, row.status ?? "");
     }
-    if (event === "factory_assigned") {
-      await maybeNotifyUrgentChannel(row);
+    if (event === "ready_reverted" || event === "status_changed") {
+      const status = norm(row.status).toUpperCase();
+      if (status !== "READY") {
+        await notifyShippingNoLongerReady(row, row.status ?? "");
+      }
+    }
+    if (event === "ready_marked") {
+      await maybeNotifyUrgentChannel(row, true);
+    }
+    if (event === "ready_reverted") {
+      await maybeNotifyUrgentChannel(row, true);
     }
   } catch (error) {
     console.error(`RP Slack hook failed for ${rpNum}:`, error);
   }
+}
+
+function isUrgentPartMissingFactory(row: RpRequest): boolean {
+  if (row.urgency !== "urgent") return false;
+  if (!isPartItem(row.itemType)) return false;
+  if (norm(row.reviewGroup)) return false;
+  const status = norm(row.status).toUpperCase();
+  if (status === "CANCELLED" || status === "SHIPPED") return false;
+  return true;
 }
 
 export async function runRpSlackSweep(): Promise<{
@@ -240,6 +301,9 @@ export async function runRpSlackSweep(): Promise<{
   digests: number;
 }> {
   if (!process.env.SLACK_BOT_TOKEN) {
+    return { delayedFactoryDms: 0, digests: 0 };
+  }
+  if (!(await shouldRunInWebapp("rp_slack"))) {
     return { delayedFactoryDms: 0, digests: 0 };
   }
 
@@ -253,13 +317,13 @@ export async function runRpSlackSweep(): Promise<{
     },
   });
 
+  const thresholdMs =
+    RP_SLACK_CONFIG.urgentPartFactoryDelayedAfterHours * 60 * 60 * 1000;
+
   for (const row of missingFactory) {
-    if (!isPartItem(row.itemType) || !row.entryDate) continue;
-    const hours = getWorkingHoursBetween(
-      row.entryDate,
-      now,
-    );
-    if (hours < RP_SLACK_CONFIG.urgentPartFactoryDelayedAfterHours) continue;
+    if (!isUrgentPartMissingFactory(row) || !row.entryDate) continue;
+    const ageMs = now.getTime() - row.entryDate.getTime();
+    if (ageMs < thresholdMs) continue;
     const key = urgentFactoryDelayedKey(row.rpNum);
     if (await hasSlackAutomationState(key)) continue;
     const text = [
@@ -275,34 +339,56 @@ export async function runRpSlackSweep(): Promise<{
     delayedFactoryDms++;
   }
 
-  const hour = now.getHours();
   let digests = 0;
+  if (!isWorkingWeekdayInScriptTz(now)) {
+    return { delayedFactoryDms, digests };
+  }
+
+  const hour = getHourInScriptTz(now);
+  const partsStockMissing = missingFactory.filter((r) =>
+    isPartsOrStockItem(r.itemType),
+  );
+  const dateKey = getDateKeyInScriptTz(now);
+
+  if (hour === RP_SLACK_CONFIG.dailyMissingFactoryDigestHour) {
+    const digestKey = `UPS_FACTORY_DIGEST_${dateKey}_${hour}`;
+    if (!(await hasSlackAutomationState(digestKey))) {
+      const text =
+        partsStockMissing.length > 0
+          ? [
+              ":clipboard: *End-of-day: urgent PARTS/STOCK missing factory*",
+              ...partsStockMissing.map(
+                (p) => `• *${p.rpNum}* — ${p.itemType ?? ""}`,
+              ),
+            ].join("\n")
+          : ":white_check_mark: *No urgent PARTS/STOCK missing factory assignment.*";
+      await openDmAndPost(
+        [RP_SLACK_CONFIG.urgentPartFactoryInstantUserId],
+        text,
+      );
+      await setSlackAutomationState(digestKey, "1");
+      digests++;
+    }
+  }
+
   if (
-    hour === RP_SLACK_CONFIG.dailyMissingFactoryDigestHour ||
-    hour === RP_SLACK_CONFIG.dailyMissingFactoryReminderHour
+    hour === RP_SLACK_CONFIG.dailyMissingFactoryReminderHour &&
+    partsStockMissing.length > 0
   ) {
-    const parts = missingFactory.filter((r) => isPartItem(r.itemType));
-    if (parts.length) {
-      const isReminder =
-        hour === RP_SLACK_CONFIG.dailyMissingFactoryReminderHour;
-      const digestKey = `UPS_FACTORY_DIGEST_${now.toISOString().slice(0, 10)}_${hour}`;
-      if (!(await hasSlackAutomationState(digestKey))) {
-        const text = [
-          isReminder
-            ? ":bell: *Reminder: urgent parts still missing factory*"
-            : ":clipboard: *End-of-day: urgent parts missing factory*",
-          ...parts.map((p) => `• *${p.rpNum}* — ${p.itemType ?? ""}`),
-        ].join("\n");
-        await openDmAndPost(
-          [
-            RP_SLACK_CONFIG.urgentPartFactoryInstantUserId,
-            RP_SLACK_CONFIG.urgentPartFactoryDelayedUserId,
-          ],
-          text,
-        );
-        await setSlackAutomationState(digestKey, "1");
-        digests++;
-      }
+    const digestKey = `UPS_FACTORY_DIGEST_${dateKey}_${hour}`;
+    if (!(await hasSlackAutomationState(digestKey))) {
+      const text = [
+        ":bell: *Reminder: urgent PARTS/STOCK still missing factory*",
+        ...partsStockMissing.map(
+          (p) => `• *${p.rpNum}* — ${p.itemType ?? ""}`,
+        ),
+      ].join("\n");
+      await openDmAndPost(
+        [RP_SLACK_CONFIG.urgentPartFactoryDelayedUserId],
+        text,
+      );
+      await setSlackAutomationState(digestKey, "1");
+      digests++;
     }
   }
 
@@ -339,10 +425,10 @@ async function shouldSendFactoryDeadline(
   const daysOverdue = daysBetween(deadline, today);
   const factory = normalizeFactory(row.reviewGroup);
   const rpNum = row.rpNum;
-  const dateKey = today.toISOString().slice(0, 10);
+  const dateKey = getDateKeyInScriptTz(today);
 
   if ("daysBefore" in rule && rule.daysBefore != null) {
-    if (daysUntil <= rule.daysBefore && daysUntil >= 0) {
+    if (daysUntil === rule.daysBefore) {
       const key = factoryDeadlineSentKey(factory, rule.id, rpNum, dateKey);
       if (await hasSlackAutomationState(key)) {
         return { send: false, dateKey: "", message: "" };
@@ -403,6 +489,9 @@ export async function runFactoryDeadlineSlackSweep(): Promise<{
   notified: number;
 }> {
   if (!process.env.SLACK_BOT_TOKEN) return { notified: 0 };
+  if (!(await shouldRunInWebapp("factory_deadline_slack"))) {
+    return { notified: 0 };
+  }
 
   const today = new Date();
   today.setHours(12, 0, 0, 0);

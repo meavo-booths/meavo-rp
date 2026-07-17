@@ -1,6 +1,8 @@
 import type { RpRequest } from "@prisma/client";
 
 import {
+  canEditDueDate,
+  canEditWorkshopNote,
   getEffectiveUserEmail,
   getRegionalScopes,
   getReviewerDashboardConfig,
@@ -49,8 +51,11 @@ export type DashboardPartCard = {
   tracking: string | null;
   reviewGroup: string | null;
   workshopNote: string | null;
+  orderSentAt: string | null;
   canEditRp: boolean;
   editRpDisabledReason: string;
+  canEditWorkshopNote: boolean;
+  canEditDueDate: boolean;
   items: ReturnType<typeof parseRpLineItemsFromRow>;
 };
 
@@ -141,8 +146,11 @@ function toCard(row: RpRequest, viewerEmail: string): DashboardPartCard {
     tracking: row.tracking,
     reviewGroup: row.reviewGroup,
     workshopNote: row.workshopNote,
+    orderSentAt: row.orderSentAt?.toISOString().slice(0, 10) ?? null,
     canEditRp: edit.canEdit,
     editRpDisabledReason: edit.reason,
+    canEditWorkshopNote: canEditWorkshopNote(viewerEmail, row.reviewGroup, row.itemType),
+    canEditDueDate: canEditDueDate(viewerEmail),
     items: parseRpLineItemsFromRow(row),
   };
 }
@@ -172,22 +180,31 @@ export async function getDashboardParts(options: {
   viewType?: PartsViewType;
   regionalScope?: string;
   search?: string;
+  adminOwnLoggedParts?: boolean;
 }): Promise<DashboardPartCard[]> {
   const viewType = options.viewType ?? "active";
   const viewer = options.viewer;
-  const reviewerConfig = viewer.reviewerConfig;
+  const adminOwn = isAdminOwnPartsMode(
+    viewer,
+    options.adminOwnLoggedParts ?? false,
+  );
+  const reviewerConfig = adminOwn ? null : viewer.reviewerConfig;
   const filterAsReviewer = Boolean(reviewerConfig);
   const ownerEmail = filterAsReviewer
     ? null
-    : normalizeEmail(viewer.effectiveEmail);
+    : normalizeEmail(
+        adminOwn ? viewer.sessionEmail : viewer.effectiveEmail,
+      );
 
   const rows = await prisma.rpRequest.findMany({
     orderBy: { rpNum: "desc" },
   });
 
-  const scopes = options.regionalScope
-    ? options.regionalScope.split("|").filter(Boolean)
-    : getRegionalScopes(viewer.effectiveEmail);
+  const scopes = adminOwn
+    ? []
+    : options.regionalScope
+      ? options.regionalScope.split("|").filter(Boolean)
+      : getRegionalScopes(viewer.effectiveEmail);
 
   const search = (options.search ?? "").trim().toLowerCase();
 
@@ -234,11 +251,13 @@ export async function getDashboardParts(options: {
     return true;
   });
 
-  const viewerForEdit = getEffectiveUserEmail(
-    viewer.sessionEmail,
-    viewer.isSimulating ? viewer.effectiveEmail : null,
-    viewer.isAdmin,
-  );
+  const viewerForEdit = adminOwn
+    ? normalizeEmail(viewer.sessionEmail)
+    : getEffectiveUserEmail(
+        viewer.sessionEmail,
+        viewer.isSimulating ? viewer.effectiveEmail : null,
+        viewer.isAdmin,
+      );
 
   return sortCards(
     filtered.map((row) => toCard(row, viewerForEdit)),

@@ -90,8 +90,10 @@ export default async function TodorDashboardPage({
             workshopNote: null,
             status: c.status,
             tracking: null,
+            orderSentAt: null,
           }))}
           role="todor"
+          showWorkshopNoteEdit={false}
         />
       ) : (
         <div className="grid gap-3">

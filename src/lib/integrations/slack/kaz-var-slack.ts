@@ -14,8 +14,28 @@ import { PANEL_ORDER_DM_RECIPIENTS } from "@/lib/integrations/slack/slack-config
 import { buildPanelOrderPdf } from "@/lib/integrations/slack/panel-order-pdf";
 import { isKazPanelBusinessHours } from "@/lib/integrations/slack/slack-working-hours";
 
+const STANDARD_MISSING_WORKSHOP_NOTE_DAILY_HOUR = 10;
+
 function formatMissingWorkshopLine(entry: PanelOrderEntry): string {
   return `• *${entry.rpNum}* (${entry.factory}, ${entry.urgency}, ${entry.status ?? "—"})`;
+}
+
+function buildReadyShippedWarningLines(entries: PanelOrderEntry[]): string[] {
+  const ready: string[] = [];
+  const shipped: string[] = [];
+  for (const entry of entries) {
+    const token = (entry.status ?? "").trim().toLowerCase();
+    if (token === "ready") ready.push(entry.rpNum);
+    else if (token === "shipped") shipped.push(entry.rpNum);
+  }
+  if (!ready.length && !shipped.length) return [];
+
+  const lines = [
+    "⚠️ *Внимание — проверете статуса:* Нормалният workflow е панелите да са *Active* преди изпращане на поръчка.",
+  ];
+  if (ready.length) lines.push(`• *Ready:* ${ready.join(", ")}`);
+  if (shipped.length) lines.push(`• *Shipped:* ${shipped.join(", ")}`);
+  return lines;
 }
 
 async function notifyMissingWorkshopNote(
@@ -56,8 +76,9 @@ async function sendPanelPdfBatch(
     return 0;
   }
   const nums = built.exportNums.join(", ");
+  const commentParts = [...messageLines, ...buildReadyShippedWarningLines(entries)];
   const comment = [
-    ...messageLines,
+    ...commentParts,
     nums ? `Панели: ${nums}` : "",
   ]
     .filter(Boolean)
@@ -99,7 +120,7 @@ async function processStandardMissingWorkshopWarnings(): Promise<number> {
   );
 }
 
-/** KAZ urgent sweep (every 2h) + standard workshop-note warnings. */
+/** Every 2h (business hours): urgent PDF DMs + urgent workshop-note warnings. */
 export async function runKazPanelOrderSlack(): Promise<{
   sent: number;
   warnings: number;
@@ -107,31 +128,11 @@ export async function runKazPanelOrderSlack(): Promise<{
   if (!process.env.SLACK_BOT_TOKEN) return { sent: 0, warnings: 0 };
   if (!isKazPanelBusinessHours()) return { sent: 0, warnings: 0 };
 
-  const now = new Date();
-  const isMondayMorning =
-    now.getDay() === 1 && now.getHours() >= 9 && now.getHours() < 10;
-
-  let weeklySent = 0;
-  if (isMondayMorning) {
-    try {
-      const weekly = await runKazWeeklyStandardPanelSlack();
-      weeklySent = weekly.sent;
-    } catch (error) {
-      console.error("KAZ weekly standard panel Slack failed:", error);
-    }
-  }
-
   let warnings = 0;
   try {
     warnings = await processUrgentMissingWorkshopWarnings();
   } catch (error) {
     console.error("KAZ urgent workshop-note warning failed:", error);
-  }
-
-  try {
-    warnings += await processStandardMissingWorkshopWarnings();
-  } catch (error) {
-    console.error("KAZ standard workshop-note warning failed:", error);
   }
 
   const entries = await collectFactoryPanelsForOrder("KAZ", "urgent");
@@ -150,10 +151,26 @@ export async function runKazPanelOrderSlack(): Promise<{
     }
   }
 
-  return { sent: sent + weeklySent, warnings };
+  return { sent, warnings };
 }
 
-/** VAR weekly batch (Monday 09:00). */
+/** Daily 10:00 (script TZ): standard panels missing workshop note for 1+ day. */
+export async function runKazStandardWorkshopWarningSlack(): Promise<{
+  warnings: number;
+}> {
+  if (!process.env.SLACK_BOT_TOKEN) return { warnings: 0 };
+  if (!isKazPanelBusinessHours()) return { warnings: 0 };
+
+  let warnings = 0;
+  try {
+    warnings = await processStandardMissingWorkshopWarnings();
+  } catch (error) {
+    console.error("KAZ standard workshop-note warning failed:", error);
+  }
+  return { warnings };
+}
+
+/** VAR weekly batch (Monday 09:00 script TZ). */
 export async function runVarPanelOrderSlack(): Promise<{ sent: number }> {
   if (!process.env.SLACK_BOT_TOKEN) return { sent: 0 };
   if (!isKazPanelBusinessHours()) return { sent: 0 };
@@ -169,7 +186,7 @@ export async function runVarPanelOrderSlack(): Promise<{ sent: number }> {
   return { sent };
 }
 
-/** KAZ weekly standard batch — invoked from same cron on Mondays if needed. */
+/** KAZ weekly standard batch (Monday 09:00 script TZ). */
 export async function runKazWeeklyStandardPanelSlack(): Promise<{ sent: number }> {
   if (!process.env.SLACK_BOT_TOKEN) return { sent: 0 };
   if (!isKazPanelBusinessHours()) return { sent: 0 };
@@ -184,3 +201,5 @@ export async function runKazWeeklyStandardPanelSlack(): Promise<{ sent: number }
   );
   return { sent };
 }
+
+export { STANDARD_MISSING_WORKSHOP_NOTE_DAILY_HOUR };

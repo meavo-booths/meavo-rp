@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 
 import { requireActionSession } from "@/lib/api/require-session";
 import {
+  canAnnaMarkReady,
+  canEditDueDate,
+  canLogIp,
+  canShipRpParts,
   isActiveUrgentPanelsUser,
-  getReviewerDashboardConfig,
   isLogisticsViewer,
   normalizeEmail,
 } from "@/lib/domain/authz";
@@ -16,6 +19,11 @@ import {
 } from "@/lib/domain/ip-mutations";
 import type { IpLoggerFormInput } from "@/lib/domain/ip-create";
 import { processNewIpEntry } from "@/lib/domain/ip-create";
+import {
+  claimSubmitKey,
+  completeSubmitKey,
+  releaseSubmitKey,
+} from "@/lib/domain/logger-submit-idempotency";
 import {
   annaMarkReadyForLogistics,
   annaRevertReadyToActive,
@@ -53,7 +61,10 @@ export async function shipRpAction(
   method: string,
   tracking: string,
 ): Promise<ActionResult> {
-  await requireActionSession();
+  const { viewer } = await requireActionSession();
+  if (!canShipRpParts(viewer.effectiveEmail)) {
+    return { error: "Access denied" };
+  }
   try {
     await updatePartToShipped(rpNum, method, tracking);
     revalidateDashboards();
@@ -79,7 +90,10 @@ export async function saveShipInfoAction(
   method: string,
   tracking: string,
 ): Promise<ActionResult> {
-  await requireActionSession();
+  const { viewer } = await requireActionSession();
+  if (!canShipRpParts(viewer.effectiveEmail)) {
+    return { error: "Access denied" };
+  }
   try {
     await saveShipInfoOnly(rpNum, method, tracking);
     revalidateDashboards();
@@ -91,7 +105,7 @@ export async function saveShipInfoAction(
 
 export async function annaReadyAction(rpNum: string): Promise<ActionResult> {
   const { viewer } = await requireActionSession();
-  if (!getReviewerDashboardConfig(viewer.effectiveEmail)) {
+  if (!canAnnaMarkReady(viewer.effectiveEmail)) {
     return { error: "Access denied" };
   }
   try {
@@ -105,7 +119,7 @@ export async function annaReadyAction(rpNum: string): Promise<ActionResult> {
 
 export async function annaRevertReadyAction(rpNum: string): Promise<ActionResult> {
   const { viewer } = await requireActionSession();
-  if (normalizeEmail(viewer.effectiveEmail) !== "anna@meavo.com") {
+  if (!canAnnaMarkReady(viewer.effectiveEmail)) {
     return { error: "Access denied" };
   }
   try {
@@ -233,7 +247,10 @@ export async function updateDueDateAction(
   newDate: string,
   reason: string,
 ): Promise<ActionResult> {
-  await requireActionSession();
+  const { viewer } = await requireActionSession();
+  if (!canEditDueDate(viewer.effectiveEmail)) {
+    return { error: "Access denied" };
+  }
   try {
     await updateDueDate(recordType, recordNum, newDate, reason);
     revalidateDashboards();
@@ -287,13 +304,34 @@ export async function todorIpDeliveredAction(ipNum: string): Promise<ActionResul
 
 export async function createIpEntryAction(
   form: IpLoggerFormInput,
+  submitKey?: string,
 ): Promise<ActionResult & { ipNums?: string[] }> {
   const { viewer } = await requireActionSession();
+  if (!canLogIp(viewer.sessionEmail)) {
+    return { error: "Access denied" };
+  }
+  let claimed = false;
   try {
+    if (submitKey) {
+      const claim = await claimSubmitKey("ip", submitKey);
+      if (claim.kind === "hit") {
+        return { ipNums: claim.nums };
+      }
+      if (claim.kind === "busy") {
+        return { error: "Submit already in progress — please wait" };
+      }
+      claimed = true;
+    }
     const result = await processNewIpEntry(form, viewer.effectiveEmail);
+    if (submitKey) {
+      await completeSubmitKey("ip", submitKey, result.ipNums);
+    }
     revalidatePath("/dashboard/nikolay");
     return { ipNums: result.ipNums };
   } catch (e) {
+    if (claimed && submitKey) {
+      await releaseSubmitKey("ip", submitKey);
+    }
     return { error: e instanceof Error ? e.message : "Failed" };
   }
 }

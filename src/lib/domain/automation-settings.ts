@@ -34,7 +34,7 @@ export const AUTOMATION_SETTING_ROWS: AutomationSettingRow[] = [
     label: "KAZ panel order Slack",
     description: "Urgent PDF DMs + weekly standard batch + workshop-note warnings",
     gasScript: "KazPanelOrderSlackAutomation.js",
-    gasTriggerHint: "Time-driven: every 2h + daily 10:00",
+    gasTriggerHint: "Time-driven: every 2h + Mon 09:00 weekly + daily 10:00 workshop",
     cronPath: "/api/cron/kaz-panel-slack",
   },
   {
@@ -118,6 +118,17 @@ export async function saveAutomationSettings(
 ): Promise<AutomationSettingsMap> {
   const current = await getAutomationSettings();
   const next = { ...current, ...patch };
+  await prisma.rpAutomationState.upsert({
+    where: { key: SETTINGS_KEY },
+    create: { key: SETTINGS_KEY, value: JSON.stringify(next) },
+    update: { value: JSON.stringify(next), updatedAt: new Date() },
+  });
+  return next;
+}
+
+/** Force every automation back to GAS (no webapp Slack / cron side effects). */
+export async function forceAllAutomationsToGas(): Promise<AutomationSettingsMap> {
+  const next = defaultSettings();
   await prisma.rpAutomationState.upsert({
     where: { key: SETTINGS_KEY },
     create: { key: SETTINGS_KEY, value: JSON.stringify(next) },

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState } from "react";
 
 import { createIpEntryAction } from "@/app/actions/rp-mutations";
 import { Button, Card, Input, Textarea } from "@/components/ui";
+import { useActionLock } from "@/hooks/use-action-lock";
 import type { IpLoggerFormInput } from "@/lib/domain/ip-create";
 import { getPanelsForModel } from "@/lib/reference-data/panel-options";
 import type { PanelOptionsPayload } from "@/lib/reference-data/sheets";
@@ -33,7 +34,14 @@ export function IpLoggerWizard({
   panelOptions: PanelOptionsPayload;
 }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const submitKeyRef = useRef<string>("");
+  if (!submitKeyRef.current) {
+    submitKeyRef.current =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `ip-${Date.now()}`;
+  }
+  const { busy, runLocked } = useActionLock();
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<IpLoggerFormInput>({
     urgency: "standard",
@@ -47,22 +55,33 @@ export function IpLoggerWizard({
   const panelList = getPanelsForModel(form.model, panelOptions);
 
   async function submit() {
-    setError(null);
-    const result = await createIpEntryAction(form);
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-    startTransition(() => {
+    try {
+      const result = await runLocked(() =>
+        createIpEntryAction(form, submitKeyRef.current),
+      );
+      if (!result) return;
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       router.push("/dashboard/nikolay");
       router.refresh();
-    });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    }
   }
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold sm:text-2xl">IP Logger — Аксаково</h1>
       <Card className="space-y-4">
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+        >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm">
             Спешност
@@ -160,6 +179,7 @@ export function IpLoggerWizard({
           </div>
         ))}
         <Button
+          type="button"
           variant="secondary"
           onClick={() =>
             setForm({
@@ -171,9 +191,10 @@ export function IpLoggerWizard({
           + Панел
         </Button>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <Button disabled={pending} onClick={() => void submit()}>
-          Запази IP
+        <Button type="submit" disabled={busy}>
+          {busy ? "Запазване…" : "Запази IP"}
         </Button>
+        </form>
       </Card>
     </div>
   );

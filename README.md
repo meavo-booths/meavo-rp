@@ -49,20 +49,24 @@ npm run import:sheets
 
 ## Cron routes (Vercel)
 
+Schedules below are **UTC**. Sofia is UTC+3 in summer → Mon 06:00 UTC = Mon 09:00 Sofia.
+
 | Path | Schedule |
 |------|----------|
 | `/api/cron/sheet-sync` | every 5 min |
 | `/api/cron/unbriefed-panels` | every 15 min |
 | `/api/cron/kaz-panel-slack` | every 2 hours |
+| `/api/cron/kaz-weekly-standard` | Mon 06:00 UTC |
+| `/api/cron/kaz-standard-workshop` | daily 07:00 UTC |
 | `/api/cron/rp-slack` | every 10 min |
 | `/api/cron/factory-fill` | daily 06:00 UTC |
 | `/api/cron/export-sync` | daily 07:00 UTC |
-| `/api/cron/var-panel-slack` | Mon 09:00 UTC |
-| `/api/cron/factory-deadline-slack` | Mon–Fri 10:30 UTC |
+| `/api/cron/var-panel-slack` | Mon 06:00 UTC |
+| `/api/cron/factory-deadline-slack` | Mon–Fri 07:30 UTC |
 
 Protect with `Authorization: Bearer $CRON_SECRET`.
 
-**Automation source toggles:** `/admin/automations` (admin only). Each function defaults to **GAS** — Next.js crons and mutation hooks no-op until flipped to **Webapp**. Set `RP_NOTIFICATIONS_FORCE_OFF=true` for emergency kill-switch.
+**Automation source toggles:** `/admin/automations` (admin only). Each function defaults to **GAS** — Next.js crons and mutation Slack hooks no-op until flipped to **Webapp**. Keep them on GAS while testing the webapp so Slack is not duplicated. Set `RP_NOTIFICATIONS_FORCE_OFF=true` for emergency kill-switch.
 
 ### GAS → Webapp cutover matrix
 
@@ -99,7 +103,7 @@ Run **rp.meavo.app** in parallel with GAS until each persona signs off:
 1. **Env on Vercel:** `DATABASE_URL`, `AUTH_*`, `RP_TOOL_CARD_ID`, `GOOGLE_SERVICE_ACCOUNT_JSON` (valid single-line JSON), `REP_PARTS_SPREADSHEET_ID`, `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`, `SLACK_BOT_TOKEN`
 2. **Smoke per persona:** standard logger + dashboard, Anna ready/ship, Nikolay IP, Stefan workshop note + PDF, logistics read-only, Kalin AUP, Todor export/topoli, Ivan read-only
 3. **Sheet sync:** confirm cron writes match Rep.Parts26 columns A–AE; check lag < 10 min
-4. **Automations:** open `/admin/automations`; flip one row GAS → Webapp; disable matching GAS trigger; smoke-test cron + Slack for 48h
+4. **Automations:** open `/admin/automations`; keep rows on **GAS** until cutover (avoids duplicate Slack). Flip one row GAS → Webapp only when ready; then disable the matching GAS trigger; smoke-test for 48h
 5. **Disable GAS:** when all rows = Webapp, stop GAS web app; keep sheet as backup; document in ops runbook
 
 ## GAS reference

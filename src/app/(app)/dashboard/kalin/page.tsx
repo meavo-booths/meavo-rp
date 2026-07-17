@@ -8,6 +8,7 @@ import {
   getUrgentPanelCards,
 } from "@/lib/domain/dashboard-urgent";
 import { getDashboardParts } from "@/lib/domain/dashboard-parts";
+import { parseFilterState } from "@/lib/dashboard-filters";
 import { auth } from "@/lib/auth";
 import { normalizeEmail } from "@/lib/domain/authz";
 import { resolveViewerContext } from "@/lib/viewer-context";
@@ -17,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function KalinDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mode?: string; view?: string; factory?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const session = await auth();
   if (!session?.user?.email) redirect("/login");
@@ -31,6 +32,7 @@ export default async function KalinDashboardPage({
 
   const params = await searchParams;
   const mode = params.mode ?? "aup";
+  const filters = parseFilterState(params);
 
   if (mode === "own") {
     const parts = await getDashboardParts({
@@ -50,13 +52,16 @@ export default async function KalinDashboardPage({
     const parts = await getKalinAllRpsCards(
       viewer,
       "active",
-      params.factory,
+      filters.factory !== "all" ? filters.factory : undefined,
     );
     return (
       <PartsDashboard
         viewer={viewer}
         initialParts={parts}
         title="Kalin — всички RP"
+        basePath="/dashboard/kalin?mode=all"
+        filterCapabilities={{ factory: true, item: true, sort: true }}
+        initialFilters={filters}
       />
     );
   }

@@ -11,6 +11,7 @@ import {
   useExistingPanelForRpAction,
 } from "@/app/actions/rp-mutations";
 import { Button, Card } from "@/components/ui";
+import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
 import type { UrgentPanelView } from "@/lib/domain/dashboard-urgent";
@@ -38,10 +39,12 @@ export function UrgentPanelsDashboard({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
 
   async function run(action: () => Promise<{ error?: string }>) {
-    const result = await action();
+    const result = await runLocked(action);
+    if (!result) return;
     if (result.error) alert(result.error);
     startTransition(() => router.refresh());
   }
@@ -77,7 +80,9 @@ export function UrgentPanelsDashboard({
           </Link>
         ))}
       </div>
-      {pending ? <p className="text-sm text-slate-500">Обновяване…</p> : null}
+      {pending || actionBusy ? (
+        <p className="text-sm text-slate-500">Обновяване…</p>
+      ) : null}
       <div className="grid gap-3">
         {parts.map((part) => (
           <Card key={part.id}>
@@ -90,6 +95,7 @@ export function UrgentPanelsDashboard({
                 <>
                 <Button
                   className="px-3 py-1 text-xs"
+                  disabled={actionBusy}
                   onClick={() => {
                     const eta = prompt("Production ETA (YYYY-MM-DD)", part.dueDate ?? "");
                     if (!eta) return;
@@ -101,6 +107,7 @@ export function UrgentPanelsDashboard({
                 <Button
                   variant="secondary"
                   className="px-3 py-1 text-xs"
+                  disabled={actionBusy}
                   onClick={() => {
                     const warehouse = prompt("Warehouse (Topoli / Alliance / NY Warehouse / SF Warehouse)", "Topoli");
                     if (!warehouse) return;
@@ -123,6 +130,7 @@ export function UrgentPanelsDashboard({
                 <Button
                   variant="secondary"
                   className="px-3 py-1 text-xs"
+                  disabled={actionBusy}
                   onClick={() => {
                     const eta = prompt("New ETA", part.dueDate ?? "");
                     if (!eta) return;
@@ -136,6 +144,7 @@ export function UrgentPanelsDashboard({
               (part.status ?? "").trim().toLowerCase() === "in production" ? (
                 <Button
                   className="px-3 py-1 text-xs"
+                  disabled={actionBusy}
                   onClick={() => void run(() => markUrgentReadyAction(part.rpNum))}
                 >
                   Готов

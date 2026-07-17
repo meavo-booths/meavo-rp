@@ -1,14 +1,19 @@
+import {
+  getHourInScriptTz,
+  getIsoWeekdayInScriptTz,
+} from "@/lib/integrations/slack/script-timezone";
+
 const WORK_START_HOUR = 9;
 const WORK_END_HOUR = 17;
 
 export function isWeekend(date: Date): boolean {
-  const day = date.getDay();
-  return day === 0 || day === 6;
+  const day = getIsoWeekdayInScriptTz(date);
+  return day === 6 || day === 7;
 }
 
 export function isWithinWorkingHours(date: Date): boolean {
   if (isWeekend(date)) return false;
-  const hour = date.getHours();
+  const hour = getHourInScriptTz(date);
   return hour >= WORK_START_HOUR && hour < WORK_END_HOUR;
 }
 
@@ -74,8 +79,10 @@ export function workingDayHours(): number {
   return WORK_END_HOUR - WORK_START_HOUR;
 }
 
+/** KAZ/VAR panel order window: Mon–Fri 08:00–16:00 Europe/Sofia. */
 export function isKazPanelBusinessHours(date = new Date()): boolean {
-  if (isWeekend(date)) return false;
-  const mins = date.getHours() * 60 + date.getMinutes();
-  return mins >= 8 * 60 && mins < 16 * 60;
+  const day = getIsoWeekdayInScriptTz(date);
+  if (day < 1 || day > 5) return false;
+  const hour = getHourInScriptTz(date);
+  return hour >= 8 && hour < 16;
 }

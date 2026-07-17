@@ -56,6 +56,7 @@ export async function revertToActive(rpNum: string, actorEmail: string): Promise
     data: { status: nextStatus, updatedAt: new Date() },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, nextStatus === "Ready" ? "ready_marked" : "status_changed");
 }
 
 export async function saveShipInfoOnly(
@@ -73,6 +74,7 @@ export async function saveShipInfoOnly(
     },
   });
   await enqueueSheetSync("rp", row.id);
+  void notifyAfterRpMutation(rpNum, "ship_info_changed");
 }
 
 export async function annaMarkReadyForLogistics(rpNum: string): Promise<void> {

@@ -13,6 +13,7 @@ import {
 import { getRpEditWindowInfo } from "@/lib/domain/rp-edit-window";
 import { upsertRpLineItemsFromRow } from "@/lib/domain/rp-line-item-sync";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
+import { recalculateFactoryFillForRpId } from "@/lib/domain/factory-fill";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { prisma } from "@/lib/prisma";
 
@@ -138,4 +139,5 @@ export async function updateExistingRpEntry(
 
   await upsertRpLineItemsFromRow(updated.id, updated, prisma);
   await enqueueSheetSync("rp", updated.id);
+  await recalculateFactoryFillForRpId(updated.id);
 }

@@ -23,6 +23,7 @@ export type IpDashboardCard = {
   workshopNote: string | null;
   status: string | null;
   tracking: string | null;
+  orderSentAt: string | null;
 };
 
 function toIpCard(row: RpInternalProductionRow): IpDashboardCard {
@@ -46,6 +47,7 @@ function toIpCard(row: RpInternalProductionRow): IpDashboardCard {
     workshopNote: row.workshopNote,
     status: row.status,
     tracking: row.tracking,
+    orderSentAt: row.orderSentAt?.toISOString().slice(0, 10) ?? null,
   };
 }
 
@@ -79,8 +81,11 @@ export function ipCardToPartCard(ip: IpDashboardCard): DashboardPartCard {
     tracking: ip.tracking,
     reviewGroup: ip.factory,
     workshopNote: ip.workshopNote,
+    orderSentAt: ip.orderSentAt,
     canEditRp: false,
     editRpDisabledReason: "",
+    canEditWorkshopNote: false,
+    canEditDueDate: false,
     items: [],
   };
 }

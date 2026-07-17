@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { updateAutomationSettingsAction } from "@/app/actions/automation-settings";
+import {
+  forceAllAutomationsToGasAction,
+  updateAutomationSettingsAction,
+} from "@/app/actions/automation-settings";
 import { Button, Card } from "@/components/ui";
 import type {
   AutomationSettingRow,
@@ -24,9 +27,21 @@ export function AutomationSettingsForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const anyWebapp = rows.some((row) => settings[row.key] === "webapp");
+
   async function setSource(key: AutomationSettingRow["key"], source: AutomationSource) {
     setError(null);
     const result = await updateAutomationSettingsAction(key, source);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    startTransition(() => router.refresh());
+  }
+
+  async function setAllGas() {
+    setError(null);
+    const result = await forceAllAutomationsToGasAction();
     if (result.error) {
       setError(result.error);
       return;
@@ -39,8 +54,9 @@ export function AutomationSettingsForm({
       <div>
         <h1 className="text-xl font-semibold">Automation source</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Choose whether each function runs from legacy GAS or this webapp. Default
-          is GAS during parallel testing.
+          Choose whether each function runs from legacy GAS or this webapp. Keep
+          everything on <strong>GAS</strong> until cutover so Slack is not
+          duplicated.
         </p>
         {forceOff ? (
           <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-sm text-amber-900">
@@ -48,6 +64,23 @@ export function AutomationSettingsForm({
             automations are disabled regardless of these toggles.
           </p>
         ) : null}
+        {anyWebapp && !forceOff ? (
+          <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-sm text-amber-900">
+            One or more rows are on Webapp — Slack/crons may duplicate GAS.
+            Prefer “Set all to GAS” while testing.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          className="px-3 py-1.5 text-sm"
+          disabled={pending || forceOff || !anyWebapp}
+          onClick={() => void setAllGas()}
+        >
+          Set all to GAS
+        </Button>
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -108,7 +141,7 @@ export function AutomationSettingsForm({
                       </span>
                     ) : (
                       <span className="text-slate-500">
-                        Webapp cron/no-op — GAS handles this.
+                        Webapp cron/hooks no-op — GAS handles this.
                       </span>
                     )}
                   </td>

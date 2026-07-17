@@ -37,7 +37,7 @@ export default async function StefanDashboardPage({
 
   return (
     <div className="space-y-6">
-      <StefanPdfExport parts={rpParts} />
+      <StefanPdfExport parts={rpParts} ipCards={ipCards} />
       <PartsDashboard
         viewer={viewer}
         initialParts={merged}

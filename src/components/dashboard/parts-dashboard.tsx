@@ -16,9 +16,16 @@ import {
   updateDueDateAction,
   updateWorkshopNoteAction,
 } from "@/app/actions/rp-mutations";
+import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { Button, Card, Input } from "@/components/ui";
+import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import { canEditWorkshopNote } from "@/lib/domain/authz";
+import {
+  applyDashboardFilters,
+  type DashboardFilterCapabilities,
+  type DashboardFilterState,
+} from "@/lib/dashboard-filters";
 import type { DashboardPartCard, PartsViewType } from "@/lib/domain/dashboard-parts";
 import type { ViewerContext } from "@/lib/viewer-context";
 
@@ -47,6 +54,8 @@ export function PartsDashboard({
   title = "Dashboard",
   regionalScope,
   basePath = "/dashboard",
+  filterCapabilities,
+  initialFilters,
 }: {
   viewer: ViewerContext;
   initialParts: DashboardPartCard[];
@@ -54,13 +63,24 @@ export function PartsDashboard({
   title?: string;
   regionalScope?: string;
   basePath?: string;
+  filterCapabilities?: DashboardFilterCapabilities;
+  initialFilters?: DashboardFilterState;
 }) {
   const router = useRouter();
   const view = initialView;
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<"all" | "rp" | "ip">("all");
   const [pending, startTransition] = useTransition();
+  const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
+
+  const filters = initialFilters ?? {
+    market: "all",
+    factory: "all",
+    source: "all",
+    item: "all",
+    sort: "newest" as const,
+  };
 
   const hasIpRecords = useMemo(
     () => initialParts.some((part) => part.recordType === "ip"),
@@ -68,18 +88,30 @@ export function PartsDashboard({
   );
 
   const parts = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return initialParts.filter((part) => {
-      if (sourceFilter !== "all" && part.recordType !== sourceFilter) {
-        return false;
+    let list = initialParts;
+    if (filterCapabilities) {
+      list = applyDashboardFilters(
+        list,
+        filters,
+        filterCapabilities,
+        search,
+      );
+    } else {
+      const q = search.trim().toLowerCase();
+      if (q) {
+        list = list.filter((part) =>
+          [part.rpNum, part.client, part.market, part.itemType, part.partDescription]
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
+        );
       }
-      if (!q) return true;
-      return [part.rpNum, part.client, part.market, part.itemType, part.partDescription]
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
-    });
-  }, [initialParts, search, sourceFilter]);
+    }
+    if (sourceFilter !== "all") {
+      list = list.filter((part) => part.recordType === sourceFilter);
+    }
+    return list;
+  }, [initialParts, search, sourceFilter, filters, filterCapabilities]);
 
   function refresh() {
     startTransition(() => router.refresh());
@@ -89,11 +121,17 @@ export function PartsDashboard({
     const params = new URLSearchParams();
     params.set("view", nextView);
     if (scope) params.set("scope", scope);
+    if (filters.factory !== "all") params.set("factory", filters.factory);
+    if (filters.item !== "all") params.set("item", filters.item);
+    if (filters.sort !== "newest") params.set("sort", filters.sort);
+    if (filters.source !== "all") params.set("source", filters.source);
+    if (filters.market !== "all") params.set("market", filters.market);
     return `${basePath}?${params.toString()}`;
   }
 
   async function run(action: () => Promise<{ error?: string }>) {
-    const result = await action();
+    const result = await runLocked(action);
+    if (!result) return;
     if (result.error) alert(result.error);
     else refresh();
   }
@@ -188,6 +226,16 @@ export function PartsDashboard({
         </nav>
       ) : null}
 
+      {filterCapabilities ? (
+        <DashboardFilters
+          parts={initialParts}
+          filters={filters}
+          capabilities={filterCapabilities}
+          basePath={`${basePath}?view=${view}`}
+          currentQuery=""
+        />
+      ) : null}
+
       <Input
         type="search"
         value={search}
@@ -195,7 +243,9 @@ export function PartsDashboard({
         placeholder="Търсене RP, клиент, пазар…"
       />
 
-      {pending ? <p className="text-sm text-slate-500">Обновяване…</p> : null}
+      {pending || actionBusy ? (
+        <p className="text-sm text-slate-500">Обновяване…</p>
+      ) : null}
 
       {parts.length === 0 ? (
         <p className="text-sm text-slate-500">Няма записи в този изглед.</p>
@@ -258,6 +308,7 @@ export function PartsDashboard({
                 view === "active" &&
                 part.userId === viewer.effectiveEmail ? (
                   <Button
+                    disabled={actionBusy}
                     variant="danger"
                     className="px-3 py-1"
                     onClick={() =>
@@ -269,6 +320,7 @@ export function PartsDashboard({
                 ) : null}
                 {showLogisticsNotify ? (
                   <Button
+                    disabled={actionBusy}
                     className="px-3 py-1"
                     onClick={() => void run(() => annaReadyAction(part.rpNum))}
                   >
@@ -277,6 +329,7 @@ export function PartsDashboard({
                 ) : null}
                 {isIp && view === "active" && ipReadyAction ? (
                   <Button
+                    disabled={actionBusy}
                     className="px-3 py-1"
                     onClick={() => void run(() => ipReadyAction(part.rpNum))}
                   >
@@ -285,6 +338,7 @@ export function PartsDashboard({
                 ) : null}
                 {!isIp && isAnna && view === "active" ? (
                   <Button
+                    disabled={actionBusy}
                     className="px-3 py-1"
                     onClick={() => void run(() => annaReadyAction(part.rpNum))}
                   >
@@ -293,6 +347,7 @@ export function PartsDashboard({
                 ) : null}
                 {!isIp && isAnna && view === "ready" ? (
                   <Button
+                    disabled={actionBusy}
                     variant="secondary"
                     className="px-3 py-1"
                     onClick={() =>
@@ -306,6 +361,7 @@ export function PartsDashboard({
                 part.userId === viewer.effectiveEmail &&
                 view === "archive" ? (
                   <Button
+                    disabled={actionBusy}
                     variant="secondary"
                     className="px-3 py-1"
                     onClick={() => void run(() => revertRpAction(part.rpNum))}
@@ -352,6 +408,7 @@ export function PartsDashboard({
                       <>
                         <span>{part.workshopNote || "—"}</span>
                         <Button
+                          disabled={actionBusy}
                           variant="secondary"
                           className="px-2 py-0.5 text-xs"
                           onClick={() => {
@@ -372,6 +429,7 @@ export function PartsDashboard({
                     ) : null}
                     {canEditDueDate ? (
                       <Button
+                        disabled={actionBusy}
                         variant="secondary"
                         className="px-2 py-0.5 text-xs"
                         onClick={() => {
@@ -398,6 +456,7 @@ export function PartsDashboard({
             {!isIp && view === "ready" && isAnna ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
+                  disabled={actionBusy}
                   className="px-3 py-1 text-xs"
                   onClick={() =>
                     void run(() =>
@@ -408,6 +467,7 @@ export function PartsDashboard({
                   Маркирай изпратен
                 </Button>
                 <Button
+                  disabled={actionBusy}
                   variant="secondary"
                   className="px-3 py-1 text-xs"
                   onClick={() => {

@@ -54,6 +54,12 @@ export function AdminSimulateBar({
           Clear
         </Button>
         <a
+          href="/dashboard?own=1"
+          className="rounded-lg border border-violet-300 bg-white px-3 py-1.5 text-sm text-violet-900 hover:bg-violet-100"
+        >
+          My logged parts
+        </a>
+        <a
           href="/admin/automations"
           className="rounded-lg border border-violet-300 bg-white px-3 py-1.5 text-sm text-violet-900 hover:bg-violet-100"
         >

@@ -8,16 +8,10 @@ import {
 } from "@/app/actions/notifications";
 import { signOutAction } from "@/app/actions/rp";
 import { auth } from "@/lib/auth";
-import { isAdminUser } from "@/lib/domain/authz";
+import { canLogIp, isAdminUser } from "@/lib/domain/authz";
 import { prisma } from "@/lib/prisma";
 
 const GATEWAY_URL = process.env.GATEWAY_URL ?? "https://meavo.app";
-
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/log", label: "Log RP" },
-  { href: "/log/ip", label: "Log IP" },
-];
 
 function resolveRpToolId(
   options: Awaited<ReturnType<typeof getAccessibleTools>>,
@@ -32,7 +26,7 @@ function resolveRpToolId(
 
 export async function Nav() {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id || !session.user.email) return null;
 
   const admin = isAdminUser(session.user.email);
   const [toolOptions, notificationFeed] = await Promise.all([
@@ -44,9 +38,17 @@ export async function Nav() {
     getNotifications(prisma, { userId: session.user.id }),
   ]);
 
+  const links = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/log", label: "Log RP" },
+  ];
+  if (canLogIp(session.user.email)) {
+    links.push({ href: "/log/ip", label: "Log IP" });
+  }
+
   return (
     <MeavoNavBar
-      links={NAV_LINKS}
+      links={links}
       logoHref="/dashboard"
       toolSwitcher={{
         currentId: resolveRpToolId(toolOptions),

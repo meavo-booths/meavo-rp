@@ -2,6 +2,7 @@ import type { Prisma, RpRequest } from "@prisma/client";
 
 import { shouldRunInWebapp } from "@/lib/domain/automation-settings";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { deduceFactoryFromBatch } from "@/lib/domain/stock-replacement";
 import { computeStandardPanelDeadline } from "@/lib/domain/working-days";
 import { prisma } from "@/lib/prisma";
@@ -115,8 +116,12 @@ export async function recalculateFactoryFillForRpId(
   }
 
   if (data.reviewGroup !== undefined) {
+    const hadFactory = norm(row.reviewGroup);
     await prisma.rpRequest.update({ where: { id: rpId }, data });
     await enqueueSheetSync("rp", rpId);
+    if (factory && factory !== hadFactory) {
+      void notifyAfterRpMutation(row.rpNum, "factory_assigned");
+    }
   }
 
   const refreshed = await prisma.rpRequest.findUnique({ where: { id: rpId } });
@@ -155,6 +160,14 @@ export async function runFactoryFillSweep(): Promise<{ updated: number }> {
         data: patch,
       });
       await enqueueSheetSync("rp", row.id);
+      if (factory) {
+        const refreshed = await prisma.rpRequest.findUnique({
+          where: { id: row.id },
+        });
+        if (refreshed) {
+          void notifyAfterRpMutation(refreshed.rpNum, "factory_assigned");
+        }
+      }
       updated++;
     }
 

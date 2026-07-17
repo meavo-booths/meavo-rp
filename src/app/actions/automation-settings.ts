@@ -8,6 +8,7 @@ import {
   type AutomationKey,
   type AutomationSettingsMap,
   type AutomationSource,
+  forceAllAutomationsToGas,
   saveAutomationSettings,
 } from "@/lib/domain/automation-settings";
 
@@ -26,6 +27,20 @@ export async function updateAutomationSettingsAction(
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : "Failed to save settings",
+    };
+  }
+}
+
+export async function forceAllAutomationsToGasAction(): Promise<ActionResult> {
+  const { session } = await requireActionSession();
+  try {
+    assertAdmin(session.user?.email);
+    await forceAllAutomationsToGas();
+    revalidatePath("/admin/automations");
+    return {};
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Failed to reset settings",
     };
   }
 }

@@ -9,8 +9,9 @@ import type { LoggerFormInput } from "@/lib/domain/rp-form-mapper";
 import { normalizeLoggerItems, shouldSplitItemsIntoSeparateRps } from "@/lib/domain/rp-form-mapper";
 import { processNewRpEntry, cancelRpRequest } from "@/lib/domain/rp-create";
 import {
-  cacheLoggerSubmitResult,
-  getCachedLoggerSubmitResult,
+  claimSubmitKey,
+  completeSubmitKey,
+  releaseSubmitKey,
 } from "@/lib/domain/logger-submit-idempotency";
 import type { RpPhotoUploadInput } from "@/lib/domain/rp-photos";
 import {
@@ -65,17 +66,21 @@ export async function createRpAction(
   submitKey?: string,
 ): Promise<ActionResult> {
   const { viewer } = await requireActionSession();
+  let claimed = false;
   try {
     if (submitKey) {
-      const cached = await getCachedLoggerSubmitResult(submitKey);
-      if (cached) {
-        const rpNums = cached.split(",");
-        return { rpNum: rpNums[0], rpNums };
+      const claim = await claimSubmitKey("rp", submitKey);
+      if (claim.kind === "hit") {
+        return { rpNum: claim.nums[0], rpNums: claim.nums };
       }
+      if (claim.kind === "busy") {
+        return { error: "Submit already in progress — please wait" };
+      }
+      claimed = true;
     }
     const result = await processNewRpEntry(form, viewer.effectiveEmail);
     if (submitKey) {
-      await cacheLoggerSubmitResult(submitKey, result.rpNums);
+      await completeSubmitKey("rp", submitKey, result.rpNums);
     }
     const photoWarnings = await attachPhotos(result.rpNums, form, photos);
     revalidatePath("/dashboard");
@@ -85,6 +90,9 @@ export async function createRpAction(
       photoWarnings: photoWarnings.length ? photoWarnings : undefined,
     };
   } catch (error) {
+    if (claimed && submitKey) {
+      await releaseSubmitKey("rp", submitKey);
+    }
     return {
       error: error instanceof Error ? error.message : "Failed to create RP",
     };

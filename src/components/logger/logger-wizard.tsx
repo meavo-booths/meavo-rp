@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { createRpAction, updateRpAction } from "@/app/actions/rp";
 import { CatalogueModal } from "@/components/logger/catalogue-modal";
 import { Button, Card } from "@/components/ui";
+import { useActionLock } from "@/hooks/use-action-lock";
 import type { CatalogueCategory } from "@/lib/reference-data/catalogue";
 import { getPanelsForModel } from "@/lib/reference-data/panel-options";
 import type { AddressBookEntry, PanelOptionsPayload } from "@/lib/reference-data/sheets";
@@ -83,11 +84,18 @@ export function LoggerWizard({
   similarRpNum?: string;
 }) {
   const router = useRouter();
+  const submitKeyRef = useRef<string>("");
+  if (!submitKeyRef.current) {
+    submitKeyRef.current =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `rp-${Date.now()}`;
+  }
+  const { busy, runLocked } = useActionLock();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<LoggerFormInput>(
     initialForm ? { ...initialForm, items: initialForm.items.length ? initialForm.items : [emptyItem()] } : emptyForm(),
   );
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoWarnings, setPhotoWarnings] = useState<string[]>([]);
   const [catalogueOpen, setCatalogueOpen] = useState(false);
@@ -156,22 +164,21 @@ export function LoggerWizard({
   }
 
   async function submit() {
-    setBusy(true);
-    setError(null);
-    setPhotoWarnings([]);
     try {
-      const photos = Object.values(itemPhotos);
-      const result = isEdit
-        ? await updateRpAction({ ...form, rpNum: editRpNum! }, photos)
-        : await createRpAction(form, photos);
-      if (result.error) throw new Error(result.error);
-      if (result.photoWarnings?.length) setPhotoWarnings(result.photoWarnings);
-      router.push("/dashboard");
-      router.refresh();
+      await runLocked(async () => {
+        setError(null);
+        setPhotoWarnings([]);
+        const photos = Object.values(itemPhotos);
+        const result = isEdit
+          ? await updateRpAction({ ...form, rpNum: editRpNum! }, photos)
+          : await createRpAction(form, photos, submitKeyRef.current);
+        if (result.error) throw new Error(result.error);
+        if (result.photoWarnings?.length) setPhotoWarnings(result.photoWarnings);
+        router.push("/dashboard");
+        router.refresh();
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -514,9 +521,16 @@ export function LoggerWizard({
             Next
           </Button>
         ) : (
-          <Button disabled={busy} onClick={() => void submit()}>
-            {busy ? "Saving…" : isEdit ? "Update RP" : "Submit RP"}
-          </Button>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
+            }}
+          >
+            <Button type="submit" disabled={busy}>
+              {busy ? "Saving…" : isEdit ? "Update RP" : "Submit RP"}
+            </Button>
+          </form>
         )}
       </div>
 

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { getSheetsClient } from "@/lib/integrations/sheets-client";
 import { loadServerEnv } from "@/lib/env";
 
@@ -265,6 +266,9 @@ export async function runExportStatusSync(): Promise<{
       if (!changed) continue;
       await prisma.rpRequest.update({ where: { id: rp.id }, data: patch });
       await enqueueSheetSync("rp", rp.id);
+      if (patch.status === "Shipped") {
+        void notifyAfterRpMutation(rp.rpNum, "status_changed");
+      }
       synced++;
     }
   }

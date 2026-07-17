@@ -162,3 +162,41 @@ export function canEditWorkshopNote(
   if (!isPanelLikeItemTypeForWorkshopNote(itemType)) return false;
   return isWorkshopNoteViewerForFactory(viewerEmail, group);
 }
+
+const DUE_DATE_EDITORS = new Set([
+  "anna@meavo.com",
+  "stefan@meavo.com",
+  "nikolay@meavo.com",
+]);
+
+export function canEditDueDate(
+  email: string | null | undefined,
+): boolean {
+  const e = normalizeEmail(email);
+  if (isAdminUser(e)) return true;
+  return DUE_DATE_EDITORS.has(e);
+}
+
+const IP_LOGGER_EMAILS = new Set([
+  "nikolay@meavo.com",
+  "kalin@meavo.com",
+]);
+
+export function canLogIp(email: string | null | undefined): boolean {
+  const e = normalizeEmail(email);
+  return isAdminUser(e) || IP_LOGGER_EMAILS.has(e);
+}
+
+/** Anna / logistics / admin — mark parts shipped or edit ship info from dashboard. */
+export function canShipRpParts(email: string | null | undefined): boolean {
+  const e = normalizeEmail(email);
+  if (isAdminUser(e)) return true;
+  if (e === "anna@meavo.com") return true;
+  return isLogisticsViewer(e);
+}
+
+/** Anna-only ready workflow (UI shows only for Anna). */
+export function canAnnaMarkReady(email: string | null | undefined): boolean {
+  const e = normalizeEmail(email);
+  return isAdminUser(e) || e === "anna@meavo.com";
+}

@@ -110,4 +110,5 @@ export const FACTORY_DEADLINE_EXCLUDED_STATUSES = new Set([
   "CANCELLED",
   "READY",
   "SUPPLY",
+  "ORDERED ON AMAZON",
 ]);

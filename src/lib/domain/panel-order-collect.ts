@@ -54,7 +54,18 @@ function matchesPanelOrderStatus(status: string | null | undefined): boolean {
   const token = (status ?? "").trim().toLowerCase();
   if (!token || token === "cancelled") return false;
   if (token === "ordered on amazon") return false;
-  return true;
+  if (token === "ready" || token === "shipped") return true;
+  if (token === "in production" || token === "briefed" || token === "active") {
+    return true;
+  }
+  return false;
+}
+
+function isEligibleForWorkshopWarning(
+  row: { status: string | null; orderSentAt: Date | null },
+): boolean {
+  if (row.orderSentAt) return false;
+  return matchesPanelOrderStatus(row.status);
 }
 
 function rpToEntry(row: RpRequest): PanelOrderEntry {
@@ -168,11 +179,13 @@ export async function collectPanelsMissingWorkshopNote(
       where: {
         reviewGroup: { contains: factory, mode: "insensitive" },
         OR: [{ workshopNote: null }, { workshopNote: "" }],
+        orderSentAt: null,
       },
     });
     for (const row of rpRows) {
       if (!isPanelItem(row.itemType)) continue;
       if (!matchesUrgencyMode(row.urgency, urgencyMode)) continue;
+      if (!isEligibleForWorkshopWarning(row)) continue;
       if (cutoff && row.entryDate && row.entryDate > cutoff) continue;
       out.push(rpToEntry(row));
     }
@@ -181,11 +194,13 @@ export async function collectPanelsMissingWorkshopNote(
       where: {
         factory: { contains: factory, mode: "insensitive" },
         OR: [{ workshopNote: null }, { workshopNote: "" }],
+        orderSentAt: null,
       },
     });
     for (const row of ipRows) {
       if (!isPanelItem(row.panel)) continue;
       if (!matchesUrgencyMode(row.urgency, urgencyMode)) continue;
+      if (!isEligibleForWorkshopWarning(row)) continue;
       if (cutoff && row.entryDate && row.entryDate > cutoff) continue;
       out.push(ipToEntry(row));
     }

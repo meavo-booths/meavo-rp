@@ -3,8 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-import { todorIpDeliveredAction } from "@/app/actions/rp-mutations";
-import { Button, Card } from "@/components/ui";
+import {
+  nikolayIpReadyAction,
+  stefanIpReadyAction,
+  todorIpDeliveredAction,
+  updateWorkshopNoteAction,
+} from "@/app/actions/rp-mutations";
+import { Button, Card, Textarea } from "@/components/ui";
+import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import type { IpDashboardCard } from "@/lib/domain/dashboard-ip";
 
@@ -12,17 +18,21 @@ export function RoleIpDashboard({
   title,
   cards,
   role,
+  showWorkshopNoteEdit = true,
 }: {
   title: string;
   cards: IpDashboardCard[];
-  role: "todor";
+  role: "nikolay" | "stefan" | "todor";
+  showWorkshopNoteEdit?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
 
   async function run(action: () => Promise<{ error?: string }>) {
-    const result = await action();
+    const result = await runLocked(action);
+    if (!result) return;
     if (result.error) alert(result.error);
     startTransition(() => router.refresh());
   }
@@ -30,7 +40,9 @@ export function RoleIpDashboard({
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-      {pending ? <p className="text-sm text-slate-500">Обновяване…</p> : null}
+      {pending || actionBusy ? (
+        <p className="text-sm text-slate-500">Обновяване…</p>
+      ) : null}
       {cards.length === 0 ? (
         <p className="text-sm text-slate-500">Няма IP записи.</p>
       ) : (
@@ -46,16 +58,34 @@ export function RoleIpDashboard({
                   {card.sourceRp ? (
                     <p className="text-xs text-slate-500">RP: {card.sourceRp}</p>
                   ) : null}
-                  {card.workshopNote ? (
-                    <p className="text-xs text-slate-500">
-                      Бележка цех: {card.workshopNote}
-                    </p>
-                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {role === "nikolay" ? (
+                    <Button
+                      className="px-3 py-1 text-xs"
+                      disabled={actionBusy}
+                      onClick={() =>
+                        void run(() => nikolayIpReadyAction(card.ipNum))
+                      }
+                    >
+                      Готово за склад
+                    </Button>
+                  ) : null}
+                  {role === "stefan" ? (
+                    <Button
+                      className="px-3 py-1 text-xs"
+                      disabled={actionBusy}
+                      onClick={() =>
+                        void run(() => stefanIpReadyAction(card.ipNum))
+                      }
+                    >
+                      Готово за склад
+                    </Button>
+                  ) : null}
                   {role === "todor" ? (
                     <Button
                       className="px-3 py-1 text-xs"
+                      disabled={actionBusy}
                       onClick={() =>
                         void run(() => todorIpDeliveredAction(card.ipNum))
                       }
@@ -65,6 +95,26 @@ export function RoleIpDashboard({
                   ) : null}
                 </div>
               </div>
+              {showWorkshopNoteEdit ? (
+                <div className="mt-2">
+                  <Textarea
+                    label="Бележка цех"
+                    defaultValue={card.workshopNote ?? ""}
+                    rows={2}
+                    onBlur={(e) => {
+                      const note = e.target.value;
+                      if (note === (card.workshopNote ?? "")) return;
+                      void run(() =>
+                        updateWorkshopNoteAction("ip", card.ipNum, note),
+                      );
+                    }}
+                  />
+                </div>
+              ) : card.workshopNote ? (
+                <p className="mt-2 text-sm text-slate-500">
+                  Бележка цех: {card.workshopNote}
+                </p>
+              ) : null}
             </Card>
           ))}
         </div>
