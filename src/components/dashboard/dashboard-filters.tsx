@@ -9,6 +9,7 @@ import {
   type DashboardFilterState,
 } from "@/lib/dashboard-filters";
 import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
+import type { DashboardUiLabels } from "@/lib/ui-locale";
 
 function FilterSelect({
   label,
@@ -45,12 +46,32 @@ export function DashboardFilters({
   parts,
   filters,
   capabilities,
+  labels,
   basePath,
   currentQuery = "",
 }: {
   parts: DashboardPartCard[];
   filters: DashboardFilterState;
   capabilities: DashboardFilterCapabilities;
+  labels: Pick<
+    DashboardUiLabels,
+    | "sortLabel"
+    | "sortNewest"
+    | "sortOldest"
+    | "clearFilters"
+    | "marketLabel"
+    | "marketAll"
+    | "factoryLabel"
+    | "factoryAll"
+    | "sourceLabel"
+    | "sourceAll"
+    | "sourceRp"
+    | "sourceIp"
+    | "itemLabel"
+    | "itemAll"
+    | "itemParts"
+    | "itemPanels"
+  >;
   basePath?: string;
   currentQuery?: string;
 }) {
@@ -71,7 +92,7 @@ export function DashboardFilters({
 
   const marketOptions = capabilities.market
     ? [
-        { value: "all", label: "Всички пазари" },
+        { value: "all", label: labels.marketAll },
         ...collectMarketOptions(parts).map((m) => ({ value: m, label: m })),
       ]
     : [];
@@ -80,7 +101,7 @@ export function DashboardFilters({
     <div className="flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
       {capabilities.market ? (
         <FilterSelect
-          label="Пазар"
+          label={labels.marketLabel}
           value={filters.market}
           options={marketOptions}
           onChangeHref={(v) => href({ market: v })}
@@ -88,10 +109,10 @@ export function DashboardFilters({
       ) : null}
       {capabilities.factory ? (
         <FilterSelect
-          label="Фабрика"
+          label={labels.factoryLabel}
           value={filters.factory}
           options={[
-            { value: "all", label: "Всички" },
+            { value: "all", label: labels.factoryAll },
             { value: "AKS", label: "AKS" },
             { value: "VAR", label: "VAR" },
             { value: "KAZ", label: "KAZ" },
@@ -101,35 +122,35 @@ export function DashboardFilters({
       ) : null}
       {capabilities.source ? (
         <FilterSelect
-          label="Източник"
+          label={labels.sourceLabel}
           value={filters.source}
           options={[
-            { value: "all", label: "Всички" },
-            { value: "rp", label: "Резервни части" },
-            { value: "ip", label: "Вътрешна продукция" },
+            { value: "all", label: labels.sourceAll },
+            { value: "rp", label: labels.sourceRp },
+            { value: "ip", label: labels.sourceIp },
           ]}
           onChangeHref={(v) => href({ source: v })}
         />
       ) : null}
       {capabilities.item ? (
         <FilterSelect
-          label="Тип"
+          label={labels.itemLabel}
           value={filters.item}
           options={[
-            { value: "all", label: "Всички" },
-            { value: "parts", label: "Части" },
-            { value: "panels", label: "Панели" },
+            { value: "all", label: labels.itemAll },
+            { value: "parts", label: labels.itemParts },
+            { value: "panels", label: labels.itemPanels },
           ]}
           onChangeHref={(v) => href({ item: v })}
         />
       ) : null}
       {capabilities.sort ? (
         <FilterSelect
-          label="Подредба"
+          label={labels.sortLabel}
           value={filters.sort}
           options={[
-            { value: "newest", label: "Най-нови" },
-            { value: "oldest", label: "Най-стари" },
+            { value: "newest", label: labels.sortNewest },
+            { value: "oldest", label: labels.sortOldest },
           ]}
           onChangeHref={(v) => href({ sort: v as "newest" | "oldest" })}
         />
@@ -142,7 +163,7 @@ export function DashboardFilters({
           href={path}
           className="rounded-md px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-200"
         >
-          Изчисти филтри
+          {labels.clearFilters}
         </Link>
       )}
     </div>

@@ -27,20 +27,11 @@ import {
   type DashboardFilterState,
 } from "@/lib/dashboard-filters";
 import type { DashboardPartCard, PartsViewType } from "@/lib/domain/dashboard-parts";
+import {
+  getDashboardUiLabels,
+  type DashboardUiLabels,
+} from "@/lib/ui-locale";
 import type { ViewerContext } from "@/lib/viewer-context";
-
-const TABS: { id: PartsViewType; label: string }[] = [
-  { id: "active", label: "Активни" },
-  { id: "ready", label: "Готови" },
-  { id: "archive", label: "Изпратени" },
-  { id: "cancelled", label: "Отказани" },
-];
-
-const SOURCE_FILTERS: { id: "all" | "rp" | "ip"; label: string }[] = [
-  { id: "all", label: "Всички" },
-  { id: "rp", label: "Резервни Части" },
-  { id: "ip", label: "Вътрешна Продукция" },
-];
 
 function isPartLikeItemType(itemType: string | null): boolean {
   const t = (itemType ?? "").trim().toUpperCase();
@@ -56,6 +47,8 @@ export function PartsDashboard({
   basePath = "/dashboard",
   filterCapabilities,
   initialFilters,
+  labels: labelsProp,
+  showNewRpButton = false,
 }: {
   viewer: ViewerContext;
   initialParts: DashboardPartCard[];
@@ -65,7 +58,22 @@ export function PartsDashboard({
   basePath?: string;
   filterCapabilities?: DashboardFilterCapabilities;
   initialFilters?: DashboardFilterState;
+  labels?: DashboardUiLabels;
+  showNewRpButton?: boolean;
 }) {
+  const labels = labelsProp ?? getDashboardUiLabels(viewer.role);
+  const tabs: { id: PartsViewType; label: string }[] = [
+    { id: "active", label: labels.tabActive },
+    { id: "ready", label: labels.tabReady },
+    { id: "archive", label: labels.tabArchive },
+    { id: "cancelled", label: labels.tabCancelled },
+  ];
+  const sourceFilters: { id: "all" | "rp" | "ip"; label: string }[] = [
+    { id: "all", label: labels.sourceAll },
+    { id: "rp", label: labels.sourceRp },
+    { id: "ip", label: labels.sourceIp },
+  ];
+
   const router = useRouter();
   const view = initialView;
   const [search, setSearch] = useState("");
@@ -162,15 +170,17 @@ export function PartsDashboard({
             {title}
           </h1>
           <p className="text-sm text-slate-600">
-            Viewing as <strong>{viewer.effectiveEmail}</strong>
+            {labels.viewingAs} <strong>{viewer.effectiveEmail}</strong>
           </p>
         </div>
-        <Link
-          href="/log"
-          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
-        >
-          Нов RP
-        </Link>
+        {showNewRpButton ? (
+          <Link
+            href="/log"
+            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            {labels.newRp}
+          </Link>
+        ) : null}
       </div>
 
       {scopes.length > 1 ? (
@@ -192,7 +202,7 @@ export function PartsDashboard({
       ) : null}
 
       <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
-        {TABS.filter((tab) => tab.id !== "ready" || showReadyTab).map((tab) => (
+        {tabs.filter((tab) => tab.id !== "ready" || showReadyTab).map((tab) => (
           <Link
             key={tab.id}
             href={dashboardHref(tab.id, activeScope)}
@@ -209,7 +219,7 @@ export function PartsDashboard({
 
       {hasIpRecords ? (
         <nav className="flex flex-wrap gap-1">
-          {SOURCE_FILTERS.map((filter) => (
+          {sourceFilters.map((filter) => (
             <button
               key={filter.id}
               type="button"
@@ -231,6 +241,7 @@ export function PartsDashboard({
           parts={initialParts}
           filters={filters}
           capabilities={filterCapabilities}
+          labels={labels}
           basePath={`${basePath}?view=${view}`}
           currentQuery=""
         />
@@ -240,15 +251,15 @@ export function PartsDashboard({
         type="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Търсене RP, клиент, пазар…"
+        placeholder={labels.searchPlaceholder}
       />
 
       {pending || actionBusy ? (
-        <p className="text-sm text-slate-500">Обновяване…</p>
+        <p className="text-sm text-slate-500">{labels.updating}</p>
       ) : null}
 
       {parts.length === 0 ? (
-        <p className="text-sm text-slate-500">Няма записи в този изглед.</p>
+        <p className="text-sm text-slate-500">{labels.emptyView}</p>
       ) : null}
 
       <div className="grid gap-3">

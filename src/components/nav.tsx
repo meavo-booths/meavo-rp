@@ -8,7 +8,7 @@ import {
 } from "@/app/actions/notifications";
 import { signOutAction } from "@/app/actions/rp";
 import { auth } from "@/lib/auth";
-import { canLogIp, isAdminUser } from "@/lib/domain/authz";
+import { isAdminUser } from "@/lib/domain/authz";
 import { prisma } from "@/lib/prisma";
 
 const GATEWAY_URL = process.env.GATEWAY_URL ?? "https://meavo.app";
@@ -24,6 +24,7 @@ function resolveRpToolId(
   return byName?.id ?? "gateway";
 }
 
+/** Shared Meavo chrome only — app CTAs live in AppActionBar, not as nav links. */
 export async function Nav() {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) return null;
@@ -38,17 +39,9 @@ export async function Nav() {
     getNotifications(prisma, { userId: session.user.id }),
   ]);
 
-  const links = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/log", label: "Log RP" },
-  ];
-  if (canLogIp(session.user.email)) {
-    links.push({ href: "/log/ip", label: "Log IP" });
-  }
-
   return (
     <MeavoNavBar
-      links={links}
+      links={[]}
       logoHref="/dashboard"
       toolSwitcher={{
         currentId: resolveRpToolId(toolOptions),

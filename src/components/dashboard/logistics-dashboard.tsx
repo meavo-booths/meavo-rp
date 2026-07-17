@@ -14,13 +14,14 @@ import {
   type DashboardFilterState,
 } from "@/lib/dashboard-filters";
 import type { LogisticsPartCard, LogisticsView } from "@/lib/domain/dashboard-logistics";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 const TABS: { id: LogisticsView; label: string }[] = [
-  { id: "processing", label: "В обработка" },
-  { id: "ready", label: "Готови за изпращане" },
-  { id: "shipped", label: "Изпратени" },
-  { id: "all", label: "Всички" },
+  { id: "processing", label: "Processing" },
+  { id: "ready", label: "Ready to ship" },
+  { id: "shipped", label: "Shipped" },
+  { id: "all", label: "All" },
 ];
 
 function InfoLine({
@@ -53,6 +54,7 @@ export function LogisticsDashboard({
 }) {
   const [search, setSearch] = useState("");
   useDashboardRefresh();
+  const labels = getDashboardUiLabels("logistics");
 
   const filtered = useMemo(
     () =>
@@ -62,8 +64,10 @@ export function LogisticsDashboard({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold sm:text-2xl">Логистика</h1>
-      <p className="text-sm text-slate-600">Като {viewer.effectiveEmail}</p>
+      <h1 className="text-xl font-semibold sm:text-2xl">Logistics</h1>
+      <p className="text-sm text-slate-600">
+        {labels.viewingAs} <strong>{viewer.effectiveEmail}</strong>
+      </p>
 
       <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
         {TABS.map((tab) => (
@@ -85,6 +89,7 @@ export function LogisticsDashboard({
         parts={parts}
         filters={initialFilters}
         capabilities={{ market: true }}
+        labels={labels}
         basePath={`/dashboard/logistics?view=${view}`}
         currentQuery={initialFilters.market !== "all" ? `market=${initialFilters.market}` : ""}
       />
@@ -93,11 +98,11 @@ export function LogisticsDashboard({
         type="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Търсене RP, клиент, пазар…"
+        placeholder={labels.searchPlaceholder}
       />
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-slate-500">Няма записи в този изглед.</p>
+        <p className="text-sm text-slate-500">{labels.emptyView}</p>
       ) : null}
 
       <div className="grid gap-3">

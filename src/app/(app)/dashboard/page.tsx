@@ -5,6 +5,10 @@ import { normalizeEmail } from "@/lib/domain/authz";
 import { getDashboardParts, type PartsViewType } from "@/lib/domain/dashboard-parts";
 import { parseFilterState } from "@/lib/dashboard-filters";
 import { auth } from "@/lib/auth";
+import {
+  getDashboardUiLabels,
+  ownRpsTitleForEmail,
+} from "@/lib/ui-locale";
 import { resolveViewerContext } from "@/lib/viewer-context";
 
 export const dynamic = "force-dynamic";
@@ -62,16 +66,25 @@ export default async function DashboardPage({
         ? { sort: true as const }
         : undefined;
 
+  const labels = getDashboardUiLabels(viewer.role, {
+    ownLoggedParts: adminOwn,
+  });
+  const title = adminOwn
+    ? ownRpsTitleForEmail(viewer.effectiveEmail)
+    : labels.dashboardTitle;
+
   return (
     <PartsDashboard
       viewer={viewer}
       initialParts={parts}
       initialView={viewType}
-      title={adminOwn ? "Моите RP" : "Dashboard"}
+      title={title}
+      labels={labels}
       regionalScope={params.scope}
       basePath={adminOwn ? "/dashboard?own=1" : "/dashboard"}
       filterCapabilities={filterCapabilities}
       initialFilters={filters}
+      showNewRpButton={false}
     />
   );
 }

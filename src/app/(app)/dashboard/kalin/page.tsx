@@ -11,6 +11,10 @@ import { getDashboardParts } from "@/lib/domain/dashboard-parts";
 import { parseFilterState } from "@/lib/dashboard-filters";
 import { auth } from "@/lib/auth";
 import { normalizeEmail } from "@/lib/domain/authz";
+import {
+  getDashboardUiLabels,
+  ownRpsTitleForEmail,
+} from "@/lib/ui-locale";
 import { resolveViewerContext } from "@/lib/viewer-context";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +47,9 @@ export default async function KalinDashboardPage({
       <PartsDashboard
         viewer={viewer}
         initialParts={parts}
-        title="Kalin — собствени RP"
+        title={ownRpsTitleForEmail("kalin@meavo.com")}
+        labels={getDashboardUiLabels(viewer.role, { ownLoggedParts: true })}
+        showNewRpButton={false}
       />
     );
   }
@@ -58,10 +64,12 @@ export default async function KalinDashboardPage({
       <PartsDashboard
         viewer={viewer}
         initialParts={parts}
-        title="Kalin — всички RP"
+        title="Kalin — all RPs"
+        labels={getDashboardUiLabels("standard")}
         basePath="/dashboard/kalin?mode=all"
         filterCapabilities={{ factory: true, item: true, sort: true }}
         initialFilters={filters}
+        showNewRpButton={false}
       />
     );
   }

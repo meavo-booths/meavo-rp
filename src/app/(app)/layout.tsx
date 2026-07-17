@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { AdminSimulateBar } from "@/components/admin-simulate-bar";
+import { AppActionBar } from "@/components/app-action-bar";
 import { Nav } from "@/components/nav";
 import { requireRpAccess } from "@/lib/meavo-auth";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 import { getSimulatedEmail, resolveViewerContext } from "@/lib/viewer-context";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,7 @@ export default async function AppLayout({
   const email = session.user?.email ?? "";
   const viewer = await resolveViewerContext(email);
   const simulatedEmail = await getSimulatedEmail();
+  const labels = getDashboardUiLabels(viewer.role);
 
   return (
     <>
@@ -24,6 +27,10 @@ export default async function AppLayout({
         {viewer.isAdmin ? (
           <AdminSimulateBar initialEmail={simulatedEmail} />
         ) : null}
+        <AppActionBar
+          labels={labels}
+          sessionEmail={viewer.sessionEmail}
+        />
         {children}
       </main>
       <footer className="mx-auto max-w-6xl px-4 pb-8 text-center text-xs text-slate-400">
