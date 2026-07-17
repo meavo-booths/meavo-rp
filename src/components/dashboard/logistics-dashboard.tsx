@@ -64,11 +64,6 @@ export function LogisticsDashboard({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold sm:text-2xl">Logistics</h1>
-      <p className="text-sm text-slate-600">
-        {labels.viewingAs} <strong>{viewer.effectiveEmail}</strong>
-      </p>
-
       <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
         {TABS.map((tab) => (
           <Link

@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import { AdminSimulateBar } from "@/components/admin-simulate-bar";
 import { AppActionBar } from "@/components/app-action-bar";
+import { AppChromeTitle } from "@/components/app-chrome-title";
 import { Nav } from "@/components/nav";
 import { requireRpAccess } from "@/lib/meavo-auth";
 import { getDashboardUiLabels } from "@/lib/ui-locale";
@@ -23,14 +25,18 @@ export default async function AppLayout({
   return (
     <>
       <Nav />
+      <Suspense
+        fallback={
+          <div className="border-b border-slate-200 bg-white py-2" />
+        }
+      >
+        <AppChromeTitle viewer={viewer} />
+      </Suspense>
       <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-4 sm:py-8">
         {viewer.isAdmin ? (
           <AdminSimulateBar initialEmail={simulatedEmail} />
         ) : null}
-        <AppActionBar
-          labels={labels}
-          sessionEmail={viewer.sessionEmail}
-        />
+        <AppActionBar labels={labels} sessionEmail={viewer.sessionEmail} />
         {children}
       </main>
       <footer className="mx-auto max-w-6xl px-4 pb-8 text-center text-xs text-slate-400">

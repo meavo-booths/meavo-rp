@@ -164,24 +164,16 @@ export function PartsDashboard({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">
-            {title}
-          </h1>
-          <p className="text-sm text-slate-600">
-            {labels.viewingAs} <strong>{viewer.effectiveEmail}</strong>
-          </p>
-        </div>
-        {showNewRpButton ? (
+      {showNewRpButton ? (
+        <div className="flex justify-end">
           <Link
             href="/log"
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
             {labels.newRp}
           </Link>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {scopes.length > 1 ? (
         <nav className="flex flex-wrap gap-1">

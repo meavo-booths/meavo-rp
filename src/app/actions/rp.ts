@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 import { requireActionSession } from "@/lib/api/require-session";
-import { assertAdmin } from "@/lib/domain/authz";
+import { assertAdmin, isMeavoSimulationEmail, normalizeSimulationEmail } from "@/lib/domain/authz";
 import type { LoggerFormInput } from "@/lib/domain/rp-form-mapper";
 import { normalizeLoggerItems, shouldSplitItemsIntoSeparateRps } from "@/lib/domain/rp-form-mapper";
 import { processNewRpEntry, cancelRpRequest } from "@/lib/domain/rp-create";
@@ -19,6 +19,7 @@ import {
   uploadRpPhotosForSplitRps,
 } from "@/lib/domain/rp-photos";
 import { updateExistingRpEntry } from "@/lib/domain/rp-update";
+import { RP_TOOL_CARD_ID } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { signOut } from "@/lib/auth";
 import { SIMULATE_COOKIE } from "@/lib/viewer-context";
@@ -137,15 +138,39 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
   try {
     assertAdmin(session.user?.email);
     const jar = await cookies();
-    const normalized = email.trim().toLowerCase();
+    const normalized = normalizeSimulationEmail(email);
     if (!normalized) {
       jar.delete(SIMULATE_COOKIE);
       revalidatePath("/dashboard");
       return {};
     }
-    if (!normalized.endsWith("@meavo.com")) {
-      return { error: "Simulation email must be @meavo.com" };
+    if (!isMeavoSimulationEmail(normalized)) {
+      return { error: "Simulation email must be a valid @meavo.com address" };
     }
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalized },
+      select: {
+        id: true,
+        cardAccess: {
+          where: { cardId: RP_TOOL_CARD_ID },
+          select: { id: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!user) {
+      return {
+        error: `No such user: ${normalized} is not in Meavo accounts`,
+      };
+    }
+    if (!user.cardAccess.length) {
+      return {
+        error: `${normalized} exists but has no access to the RP tool`,
+      };
+    }
+
     jar.set(SIMULATE_COOKIE, normalized, {
       httpOnly: true,
       sameSite: "lax",

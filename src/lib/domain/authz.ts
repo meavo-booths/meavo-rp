@@ -200,3 +200,18 @@ export function canAnnaMarkReady(email: string | null | undefined): boolean {
   const e = normalizeEmail(email);
   return isAdminUser(e) || e === "anna@meavo.com";
 }
+
+/**
+ * GAS normalizeSimulationEmail_: bare local-part → @meavo.com.
+ * Returns "" for empty input; otherwise a lowercased address.
+ */
+export function normalizeSimulationEmail(value: string | null | undefined): string {
+  const raw = (value ?? "").trim().toLowerCase();
+  if (!raw) return "";
+  if (!raw.includes("@")) return `${raw}@meavo.com`;
+  return raw;
+}
+
+export function isMeavoSimulationEmail(email: string): boolean {
+  return /^[a-z0-9._+-]+@meavo\.com$/.test(email);
+}

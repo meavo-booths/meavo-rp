@@ -53,7 +53,6 @@ export function UrgentPanelsDashboard({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold sm:text-2xl">Спешни панели</h1>
       <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
         {TABS.map((tab) => (
           <Link
