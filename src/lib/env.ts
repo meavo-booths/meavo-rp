@@ -25,6 +25,8 @@ const ServerEnvSchema = z.object({
   IZNOS_SPREADSHEET_ID: z.string().optional(),
   FREIGHT_SPREADSHEET_ID: z.string().optional(),
   RP_NOTIFICATIONS_FORCE_OFF: z.string().optional(),
+  /** When "true", Neon → Google Sheet backup is disabled (cron + enqueue no-op). */
+  RP_SHEET_SYNC_FORCE_OFF: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
 });
@@ -58,4 +60,9 @@ export function isRepPartsSheetConfigured(env: ServerEnv): boolean {
   return Boolean(
     env.REP_PARTS_SPREADSHEET_ID && env.GOOGLE_SERVICE_ACCOUNT_JSON,
   );
+}
+
+/** Kill-switch: Neon → Google Sheet backup (cron + enqueue) no-op. */
+export function isSheetSyncForceOff(): boolean {
+  return process.env.RP_SHEET_SYNC_FORCE_OFF === "true";
 }

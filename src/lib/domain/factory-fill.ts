@@ -21,11 +21,7 @@ function isKnownFactory(factory: string): boolean {
   return f === "AKS" || f === "KAZ" || f === "VAR";
 }
 
-function isShelfTable(itemType: string | null): boolean {
-  return norm(itemType).toUpperCase() === "SHELF / TABLE (S)";
-}
-
-/** Port of updateFactoryFillForRow_ + booth batch exception. */
+/** Port of updateFactoryFillForRow_ — factory from trailing booth batch code. */
 export function computeFactoryFromRow(
   boothId: string | null,
   itemType: string | null,
@@ -37,13 +33,11 @@ export function computeFactoryFromRow(
 
   const match = booth.toUpperCase().match(/([A-Z]{2})(\d{2,3})\s*$/);
   if (!match) return "";
-  let out = "";
   const code = match[1];
-  if (code === "KB") out = "KAZ";
-  if (code === "VB") out = "VAR";
-  if (code === "AB") out = "AKS";
-  if (out === "VAR" && isShelfTable(item)) out = "AKS";
-  return out;
+  if (code === "KB") return "KAZ";
+  if (code === "VB") return "VAR";
+  if (code === "AB") return "AKS";
+  return "";
 }
 
 function isAtLeastOneCalendarDayAfterEntry(entryDate: Date): boolean {

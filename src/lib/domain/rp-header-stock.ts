@@ -37,9 +37,21 @@ export function summarizePanelStockReplacement(
   return "partial";
 }
 
+/** Statuses that must not be downgraded back to Ready by stock-header recompute. */
+function isPastReadyStatus(status: string | null | undefined): boolean {
+  const s = (status ?? "").trim().toLowerCase();
+  return (
+    s === "shipped" ||
+    s === "cancelled" ||
+    s === "ordered on amazon"
+  );
+}
+
 /**
  * Recompute RP header fields after line-item stock changes.
- * Returns the updated summary for callers.
+ * Full stock → route as STOCK + "don't produce". Promote to Ready for logistics
+ * only when the RP is not already Shipped/Cancelled (import/backfill must not
+ * wipe a later ship).
  */
 export async function recomputeRpHeaderAfterStockChange(
   rpId: string,
@@ -70,9 +82,11 @@ export async function recomputeRpHeaderAfterStockChange(
 
   if (summary === "full") {
     updates.reviewGroup = "STOCK";
-    updates.status = "Ready";
-    updates.shipMethod = getUrgentPanelReadyShipMethod(rp.market);
     updates.workshopNote = RP_DO_NOT_PRODUCE_WORKSHOP_NOTE;
+    if (!isPastReadyStatus(rp.status)) {
+      updates.status = "Ready";
+      updates.shipMethod = getUrgentPanelReadyShipMethod(rp.market);
+    }
   } else if (summary === "partial") {
     updates.workshopNote = null;
   } else {

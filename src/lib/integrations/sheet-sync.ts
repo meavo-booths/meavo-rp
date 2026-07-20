@@ -1,4 +1,4 @@
-import { loadServerEnv } from "@/lib/env";
+import { isSheetSyncForceOff, loadServerEnv } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import {
   columnLetter,
@@ -21,6 +21,8 @@ export type SheetSyncResult = {
   synced: number;
   failed: number;
   errors: string[];
+  skipped?: boolean;
+  reason?: string;
 };
 
 async function findSheetRow(
@@ -58,6 +60,17 @@ async function upsertSheetRowMap(
 }
 
 export async function processSheetSyncOutbox(): Promise<SheetSyncResult> {
+  if (isSheetSyncForceOff()) {
+    return {
+      processed: 0,
+      synced: 0,
+      failed: 0,
+      errors: [],
+      skipped: true,
+      reason: "RP_SHEET_SYNC_FORCE_OFF",
+    };
+  }
+
   const env = loadServerEnv();
   if (!env.REP_PARTS_SPREADSHEET_ID || !env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     return {

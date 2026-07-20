@@ -1,4 +1,5 @@
 import type { DbExecutor } from "@/lib/db/executor";
+import { isSheetSyncForceOff } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 
 export async function enqueueSheetSync(
@@ -7,6 +8,7 @@ export async function enqueueSheetSync(
   operation: "upsert" | "delete" = "upsert",
   executor: DbExecutor = prisma,
 ): Promise<void> {
+  if (isSheetSyncForceOff()) return;
   await executor.rpSheetSyncOutbox.create({
     data: {
       entityType,

@@ -66,6 +66,8 @@ Schedules below are **UTC**. Sofia is UTC+3 in summer → Mon 06:00 UTC = Mon 09
 
 Protect with `Authorization: Bearer $CRON_SECRET`.
 
+**Sheet sync kill-switch:** set `RP_SHEET_SYNC_FORCE_OFF=true` to stop Neon → Google Sheet writes (cron skips; `enqueueSheetSync` no-ops). Use while Neon/sheet data is being cleaned up.
+
 **Automation source toggles:** `/admin/automations` (admin only). Each function defaults to **GAS** — Next.js crons and mutation Slack hooks no-op until flipped to **Webapp**. Keep them on GAS while testing the webapp so Slack is not duplicated. Set `RP_NOTIFICATIONS_FORCE_OFF=true` for emergency kill-switch.
 
 ### GAS → Webapp cutover matrix
