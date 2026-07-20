@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { ItemsList } from "@/components/dashboard/items-list";
-import { Input } from "@/components/ui";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import {
   applyDashboardFilters,
@@ -87,13 +86,9 @@ export function LogisticsDashboard({
         labels={labels}
         basePath={`/dashboard/logistics?view=${view}`}
         currentQuery={initialFilters.market !== "all" ? `market=${initialFilters.market}` : ""}
-      />
-
-      <Input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={labels.searchPlaceholder}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={labels.searchPlaceholder}
       />
 
       {filtered.length === 0 ? (

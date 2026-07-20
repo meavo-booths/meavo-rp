@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { PartsDashboard } from "@/components/dashboard/parts-dashboard";
 import { normalizeEmail } from "@/lib/domain/authz";
 import { getDashboardParts, type PartsViewType } from "@/lib/domain/dashboard-parts";
+import { normalizeRegionalScopeRequest } from "@/lib/domain/standard-regional-scopes";
 import { parseFilterState } from "@/lib/dashboard-filters";
 import { auth } from "@/lib/auth";
 import {
@@ -51,11 +52,15 @@ export default async function DashboardPage({
 
   const viewType = (params.view ?? "active") as PartsViewType;
   const filters = parseFilterState(params);
+  const regionalScope = normalizeRegionalScopeRequest(
+    viewer.effectiveEmail,
+    params.scope,
+  );
 
   const parts = await getDashboardParts({
     viewer,
     viewType,
-    regionalScope: params.scope,
+    regionalScope: regionalScope || undefined,
     adminOwnLoggedParts: adminOwn,
   });
 
@@ -80,7 +85,7 @@ export default async function DashboardPage({
       initialView={viewType}
       title={title}
       labels={labels}
-      regionalScope={params.scope}
+      regionalScope={regionalScope || undefined}
       basePath={adminOwn ? "/dashboard?own=1" : "/dashboard"}
       filterCapabilities={filterCapabilities}
       initialFilters={filters}

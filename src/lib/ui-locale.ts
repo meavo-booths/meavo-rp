@@ -68,6 +68,18 @@ export type DashboardUiLabels = {
   cardChangeDueDate: string;
   cardMarkShipped: string;
   cardSaveShipping: string;
+  cardBooth: string;
+  cardModel: string;
+  cardColor: string;
+  cardItems: string;
+  cardRecipient: string;
+  cardMarket: string;
+  cardAddress: string;
+  cardPhone: string;
+  cardEmail: string;
+  cardClarification: string;
+  cardNotes: string;
+  cardTracking: string;
   promptWorkshopNote: string;
   promptNewDueDate: string;
   promptDueDateReason: string;
@@ -126,6 +138,18 @@ const EN: DashboardUiLabels = {
   cardChangeDueDate: "Change",
   cardMarkShipped: "Mark Shipped",
   cardSaveShipping: "Save",
+  cardBooth: "Booth",
+  cardModel: "Model",
+  cardColor: "Color",
+  cardItems: "Items",
+  cardRecipient: "Recipient",
+  cardMarket: "Market",
+  cardAddress: "Address",
+  cardPhone: "Phone",
+  cardEmail: "Email",
+  cardClarification: "Clarification",
+  cardNotes: "Notes",
+  cardTracking: "Tracking",
   promptWorkshopNote: "Workshop note",
   promptNewDueDate: "New due date (YYYY-MM-DD)",
   promptDueDateReason: "Reason for change",
@@ -184,6 +208,18 @@ const BG: DashboardUiLabels = {
   cardChangeDueDate: "Промени",
   cardMarkShipped: "Маркирай изпратен",
   cardSaveShipping: "Запази доставка",
+  cardBooth: "Booth",
+  cardModel: "Модел",
+  cardColor: "Цвят",
+  cardItems: "Артикули",
+  cardRecipient: "Получател",
+  cardMarket: "Пазар",
+  cardAddress: "Адрес",
+  cardPhone: "Тел",
+  cardEmail: "Email",
+  cardClarification: "Уточнение",
+  cardNotes: "Бележки",
+  cardTracking: "Тракинг",
   promptWorkshopNote: "Бележка цех",
   promptNewDueDate: "Нов срок (YYYY-MM-DD)",
   promptDueDateReason: "Причина за промяна",

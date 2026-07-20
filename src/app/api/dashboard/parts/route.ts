@@ -5,6 +5,7 @@ import {
   getDashboardParts,
   type PartsViewType,
 } from "@/lib/domain/dashboard-parts";
+import { normalizeRegionalScopeRequest } from "@/lib/domain/standard-regional-scopes";
 
 export async function GET(request: Request) {
   const authResult = await requireApiSession();
@@ -13,14 +14,17 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const viewType = (url.searchParams.get("view") ?? "active") as PartsViewType;
   const search = url.searchParams.get("q") ?? undefined;
-  const regionalScope = url.searchParams.get("scope") ?? undefined;
+  const regionalScope = normalizeRegionalScopeRequest(
+    authResult.viewer.effectiveEmail,
+    url.searchParams.get("scope"),
+  );
 
   try {
     const parts = await getDashboardParts({
       viewer: authResult.viewer,
       viewType,
       search,
-      regionalScope,
+      regionalScope: regionalScope || undefined,
     });
     return NextResponse.json({ parts, viewer: authResult.viewer });
   } catch (error) {

@@ -4,12 +4,12 @@ import {
   canEditDueDate,
   canEditWorkshopNote,
   getEffectiveUserEmail,
-  getRegionalScopes,
   getReviewerDashboardConfig,
   isAdminUser,
   normalizeEmail,
   type ReviewerDashboardConfig,
 } from "@/lib/domain/authz";
+import { normalizeRegionalScopeRequest } from "@/lib/domain/standard-regional-scopes";
 import { getRpEditWindowInfo } from "@/lib/domain/rp-edit-window";
 import { parseRpLineItemsFromRow } from "@/lib/domain/rp-line-items";
 import { prisma } from "@/lib/prisma";
@@ -203,8 +203,13 @@ export async function getDashboardParts(options: {
   const scopes = adminOwn
     ? []
     : options.regionalScope
-      ? options.regionalScope.split("|").filter(Boolean)
-      : getRegionalScopes(viewer.effectiveEmail);
+      ? normalizeRegionalScopeRequest(
+          viewer.effectiveEmail,
+          options.regionalScope,
+        )
+          .split("|")
+          .filter(Boolean)
+      : [];
 
   const search = (options.search ?? "").trim().toLowerCase();
 

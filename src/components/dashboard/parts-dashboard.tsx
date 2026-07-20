@@ -17,16 +17,28 @@ import {
   updateWorkshopNoteAction,
 } from "@/app/actions/rp-mutations";
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
-import { Button, Card, Input } from "@/components/ui";
+import {
+  DashboardPartCardView,
+  resolveDashboardPartCardLayout,
+} from "@/components/dashboard/dashboard-part-card";
+import {
+  formatRegionalScopeParam,
+  StandardRegionalScopeBar,
+} from "@/components/dashboard/standard-regional-scope-bar";
+import { Button } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
-import { canEditWorkshopNote } from "@/lib/domain/authz";
+import {
+  canEditWorkshopNote,
+  isWorkshopNoteDashboardViewer,
+} from "@/lib/domain/authz";
 import {
   applyDashboardFilters,
   type DashboardFilterCapabilities,
   type DashboardFilterState,
 } from "@/lib/dashboard-filters";
 import type { DashboardPartCard, PartsViewType } from "@/lib/domain/dashboard-parts";
+import { getStandardRegionalButtonDefs } from "@/lib/domain/standard-regional-scopes";
 import {
   getDashboardUiLabels,
   type DashboardUiLabels,
@@ -89,6 +101,7 @@ export function PartsDashboard({
     item: "all",
     sort: "newest" as const,
   };
+  const dashboardCapabilities = filterCapabilities ?? {};
 
   const hasIpRecords = useMemo(
     () => initialParts.some((part) => part.recordType === "ip"),
@@ -137,6 +150,11 @@ export function PartsDashboard({
     return `${basePath}?${params.toString()}`;
   }
 
+  function hrefForRegionalScopes(scopes: string[]) {
+    const param = formatRegionalScopeParam(scopes);
+    return dashboardHref(view, param);
+  }
+
   async function run(action: () => Promise<{ error?: string }>) {
     const result = await runLocked(action);
     if (!result) return;
@@ -150,6 +168,9 @@ export function PartsDashboard({
   const viewerEmail = viewer.effectiveEmail;
   const isAnna = viewerEmail === "anna@meavo.com";
   const canCreateSimilar = viewer.role === "standard";
+  const isStandardViewer = !reviewerConfig;
+  const hideShippingSection = Boolean(reviewerConfig?.hideShippingAddressSection);
+  const dueInTechColumn = isWorkshopNoteDashboardViewer(viewerEmail);
   const logisticsButtonOnly = Boolean(reviewerConfig?.logisticsButtonOnly);
   const panelLogisticsButtonOnly = Boolean(
     reviewerConfig?.panelLogisticsButtonOnly,
@@ -160,8 +181,10 @@ export function PartsDashboard({
       : viewerEmail === "stefan@meavo.com"
         ? stefanIpReadyAction
         : null;
-  const scopes = viewer.regionalScopes;
-  const activeScope = regionalScope ?? scopes[0];
+  const regionalButtonDefs =
+    viewer.role === "standard"
+      ? getStandardRegionalButtonDefs(viewer.effectiveEmail)
+      : [];
 
   return (
     <div className="space-y-4">
@@ -176,29 +199,19 @@ export function PartsDashboard({
         </div>
       ) : null}
 
-      {scopes.length > 1 ? (
-        <nav className="flex flex-wrap gap-1">
-          {scopes.map((scope) => (
-            <Link
-              key={scope}
-              href={dashboardHref(view, scope)}
-              className={`rounded-md px-3 py-1 text-xs ${
-                activeScope === scope
-                  ? "bg-brand-600 text-white"
-                  : "bg-slate-100 text-slate-700"
-              }`}
-            >
-              {scope.replace(/_/g, " ")}
-            </Link>
-          ))}
-        </nav>
+      {regionalButtonDefs.length > 0 ? (
+        <StandardRegionalScopeBar
+          defs={regionalButtonDefs}
+          activeScopeParam={regionalScope}
+          hrefForScopes={hrefForRegionalScopes}
+        />
       ) : null}
 
       <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
         {tabs.filter((tab) => tab.id !== "ready" || showReadyTab).map((tab) => (
           <Link
             key={tab.id}
-            href={dashboardHref(tab.id, activeScope)}
+            href={dashboardHref(tab.id, regionalScope)}
             className={`rounded-md px-3 py-1.5 text-sm ${
               view === tab.id
                 ? "bg-white text-brand-700 shadow-sm"
@@ -229,22 +242,16 @@ export function PartsDashboard({
         </nav>
       ) : null}
 
-      {filterCapabilities ? (
-        <DashboardFilters
-          parts={initialParts}
-          filters={filters}
-          capabilities={filterCapabilities}
-          labels={labels}
-          basePath={`${basePath}?view=${view}`}
-          currentQuery=""
-        />
-      ) : null}
-
-      <Input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={labels.searchPlaceholder}
+      <DashboardFilters
+        parts={initialParts}
+        filters={filters}
+        capabilities={dashboardCapabilities}
+        labels={labels}
+        basePath={`${basePath}?view=${view}`}
+        currentQuery=""
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={labels.searchPlaceholder}
       />
 
       {pending || actionBusy ? (
@@ -258,6 +265,7 @@ export function PartsDashboard({
       <div className="grid gap-3">
         {parts.map((part) => {
           const isIp = part.recordType === "ip";
+          const isOwner = part.userId === viewer.effectiveEmail;
           const showLogisticsNotify =
             !isIp &&
             view === "active" &&
@@ -268,239 +276,232 @@ export function PartsDashboard({
             part.reviewGroup,
             part.itemType,
           );
-          return (
-          <Card key={part.id}>
-            <div className="flex flex-wrap items-start justify-between gap-2">
+          const showStatusBadge =
+            isStandardViewer &&
+            view === "active" &&
+            part.status !== "Shipped" &&
+            part.status !== "Cancelled";
+
+          const actionBtnClass = "min-h-[44px] w-full px-3 py-1.5 text-sm";
+          const standardActionClass =
+            "inline-flex min-h-[36px] flex-none items-center justify-center rounded-md border px-2.5 py-1 text-[0.78rem] font-semibold whitespace-nowrap sm:min-h-[32px]";
+
+          const dueDateFooter =
+            canEditDueDate && (view === "active" || view === "ready") ? (
+              <Button
+                disabled={actionBusy}
+                variant="ghost"
+                className="px-2 py-0.5 text-xs"
+                onClick={() => {
+                  const newDate = prompt(
+                    labels.promptNewDueDate,
+                    part.dueDate ?? "",
+                  );
+                  if (!newDate) return;
+                  const reason = prompt(labels.promptDueDateReason) ?? "";
+                  void run(() =>
+                    updateDueDateAction(
+                      part.recordType,
+                      part.rpNum,
+                      newDate,
+                      reason,
+                    ),
+                  );
+                }}
+              >
+                {labels.cardChangeDueDate}
+              </Button>
+            ) : null;
+
+          const workshopNoteFooter = workshopEditable ? (
+            <Button
+              disabled={actionBusy}
+              variant="secondary"
+              className="mt-1 px-2 py-0.5 text-xs"
+              onClick={() => {
+                const note = prompt(
+                  labels.promptWorkshopNote,
+                  part.workshopNote ?? "",
+                );
+                if (note === null) return;
+                void run(() =>
+                  updateWorkshopNoteAction(
+                    part.recordType,
+                    part.rpNum,
+                    note,
+                  ),
+                );
+              }}
+            >
+              {labels.cardEdit}
+            </Button>
+          ) : null;
+
+          const standardTechBottom =
+            isStandardViewer && isOwner ? (
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">
-                  {part.rpNum}
-                  {isIp ? (
-                    <span className="ml-2 rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-900">
-                      {labels.cardIpTagLong}
-                    </span>
-                  ) : null}
-                  {part.urgency === "urgent" ? (
-                    <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                      {labels.cardUrgentTag}
-                    </span>
-                  ) : null}
-                </h2>
-                <p className="text-sm text-slate-600">
-                  {isIp
-                    ? `${part.itemType ?? "—"} · ${part.reviewGroup ?? "—"} · ${part.status || "Active"}`
-                    : `${part.itemType} · ${part.market} · ${part.status || "Active"}`}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {!isIp && part.canEditRp ? (
-                  <Link
-                    href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
-                    className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
-                  >
-                    {labels.cardEdit}
-                  </Link>
+                {view === "active" && !isIp ? (
+                  <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+                    {part.canEditRp ? (
+                      <Link
+                        href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
+                        className={`${standardActionClass} border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}
+                      >
+                        {labels.cardEdit}
+                      </Link>
+                    ) : (
+                      <span
+                        title={part.editRpDisabledReason || "Edit unavailable"}
+                        className={`${standardActionClass} cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400`}
+                      >
+                        {labels.cardEdit}
+                      </span>
+                    )}
+                    {canCreateSimilar ? (
+                      <Link
+                        href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
+                        className={`${standardActionClass} border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}
+                      >
+                        {labels.cardCreateSimilar}
+                      </Link>
+                    ) : null}
+                    <Button
+                      disabled={actionBusy}
+                      variant="danger"
+                      className={`${standardActionClass} min-h-[36px] border-red-200 sm:min-h-[32px]`}
+                      onClick={() => void run(() => cancelRpAction(part.rpNum))}
+                    >
+                      {labels.cardCancel}
+                    </Button>
+                  </div>
                 ) : null}
-                {!isIp && canCreateSimilar ? (
-                  <Link
-                    href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
-                    className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
-                  >
-                    {labels.cardCreateSimilar}
-                  </Link>
-                ) : null}
-                {!isIp &&
-                view === "active" &&
-                part.userId === viewer.effectiveEmail ? (
-                  <Button
-                    disabled={actionBusy}
-                    variant="danger"
-                    className="px-3 py-1"
-                    onClick={() =>
-                      void run(() => cancelRpAction(part.rpNum))
-                    }
-                  >
-                    {labels.cardCancel}
-                  </Button>
-                ) : null}
-                {showLogisticsNotify ? (
-                  <Button
-                    disabled={actionBusy}
-                    className="px-3 py-1"
-                    onClick={() => void run(() => annaReadyAction(part.rpNum))}
-                  >
-                    {labels.cardNotifyLogistics}
-                  </Button>
-                ) : null}
-                {isIp && view === "active" && ipReadyAction ? (
-                  <Button
-                    disabled={actionBusy}
-                    className="px-3 py-1"
-                    onClick={() => void run(() => ipReadyAction(part.rpNum))}
-                  >
-                    {labels.cardIpReady}
-                  </Button>
-                ) : null}
-                {!isIp && isAnna && view === "active" ? (
-                  <Button
-                    disabled={actionBusy}
-                    className="px-3 py-1"
-                    onClick={() => void run(() => annaReadyAction(part.rpNum))}
-                  >
-                    {labels.cardReadyForLogistics}
-                  </Button>
-                ) : null}
-                {!isIp && isAnna && view === "ready" ? (
+                {(view === "archive" || view === "cancelled") && !isIp ? (
                   <Button
                     disabled={actionBusy}
                     variant="secondary"
-                    className="px-3 py-1"
-                    onClick={() =>
-                      void run(() => annaRevertReadyAction(part.rpNum))
-                    }
-                  >
-                    {labels.cardRevertReady}
-                  </Button>
-                ) : null}
-                {!isIp &&
-                part.userId === viewer.effectiveEmail &&
-                view === "archive" ? (
-                  <Button
-                    disabled={actionBusy}
-                    variant="secondary"
-                    className="px-3 py-1"
+                    className="min-h-[44px] w-full px-3 py-2.5 text-sm font-bold"
                     onClick={() => void run(() => revertRpAction(part.rpNum))}
                   >
                     {labels.cardBringBack}
                   </Button>
                 ) : null}
               </div>
+            ) : null;
+
+          const reviewerActions = !isStandardViewer ? (
+            <div className="flex h-full flex-col gap-2">
+              {!isIp && part.canEditRp ? (
+                <Link
+                  href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
+                  className={`inline-flex items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 ${actionBtnClass}`}
+                >
+                  {labels.cardEdit}
+                </Link>
+              ) : null}
+              {showLogisticsNotify ? (
+                <Button
+                  disabled={actionBusy}
+                  className={actionBtnClass}
+                  onClick={() => void run(() => annaReadyAction(part.rpNum))}
+                >
+                  {labels.cardNotifyLogistics}
+                </Button>
+              ) : null}
+              {isIp && view === "active" && ipReadyAction ? (
+                <Button
+                  disabled={actionBusy}
+                  className={actionBtnClass}
+                  onClick={() => void run(() => ipReadyAction(part.rpNum))}
+                >
+                  {labels.cardIpReady}
+                </Button>
+              ) : null}
+              {!isIp && isAnna && view === "active" ? (
+                <Button
+                  disabled={actionBusy}
+                  className={actionBtnClass}
+                  onClick={() => void run(() => annaReadyAction(part.rpNum))}
+                >
+                  {labels.cardReadyForLogistics}
+                </Button>
+              ) : null}
+              {!isIp && isAnna && view === "ready" ? (
+                <>
+                  <Button
+                    disabled={actionBusy}
+                    className={actionBtnClass}
+                    onClick={() =>
+                      void run(() =>
+                        shipRpAction(
+                          part.rpNum,
+                          part.shipMethod ?? "Pallet",
+                          part.tracking ?? "",
+                        ),
+                      )
+                    }
+                  >
+                    {labels.cardMarkShipped}
+                  </Button>
+                  <Button
+                    disabled={actionBusy}
+                    variant="secondary"
+                    className={actionBtnClass}
+                    onClick={() => {
+                      const method = prompt(
+                        labels.promptShipMethod,
+                        part.shipMethod ?? "",
+                      );
+                      const tracking = prompt(
+                        labels.promptTracking,
+                        part.tracking ?? "",
+                      );
+                      if (method === null) return;
+                      void run(() =>
+                        saveShipInfoAction(part.rpNum, method, tracking ?? ""),
+                      );
+                    }}
+                  >
+                    {labels.cardSaveShipping}
+                  </Button>
+                  <Button
+                    disabled={actionBusy}
+                    variant="secondary"
+                    className={actionBtnClass}
+                    onClick={() =>
+                      void run(() => annaRevertReadyAction(part.rpNum))
+                    }
+                  >
+                    {labels.cardRevertReady}
+                  </Button>
+                </>
+              ) : null}
             </div>
-            <dl className="mt-3 grid gap-1 text-sm text-slate-700 sm:grid-cols-2">
-              <div>
-                <dt className="text-slate-500">{labels.cardClient}</dt>
-                <dd>{part.client || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">{labels.cardDueDate}</dt>
-                <dd>{part.dueDate || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">{labels.cardModelBatch}</dt>
-                <dd>
-                  {part.model || "—"} / {part.boothId || "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">{labels.cardDescription}</dt>
-                <dd>{part.partDescription || part.itemType || "—"}</dd>
-              </div>
-              {part.shipMethod ? (
-                <div>
-                  <dt className="text-slate-500">{labels.cardShipping}</dt>
-                  <dd>
-                    {part.shipMethod} {part.tracking ? `· ${part.tracking}` : ""}
-                  </dd>
-                </div>
-              ) : null}
-              {workshopEditable || canEditDueDate ? (
-                <div className="sm:col-span-2">
-                  <dt className="text-slate-500">
-                    {workshopEditable ? labels.cardWorkshopNote : labels.cardDueDate}
-                  </dt>
-                  <dd className="mt-1 flex flex-wrap gap-2">
-                    {workshopEditable ? (
-                      <>
-                        <span>{part.workshopNote || "—"}</span>
-                        <Button
-                          disabled={actionBusy}
-                          variant="secondary"
-                          className="px-2 py-0.5 text-xs"
-                          onClick={() => {
-                            const note = prompt(
-                              labels.promptWorkshopNote,
-                              part.workshopNote ?? "",
-                            );
-                            if (note === null) return;
-                            void run(() =>
-                              updateWorkshopNoteAction(
-                                part.recordType,
-                                part.rpNum,
-                                note,
-                              ),
-                            );
-                          }}
-                        >
-                          {labels.cardEdit}
-                        </Button>
-                      </>
-                    ) : null}
-                    {canEditDueDate ? (
-                      <Button
-                        disabled={actionBusy}
-                        variant="secondary"
-                        className="px-2 py-0.5 text-xs"
-                        onClick={() => {
-                          const newDate = prompt(
-                            labels.promptNewDueDate,
-                            part.dueDate ?? "",
-                          );
-                          if (!newDate) return;
-                          const reason =
-                            prompt(labels.promptDueDateReason) ?? "";
-                          void run(() =>
-                            updateDueDateAction(
-                              part.recordType,
-                              part.rpNum,
-                              newDate,
-                              reason,
-                            ),
-                          );
-                        }}
-                      >
-                        {labels.cardChangeDueDate}
-                      </Button>
-                    ) : null}
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-            {!isIp && view === "ready" && isAnna ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  disabled={actionBusy}
-                  className="px-3 py-1 text-xs"
-                  onClick={() =>
-                    void run(() =>
-                      shipRpAction(part.rpNum, part.shipMethod ?? "Pallet", part.tracking ?? ""),
-                    )
-                  }
-                >
-                  {labels.cardMarkShipped}
-                </Button>
-                <Button
-                  disabled={actionBusy}
-                  variant="secondary"
-                  className="px-3 py-1 text-xs"
-                  onClick={() => {
-                    const method = prompt(
-                      labels.promptShipMethod,
-                      part.shipMethod ?? "",
-                    );
-                    const tracking = prompt(
-                      labels.promptTracking,
-                      part.tracking ?? "",
-                    );
-                    if (method === null) return;
-                    void run(() =>
-                      saveShipInfoAction(part.rpNum, method, tracking ?? ""),
-                    );
-                  }}
-                >
-                  {labels.cardSaveShipping}
-                </Button>
-              </div>
-            ) : null}
-          </Card>
+          ) : null;
+
+          const cardLayout = resolveDashboardPartCardLayout({
+            isStandardViewer,
+            view,
+            hideShippingSection,
+            hasActionsColumn: !isStandardViewer,
+          });
+
+          return (
+            <DashboardPartCardView
+              key={part.id}
+              part={part}
+              labels={labels}
+              view={view}
+              layout={cardLayout}
+              isIp={isIp}
+              hideShippingSection={hideShippingSection}
+              dueInTechColumn={dueInTechColumn}
+              showWorkshopNote={workshopEditable}
+              showStatusBadge={showStatusBadge}
+              techBottom={standardTechBottom}
+              workshopNoteFooter={workshopNoteFooter}
+              dueDateFooter={dueDateFooter}
+              actionsColumn={reviewerActions}
+            />
           );
         })}
       </div>

@@ -2,6 +2,8 @@
  * Role-based access (ported from GAS WebAppLogic.js).
  */
 
+import { getAllowedRegionalScopes } from "@/lib/domain/standard-regional-scopes";
+
 export type ReviewerDashboardConfig = {
   allowedReviewGroups: string[];
   allowedItemTypes?: string[];
@@ -13,6 +15,8 @@ export type ReviewerDashboardConfig = {
   logisticsButtonOnly?: boolean;
   /** Panel RP rows get the logistics-notify button; parts keep ship controls (Stefan). */
   panelLogisticsButtonOnly?: boolean;
+  /** Hide recipient/address column (Nikolay production dashboard). */
+  hideShippingAddressSection?: boolean;
 };
 
 const ADMIN_EMAILS = new Set(["boyan@meavo.com", "todor@meavo.com"]);
@@ -39,6 +43,7 @@ const REVIEWER_DASHBOARD_CONFIGS: Record<string, ReviewerDashboardConfig> = {
     showSourceFilter: true,
     mergeInternalProduction: true,
     logisticsButtonOnly: true,
+    hideShippingAddressSection: true,
   },
   "stefan@meavo.com": {
     allowedReviewGroups: ["KAZ"],
@@ -46,16 +51,6 @@ const REVIEWER_DASHBOARD_CONFIGS: Record<string, ReviewerDashboardConfig> = {
     mergeInternalProduction: true,
     panelLogisticsButtonOnly: true,
   },
-};
-
-const STANDARD_REGIONAL_SCOPES: Record<string, string[]> = {
-  "vojtech@meavo.com": ["all_markets"],
-  "hedi@meavo.com": ["fr_ch", "usa", "iberia", "de_balkans", "czechia"],
-  "carla@meavo.com": ["uk"],
-  "eftychia@meavo.com": ["uk"],
-  "dimitar@meavo.com": ["de_balkans", "france"],
-  "rosalia@meavo.com": ["usa"],
-  "giulia@meavo.com": ["iberia"],
 };
 
 export function normalizeEmail(email: string | null | undefined): string {
@@ -84,7 +79,7 @@ export function getReviewerDashboardConfig(
 }
 
 export function getRegionalScopes(email: string | null | undefined): string[] {
-  return STANDARD_REGIONAL_SCOPES[normalizeEmail(email)] ?? [];
+  return getAllowedRegionalScopes(email);
 }
 
 export function getEffectiveUserEmail(
@@ -175,6 +170,22 @@ export function canEditDueDate(
   const e = normalizeEmail(email);
   if (isAdminUser(e)) return true;
   return DUE_DATE_EDITORS.has(e);
+}
+
+const WORKSHOP_NOTE_DASHBOARD_VIEWERS = new Set([
+  "stefan@meavo.com",
+  "ivan@meavo.com",
+  "kalin@meavo.com",
+  "yavor@meavo.com",
+]);
+
+/** Due date pinned to the left column (GAS isWorkshopNoteDashboardViewer_). */
+export function isWorkshopNoteDashboardViewer(
+  email: string | null | undefined,
+): boolean {
+  const e = normalizeEmail(email);
+  if (isAdminUser(e)) return true;
+  return WORKSHOP_NOTE_DASHBOARD_VIEWERS.has(e);
 }
 
 const IP_LOGGER_EMAILS = new Set([
