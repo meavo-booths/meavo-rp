@@ -85,7 +85,7 @@ export default async function KalinDashboardPage({
     <div className="space-y-4">
       <nav className="flex flex-wrap gap-2">
         <Link href="/dashboard/kalin?mode=aup" className="rounded-lg bg-slate-100 px-3 py-1 text-sm">
-          AUP
+          Active Urgent Panels
         </Link>
         <Link href="/dashboard/kalin?mode=all" className="rounded-lg bg-slate-100 px-3 py-1 text-sm">
           All RPs
