@@ -31,6 +31,7 @@ import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import {
   canEditWorkshopNote,
   isWorkshopNoteDashboardViewer,
+  normalizeEmail,
 } from "@/lib/domain/authz";
 import {
   applyDashboardFilters,
@@ -265,7 +266,9 @@ export function PartsDashboard({
       <div className="grid gap-3">
         {parts.map((part) => {
           const isIp = part.recordType === "ip";
-          const isOwner = part.userId === viewer.effectiveEmail;
+          const isOwner =
+            normalizeEmail(part.userId) ===
+            normalizeEmail(viewer.effectiveEmail);
           const showLogisticsNotify =
             !isIp &&
             view === "active" &&
@@ -284,7 +287,7 @@ export function PartsDashboard({
 
           const actionBtnClass = "min-h-[44px] w-full px-3 py-1.5 text-sm";
           const standardActionClass =
-            "inline-flex min-h-[36px] flex-none items-center justify-center rounded-md border px-2.5 py-1 text-[0.78rem] font-semibold whitespace-nowrap sm:min-h-[32px]";
+            "inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-[0.78rem] font-semibold leading-none whitespace-nowrap sm:min-h-[32px]";
 
           const dueDateFooter =
             canEditDueDate && (view === "active" || view === "ready") ? (
@@ -365,14 +368,14 @@ export function PartsDashboard({
                         {labels.cardCreateSimilar}
                       </Link>
                     ) : null}
-                    <Button
+                    <button
+                      type="button"
                       disabled={actionBusy}
-                      variant="danger"
-                      className={`${standardActionClass} min-h-[36px] border-red-200 sm:min-h-[32px]`}
+                      className={`${standardActionClass} border-red-600 bg-red-600 text-white hover:border-red-700 hover:bg-red-700 disabled:opacity-50`}
                       onClick={() => void run(() => cancelRpAction(part.rpNum))}
                     >
                       {labels.cardCancel}
-                    </Button>
+                    </button>
                   </div>
                 ) : null}
                 {(view === "archive" || view === "cancelled") && !isIp ? (

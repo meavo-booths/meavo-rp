@@ -102,13 +102,16 @@ export function DashboardPartCardView({
   const dueLabel = formatDueDate(part.dueDate, dueFallback);
 
   const dueBadge = (
-    <span className="inline-block rounded-md border border-slate-900 bg-slate-900 px-3 py-1.5 text-[0.9rem] font-semibold tracking-wide text-white">
+    <span className="text-base font-extrabold tracking-tight text-slate-900 sm:text-lg">
       {dueLabel}
     </span>
   );
 
   const dueSection = (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <span className="text-[0.68rem] font-bold uppercase tracking-wide text-slate-500">
+        {labels.cardProductionDeadline}
+      </span>
       {dueBadge}
       {dueDateFooter}
     </div>

@@ -61,6 +61,7 @@ export type DashboardUiLabels = {
   cardBringBack: string;
   cardClient: string;
   cardDueDate: string;
+  cardProductionDeadline: string;
   cardModelBatch: string;
   cardDescription: string;
   cardShipping: string;
@@ -131,6 +132,7 @@ const EN: DashboardUiLabels = {
   cardBringBack: "Bring Back to Active",
   cardClient: "Client",
   cardDueDate: "Due date",
+  cardProductionDeadline: "Production Deadline",
   cardModelBatch: "Model / Booth",
   cardDescription: "Description",
   cardShipping: "Shipping",
@@ -201,6 +203,7 @@ const BG: DashboardUiLabels = {
   cardBringBack: "Върни активен",
   cardClient: "Клиент",
   cardDueDate: "Срок",
+  cardProductionDeadline: "Производствен срок",
   cardModelBatch: "Модел / Партида",
   cardDescription: "Описание",
   cardShipping: "Доставка",
