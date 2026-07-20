@@ -6,6 +6,7 @@ import {
   RP_COLUMN,
   RP_LAST_COLUMN,
 } from "@/lib/integrations/rp-sheet-columns";
+import { getDateKeyInScriptTz } from "@/lib/integrations/slack/script-timezone";
 
 type RpRow = RpRequest;
 type IpRow = RpInternalProductionRow;
@@ -18,11 +19,26 @@ function padRow(values: string[], lastCol: number): string[] {
   return row;
 }
 
+/** Calendar date in Europe/Sofia — never UTC via toISOString (shifts the day). */
 function formatDate(value: Date | null | undefined): string {
   if (!value) return "";
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toISOString().slice(0, 10);
+  return getDateKeyInScriptTz(d);
+}
+
+/** Store date-only values as UTC midnight for that calendar day. */
+function utcDateOnly(year: number, month: number, day: number): Date | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const d = new Date(Date.UTC(year, month - 1, day));
+  if (
+    d.getUTCFullYear() !== year ||
+    d.getUTCMonth() !== month - 1 ||
+    d.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return d;
 }
 
 function formatUrgency(value: string | null | undefined): string {
@@ -101,21 +117,54 @@ export function ipRowToSheetRow(row: IpRow): string[] {
   return padRow(values, IP_LAST_COLUMN);
 }
 
-function parseSheetDate(raw: string): Date | null {
-  const text = (raw ?? "").trim();
+/**
+ * Parse sheet date cells. Rep.Parts26 uses EU locale display (DD/MM/YYYY).
+ * Do not use `new Date("12/1/2026")` — that is US MM/DD and turns 12 Jan into 1 Dec.
+ */
+function parseSheetDate(raw: string | number | null | undefined): Date | null {
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    // Google Sheets serial (days since 1899-12-30)
+    const epoch = Date.UTC(1899, 11, 30);
+    const wholeDays = Math.floor(raw);
+    const d = new Date(epoch + wholeDays * 86_400_000);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const text = String(raw ?? "").trim();
   if (!text) return null;
-  const d = new Date(text);
-  return Number.isNaN(d.getTime()) ? null : d;
+
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+  if (iso) {
+    return utcDateOnly(Number(iso[1]), Number(iso[2]), Number(iso[3]));
+  }
+
+  // DD/MM/YYYY or D/M/YYYY (sheet FORMATTED_VALUE in EU locale)
+  const eu = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
+  if (eu) {
+    return utcDateOnly(Number(eu[3]), Number(eu[2]), Number(eu[1]));
+  }
+
+  // Sheets sometimes returns a bare serial as a string
+  if (/^\d+(\.\d+)?$/.test(text)) {
+    return parseSheetDate(Number(text));
+  }
+
+  return null;
 }
 
 function parseUrgency(raw: string): "standard" | "urgent" {
   return raw.trim().toLowerCase() === "urgent" ? "urgent" : "standard";
 }
 
+/**
+ * Order-sent column: blank = not sent; otherwise a date (EU or ISO).
+ * Legacy text markers like "Изпратено" are ignored (treated as not sent) —
+ * the sheet now uses dates only.
+ */
 function parseOrderSent(raw: string): Date | null {
   const text = (raw ?? "").trim();
   if (!text) return null;
-  return parseSheetDate(text) ?? new Date();
+  return parseSheetDate(text);
 }
 
 /** Parse a Rep.Parts26 sheet row (array from A onward) into insert/update payload. */

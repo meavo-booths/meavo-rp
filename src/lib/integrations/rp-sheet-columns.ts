@@ -36,7 +36,8 @@ export const RP_COLUMN = {
   ORDER_SENT: 30,
 } as const;
 
-/** Internal Production tab columns (0-based). */
+/** Internal Production tab columns (0-based). Matches GAS INTERNAL_PRODUCTION_COL (1-based).
+ *  Column O (index 14) is unused — Factory is N, Status starts at P. */
 export const IP_COLUMN = {
   IP_NUM: 0,
   ENTRY_DATE: 1,
@@ -52,12 +53,13 @@ export const IP_COLUMN = {
   NOTES: 11,
   WAREHOUSE: 12,
   FACTORY: 13,
-  STATUS: 14,
-  TRACKING: 15,
-  PAYER: 16,
-  SOURCE_RP: 17,
-  WORKSHOP_NOTE: 19,
-  ORDER_SENT: 20,
+  // 14 = O — unused gap in the sheet
+  STATUS: 15, // P
+  TRACKING: 16, // Q
+  PAYER: 17, // R
+  SOURCE_RP: 18, // S
+  WORKSHOP_NOTE: 19, // T
+  ORDER_SENT: 20, // U
 } as const;
 
 export const RP_LAST_COLUMN = RP_COLUMN.ORDER_SENT;
