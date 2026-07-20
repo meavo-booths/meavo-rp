@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminNeonDataPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; q?: string; page?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string }>;
 }) {
   const session = await auth();
   const email = session?.user?.email;
@@ -23,11 +23,9 @@ export default async function AdminNeonDataPage({
 
   const params = await searchParams;
   const tab: NeonSheetTab = params.tab === "ip" ? "ip" : "rp";
-  const page = Number(params.page) || 1;
   const data = await getNeonSheetPage({
     tab,
     search: params.q ?? "",
-    page,
   });
 
   return (

@@ -1,5 +1,3 @@
-import type { RpInternalProductionRow, RpRequest } from "@prisma/client";
-
 import {
   ipRowToSheetRow,
   rpRequestToSheetRow,
@@ -96,12 +94,16 @@ export type NeonSheetPage = {
   columns: NeonSheetColumn[];
   rows: NeonSheetTableRow[];
   total: number;
-  page: number;
-  pageSize: number;
+  firstEntityNum: number;
+  lastPopulatedNum: number;
   search: string;
 };
 
-const DEFAULT_PAGE_SIZE = 50;
+/** Column A (num) and urgency column — ignored when finding the last populated row. */
+const POPULATED_EXEMPT_KEYS: Record<NeonSheetTab, string[]> = {
+  rp: ["RP_NUM", "URGENCY"],
+  ip: ["IP_NUM", "URGENCY"],
+};
 
 function matchesSearch(cells: string[], search: string): boolean {
   if (!search) return true;
@@ -109,64 +111,112 @@ function matchesSearch(cells: string[], search: string): boolean {
   return cells.some((c) => c.toLowerCase().includes(q));
 }
 
-function sortRp(a: RpRequest, b: RpRequest): number {
-  const an = Number(String(a.rpNum).replace(/\D/g, "")) || 0;
-  const bn = Number(String(b.rpNum).replace(/\D/g, "")) || 0;
-  return bn - an;
+function parseEntityNum(raw: string): number {
+  const match = raw.match(/(\d+)/);
+  return match ? Number(match[1]) : 0;
 }
 
-function sortIp(a: RpInternalProductionRow, b: RpInternalProductionRow): number {
-  const an = Number(String(a.ipNum).replace(/\D/g, "")) || 0;
-  const bn = Number(String(b.ipNum).replace(/\D/g, "")) || 0;
-  return bn - an;
+function exemptColumnIndices(
+  columns: NeonSheetColumn[],
+  tab: NeonSheetTab,
+): Set<number> {
+  const exempt = new Set(POPULATED_EXEMPT_KEYS[tab]);
+  const indices = new Set<number>();
+  columns.forEach((col, index) => {
+    if (exempt.has(col.key)) indices.add(index);
+  });
+  return indices;
+}
+
+function hasPopulatedData(
+  cells: string[],
+  exemptIndices: Set<number>,
+): boolean {
+  return cells.some(
+    (cell, index) => !exemptIndices.has(index) && cell.trim() !== "",
+  );
+}
+
+function sortByEntityNumAsc(
+  a: { entityNum: number },
+  b: { entityNum: number },
+): number {
+  return a.entityNum - b.entityNum;
+}
+
+function buildNeonSheetRows(
+  mapped: Array<{ id: string; cells: string[]; entityNum: number }>,
+  columns: NeonSheetColumn[],
+  tab: NeonSheetTab,
+  search: string,
+): Pick<NeonSheetPage, "rows" | "total" | "firstEntityNum" | "lastPopulatedNum"> {
+  const exemptIndices = exemptColumnIndices(columns, tab);
+
+  const lastPopulatedNum = mapped.reduce((max, row) => {
+    if (!hasPopulatedData(row.cells, exemptIndices)) return max;
+    return Math.max(max, row.entityNum);
+  }, 0);
+
+  const inRange = mapped.filter((row) => row.entityNum <= lastPopulatedNum);
+  inRange.sort(sortByEntityNumAsc);
+
+  const filtered = search
+    ? inRange.filter((row) => matchesSearch(row.cells, search))
+    : inRange;
+
+  const firstEntityNum = filtered[0]?.entityNum ?? 0;
+
+  return {
+    rows: filtered.map(({ id, cells }) => ({ id, cells })),
+    total: filtered.length,
+    firstEntityNum,
+    lastPopulatedNum,
+  };
 }
 
 export async function getNeonSheetPage(options: {
   tab?: NeonSheetTab;
   search?: string;
-  page?: number;
-  pageSize?: number;
 }): Promise<NeonSheetPage> {
   const tab: NeonSheetTab = options.tab === "ip" ? "ip" : "rp";
   const search = (options.search ?? "").trim();
-  const pageSize = Math.min(
-    Math.max(options.pageSize ?? DEFAULT_PAGE_SIZE, 10),
-    200,
-  );
-  const page = Math.max(options.page ?? 1, 1);
   const columns = tab === "rp" ? NEON_RP_SHEET_COLUMNS : NEON_IP_SHEET_COLUMNS;
 
   if (tab === "rp") {
     const all = await prisma.rpRequest.findMany();
-    all.sort(sortRp);
     const mapped = all.map((row) => {
       const sheet = rpRequestToSheetRow(row);
       const cells = columns.map((col) => cellAt(sheet, col.key, "rp"));
-      return { id: row.id, cells, _match: matchesSearch(cells, search) };
+      return {
+        id: row.id,
+        cells,
+        entityNum: parseEntityNum(row.rpNum),
+      };
     });
-    const filtered = mapped.filter((r) => r._match);
-    const total = filtered.length;
-    const start = (page - 1) * pageSize;
-    const rows = filtered.slice(start, start + pageSize).map(({ id, cells }) => ({
-      id,
-      cells,
-    }));
-    return { tab, columns, rows, total, page, pageSize, search };
+    const { rows, total, firstEntityNum, lastPopulatedNum } = buildNeonSheetRows(
+      mapped,
+      columns,
+      tab,
+      search,
+    );
+    return { tab, columns, rows, total, firstEntityNum, lastPopulatedNum, search };
   }
 
   const all = await prisma.rpInternalProductionRow.findMany();
-  all.sort(sortIp);
   const mapped = all.map((row) => {
     const sheet = ipRowToSheetRow(row);
     const cells = columns.map((col) => cellAt(sheet, col.key, "ip"));
-    return { id: row.id, cells, _match: matchesSearch(cells, search) };
+    return {
+      id: row.id,
+      cells,
+      entityNum: parseEntityNum(row.ipNum),
+    };
   });
-  const filtered = mapped.filter((r) => r._match);
-  const total = filtered.length;
-  const start = (page - 1) * pageSize;
-  const rows = filtered.slice(start, start + pageSize).map(({ id, cells }) => ({
-    id,
-    cells,
-  }));
-  return { tab, columns, rows, total, page, pageSize, search };
+  const { rows, total, firstEntityNum, lastPopulatedNum } = buildNeonSheetRows(
+    mapped,
+    columns,
+    tab,
+    search,
+  );
+  return { tab, columns, rows, total, firstEntityNum, lastPopulatedNum, search };
 }
