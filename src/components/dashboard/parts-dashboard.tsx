@@ -149,6 +149,7 @@ export function PartsDashboard({
   const canEditDueDate = Boolean(reviewerConfig);
   const viewerEmail = viewer.effectiveEmail;
   const isAnna = viewerEmail === "anna@meavo.com";
+  const canCreateSimilar = viewer.role === "standard";
   const logisticsButtonOnly = Boolean(reviewerConfig?.logisticsButtonOnly);
   const panelLogisticsButtonOnly = Boolean(
     reviewerConfig?.panelLogisticsButtonOnly,
@@ -275,12 +276,12 @@ export function PartsDashboard({
                   {part.rpNum}
                   {isIp ? (
                     <span className="ml-2 rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-900">
-                      Вътрешна продукция
+                      {labels.cardIpTagLong}
                     </span>
                   ) : null}
                   {part.urgency === "urgent" ? (
                     <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                      Спешно
+                      {labels.cardUrgentTag}
                     </span>
                   ) : null}
                 </h2>
@@ -296,15 +297,15 @@ export function PartsDashboard({
                     href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
                     className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
                   >
-                    Редакция
+                    {labels.cardEdit}
                   </Link>
                 ) : null}
-                {!isIp ? (
+                {!isIp && canCreateSimilar ? (
                   <Link
                     href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
                     className="rounded-lg border border-slate-200 px-3 py-1 text-sm hover:bg-slate-50"
                   >
-                    Подобен RP
+                    {labels.cardCreateSimilar}
                   </Link>
                 ) : null}
                 {!isIp &&
@@ -318,7 +319,7 @@ export function PartsDashboard({
                       void run(() => cancelRpAction(part.rpNum))
                     }
                   >
-                    Отказ
+                    {labels.cardCancel}
                   </Button>
                 ) : null}
                 {showLogisticsNotify ? (
@@ -327,7 +328,7 @@ export function PartsDashboard({
                     className="px-3 py-1"
                     onClick={() => void run(() => annaReadyAction(part.rpNum))}
                   >
-                    Информирай логистика
+                    {labels.cardNotifyLogistics}
                   </Button>
                 ) : null}
                 {isIp && view === "active" && ipReadyAction ? (
@@ -336,7 +337,7 @@ export function PartsDashboard({
                     className="px-3 py-1"
                     onClick={() => void run(() => ipReadyAction(part.rpNum))}
                   >
-                    Готово за склад
+                    {labels.cardIpReady}
                   </Button>
                 ) : null}
                 {!isIp && isAnna && view === "active" ? (
@@ -345,7 +346,7 @@ export function PartsDashboard({
                     className="px-3 py-1"
                     onClick={() => void run(() => annaReadyAction(part.rpNum))}
                   >
-                    Готов за логистика
+                    {labels.cardReadyForLogistics}
                   </Button>
                 ) : null}
                 {!isIp && isAnna && view === "ready" ? (
@@ -357,7 +358,7 @@ export function PartsDashboard({
                       void run(() => annaRevertReadyAction(part.rpNum))
                     }
                   >
-                    Върни в активни
+                    {labels.cardRevertReady}
                   </Button>
                 ) : null}
                 {!isIp &&
@@ -369,33 +370,33 @@ export function PartsDashboard({
                     className="px-3 py-1"
                     onClick={() => void run(() => revertRpAction(part.rpNum))}
                   >
-                    Върни активен
+                    {labels.cardBringBack}
                   </Button>
                 ) : null}
               </div>
             </div>
             <dl className="mt-3 grid gap-1 text-sm text-slate-700 sm:grid-cols-2">
               <div>
-                <dt className="text-slate-500">Клиент</dt>
+                <dt className="text-slate-500">{labels.cardClient}</dt>
                 <dd>{part.client || "—"}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Срок</dt>
+                <dt className="text-slate-500">{labels.cardDueDate}</dt>
                 <dd>{part.dueDate || "—"}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Модел / Партида</dt>
+                <dt className="text-slate-500">{labels.cardModelBatch}</dt>
                 <dd>
                   {part.model || "—"} / {part.boothId || "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Описание</dt>
+                <dt className="text-slate-500">{labels.cardDescription}</dt>
                 <dd>{part.partDescription || part.itemType || "—"}</dd>
               </div>
               {part.shipMethod ? (
                 <div>
-                  <dt className="text-slate-500">Доставка</dt>
+                  <dt className="text-slate-500">{labels.cardShipping}</dt>
                   <dd>
                     {part.shipMethod} {part.tracking ? `· ${part.tracking}` : ""}
                   </dd>
@@ -404,7 +405,7 @@ export function PartsDashboard({
               {workshopEditable || canEditDueDate ? (
                 <div className="sm:col-span-2">
                   <dt className="text-slate-500">
-                    {workshopEditable ? "Бележка цех" : "Срок"}
+                    {workshopEditable ? labels.cardWorkshopNote : labels.cardDueDate}
                   </dt>
                   <dd className="mt-1 flex flex-wrap gap-2">
                     {workshopEditable ? (
@@ -415,7 +416,10 @@ export function PartsDashboard({
                           variant="secondary"
                           className="px-2 py-0.5 text-xs"
                           onClick={() => {
-                            const note = prompt("Бележка цех", part.workshopNote ?? "");
+                            const note = prompt(
+                              labels.promptWorkshopNote,
+                              part.workshopNote ?? "",
+                            );
                             if (note === null) return;
                             void run(() =>
                               updateWorkshopNoteAction(
@@ -426,7 +430,7 @@ export function PartsDashboard({
                             );
                           }}
                         >
-                          Редакция
+                          {labels.cardEdit}
                         </Button>
                       </>
                     ) : null}
@@ -436,9 +440,13 @@ export function PartsDashboard({
                         variant="secondary"
                         className="px-2 py-0.5 text-xs"
                         onClick={() => {
-                          const newDate = prompt("Нов срок (YYYY-MM-DD)", part.dueDate ?? "");
+                          const newDate = prompt(
+                            labels.promptNewDueDate,
+                            part.dueDate ?? "",
+                          );
                           if (!newDate) return;
-                          const reason = prompt("Причина за промяна") ?? "";
+                          const reason =
+                            prompt(labels.promptDueDateReason) ?? "";
                           void run(() =>
                             updateDueDateAction(
                               part.recordType,
@@ -449,7 +457,7 @@ export function PartsDashboard({
                           );
                         }}
                       >
-                        Срок
+                        {labels.cardChangeDueDate}
                       </Button>
                     ) : null}
                   </dd>
@@ -467,22 +475,28 @@ export function PartsDashboard({
                     )
                   }
                 >
-                  Маркирай изпратен
+                  {labels.cardMarkShipped}
                 </Button>
                 <Button
                   disabled={actionBusy}
                   variant="secondary"
                   className="px-3 py-1 text-xs"
                   onClick={() => {
-                    const method = prompt("Ship method", part.shipMethod ?? "");
-                    const tracking = prompt("Tracking", part.tracking ?? "");
+                    const method = prompt(
+                      labels.promptShipMethod,
+                      part.shipMethod ?? "",
+                    );
+                    const tracking = prompt(
+                      labels.promptTracking,
+                      part.tracking ?? "",
+                    );
                     if (method === null) return;
                     void run(() =>
                       saveShipInfoAction(part.rpNum, method, tracking ?? ""),
                     );
                   }}
                 >
-                  Запази доставка
+                  {labels.cardSaveShipping}
                 </Button>
               </div>
             ) : null}

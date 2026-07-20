@@ -1,10 +1,18 @@
 /**
- * UI locale strings — GAS parity (getLabels_ in index.html).
- * English: standard field staff, admin “own RPs”, logistics, AUP.
- * Bulgarian: factory/warehouse reviewers (Anna, Nikolay, Stefan, Ivan, Todor).
+ * UI locale strings — GAS parity (`getLabels_` / `getViewerRole_` in legacy-gas/index.html).
+ *
+ * ## Which accounts get which language
+ *
+ * | Locale | Accounts / roles |
+ * |--------|------------------|
+ * | **English** | Regional field staff (`carla@`, `hedi@`, `vojtech@`, …), `admin` (incl. own-parts view), `logistics` (Georgi, Nikola), `urgent_panels` (Kalin/Yavor AUP), admin simulating any EN persona |
+ * | **Bulgarian** | Factory/warehouse: `anna@` (`reviewer`), `nikolay@`, `stefan@`, `ivan@`, `todor@` |
+ *
+ * GAS maps Nikolay/Stefan reviewer configs to the `"anna"` label set (BG). The webapp uses
+ * the same strings via `nikolay` / `stefan` / `reviewer` roles.
  */
 
-import type { ViewerRole } from "@/lib/viewer-context";
+import type { ViewerContext, ViewerRole } from "@/lib/viewer-context";
 
 export type UiLocale = "en" | "bg";
 
@@ -39,6 +47,32 @@ export type DashboardUiLabels = {
   itemParts: string;
   itemPanels: string;
   updating: string;
+  /** RP card + row actions (GAS getLabels_ card strings). */
+  cardUrgentTag: string;
+  cardIpTag: string;
+  cardIpTagLong: string;
+  cardEdit: string;
+  cardCreateSimilar: string;
+  cardCancel: string;
+  cardNotifyLogistics: string;
+  cardIpReady: string;
+  cardReadyForLogistics: string;
+  cardRevertReady: string;
+  cardBringBack: string;
+  cardClient: string;
+  cardDueDate: string;
+  cardModelBatch: string;
+  cardDescription: string;
+  cardShipping: string;
+  cardWorkshopNote: string;
+  cardChangeDueDate: string;
+  cardMarkShipped: string;
+  cardSaveShipping: string;
+  promptWorkshopNote: string;
+  promptNewDueDate: string;
+  promptDueDateReason: string;
+  promptShipMethod: string;
+  promptTracking: string;
 };
 
 const EN: DashboardUiLabels = {
@@ -72,6 +106,31 @@ const EN: DashboardUiLabels = {
   itemParts: "Parts",
   itemPanels: "Panels",
   updating: "Updating…",
+  cardUrgentTag: "URGENT",
+  cardIpTag: "IP",
+  cardIpTagLong: "Internal production",
+  cardEdit: "Edit",
+  cardCreateSimilar: "Create New",
+  cardCancel: "Cancel",
+  cardNotifyLogistics: "Notify logistics",
+  cardIpReady: "Ready for warehouse",
+  cardReadyForLogistics: "Ready for logistics",
+  cardRevertReady: "Return to Active",
+  cardBringBack: "Bring Back to Active",
+  cardClient: "Client",
+  cardDueDate: "Due date",
+  cardModelBatch: "Model / Booth",
+  cardDescription: "Description",
+  cardShipping: "Shipping",
+  cardWorkshopNote: "Бележка Цех",
+  cardChangeDueDate: "Change",
+  cardMarkShipped: "Mark Shipped",
+  cardSaveShipping: "Save",
+  promptWorkshopNote: "Workshop note",
+  promptNewDueDate: "New due date (YYYY-MM-DD)",
+  promptDueDateReason: "Reason for change",
+  promptShipMethod: "Ship method",
+  promptTracking: "Tracking",
 };
 
 const BG: DashboardUiLabels = {
@@ -105,6 +164,31 @@ const BG: DashboardUiLabels = {
   itemParts: "Части",
   itemPanels: "Панели",
   updating: "Обновяване…",
+  cardUrgentTag: "Спешно",
+  cardIpTag: "ВП",
+  cardIpTagLong: "Вътрешна продукция",
+  cardEdit: "Редакция",
+  cardCreateSimilar: "Подобен RP",
+  cardCancel: "Отказ",
+  cardNotifyLogistics: "Информирай логистика",
+  cardIpReady: "Готово за склад",
+  cardReadyForLogistics: "Готов за логистика",
+  cardRevertReady: "Върни в активни",
+  cardBringBack: "Върни активен",
+  cardClient: "Клиент",
+  cardDueDate: "Срок",
+  cardModelBatch: "Модел / Партида",
+  cardDescription: "Описание",
+  cardShipping: "Доставка",
+  cardWorkshopNote: "Бележка цех",
+  cardChangeDueDate: "Промени",
+  cardMarkShipped: "Маркирай изпратен",
+  cardSaveShipping: "Запази доставка",
+  promptWorkshopNote: "Бележка цех",
+  promptNewDueDate: "Нов срок (YYYY-MM-DD)",
+  promptDueDateReason: "Причина за промяна",
+  promptShipMethod: "Метод на изпращане",
+  promptTracking: "Тракинг номер",
 };
 
 /** Roles that use Bulgarian UI (factory / warehouse dashboards). */
@@ -130,6 +214,13 @@ export function getDashboardUiLabels(
   options?: { ownLoggedParts?: boolean },
 ): DashboardUiLabels {
   return getUiLocaleForRole(role, options) === "bg" ? BG : EN;
+}
+
+export function getDashboardUiLabelsForViewer(
+  viewer: ViewerContext,
+  options?: { ownLoggedParts?: boolean },
+): DashboardUiLabels {
+  return getDashboardUiLabels(viewer.role, options);
 }
 
 export function ownRpsTitleForEmail(email: string): string {
