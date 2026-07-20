@@ -87,7 +87,7 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
 
   return (
     <div className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-2 sm:px-4">
+      <div className="mx-auto flex max-w-[1720px] flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-2 sm:px-4">
         <h1 className="text-sm font-semibold text-slate-900 sm:text-base">
           {title}
         </h1>

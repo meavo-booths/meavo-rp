@@ -32,14 +32,14 @@ export default async function AppLayout({
       >
         <AppChromeTitle viewer={viewer} />
       </Suspense>
-      <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-4 sm:py-8">
+      <main className="mx-auto max-w-[1720px] space-y-4 px-3 py-4 sm:px-4 sm:py-8">
         {viewer.isAdmin ? (
           <AdminSimulateBar initialEmail={simulatedEmail} />
         ) : null}
         <AppActionBar labels={labels} sessionEmail={viewer.sessionEmail} />
         {children}
       </main>
-      <footer className="mx-auto max-w-6xl px-4 pb-8 text-center text-xs text-slate-400">
+      <footer className="mx-auto max-w-[1720px] px-4 pb-8 text-center text-xs text-slate-400">
         <Link href="https://meavo.app" className="hover:text-slate-600">
           meavo.app
         </Link>

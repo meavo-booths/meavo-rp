@@ -17,7 +17,7 @@ export function AppHeader({
 }) {
   return (
     <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-[1720px] flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/dashboard" className="text-lg font-semibold text-slate-900">
           Meavo RP
         </Link>
