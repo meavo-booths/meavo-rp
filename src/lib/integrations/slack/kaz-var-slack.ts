@@ -1,7 +1,6 @@
 import {
   collectFactoryPanelsForOrder,
   collectPanelsMissingWorkshopNote,
-  markPanelOrderEntriesSent,
   type PanelOrderEntry,
 } from "@/lib/domain/panel-order-collect";
 import {
@@ -89,7 +88,6 @@ async function sendPanelPdfBatch(
     built.fileName,
     comment,
   );
-  await markPanelOrderEntriesSent(entries);
   return entries.length;
 }
 

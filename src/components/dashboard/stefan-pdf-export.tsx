@@ -94,7 +94,6 @@ export function StefanPdfExport({
       const params = new URLSearchParams();
       if (rpNums.length) params.set("rpNums", rpNums.join(","));
       if (ipNums.length) params.set("ipNums", ipNums.join(","));
-      params.set("markExported", "1");
 
       const res = await fetch(`/api/stefan/panels-pdf?${params.toString()}`);
       if (!res.ok) {
@@ -154,7 +153,7 @@ export function StefanPdfExport({
               ) : null}
               {panel.orderSentAt ? (
                 <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-800">
-                  Експортиран {panel.orderSentAt}
+                  Sent {panel.orderSentAt}
                 </span>
               ) : null}
               {" — "}

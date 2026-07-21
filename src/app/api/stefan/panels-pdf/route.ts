@@ -3,14 +3,12 @@ import { NextResponse } from "next/server";
 import { requireApiSession } from "@/lib/api/require-session";
 import { getDashboardParts } from "@/lib/domain/dashboard-parts";
 import { getIpDashboardCards } from "@/lib/domain/dashboard-ip";
-import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import {
   allRowsHaveWorkshopNote,
   buildStefanPanelsPdf,
   partCardToStefanExportRow,
   type StefanPanelExportRow,
 } from "@/lib/domain/stefan-panel-pdf";
-import { prisma } from "@/lib/prisma";
 import { resolveViewerContext } from "@/lib/viewer-context";
 
 function ipCardToStefanRow(card: {
@@ -88,33 +86,6 @@ export async function GET(request: Request) {
 
   const pdfBytes = await buildStefanPanelsPdf(rows);
   const fileName = `panels-${new Date().toISOString().slice(0, 10)}.pdf`;
-
-  const shouldMark = url.searchParams.get("markExported") === "1";
-  if (shouldMark) {
-    const now = new Date();
-    for (const num of rpNums) {
-      const rp = await prisma.rpRequest.findUnique({ where: { rpNum: num } });
-      if (rp && !rp.orderSentAt) {
-        await prisma.rpRequest.update({
-          where: { id: rp.id },
-          data: { orderSentAt: now, updatedAt: now },
-        });
-        await enqueueSheetSync("rp", rp.id);
-      }
-    }
-    for (const num of ipNums) {
-      const ip = await prisma.rpInternalProductionRow.findUnique({
-        where: { ipNum: num },
-      });
-      if (ip && !ip.orderSentAt) {
-        await prisma.rpInternalProductionRow.update({
-          where: { id: ip.id },
-          data: { orderSentAt: now, updatedAt: now },
-        });
-        await enqueueSheetSync("ip", ip.id);
-      }
-    }
-  }
 
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AutomationSettingsForm } from "@/components/admin/automation-settings-form";
+import { AdminNav } from "@/components/admin/admin-nav";
 import {
   AUTOMATION_SETTING_ROWS,
   getAutomationSettings,
@@ -21,9 +21,7 @@ export default async function AdminAutomationsPage() {
 
   return (
     <div className="space-y-4">
-      <Link href="/dashboard" className="text-sm text-brand-600 hover:underline">
-        ← Dashboard
-      </Link>
+      <AdminNav />
       <AutomationSettingsForm
         rows={AUTOMATION_SETTING_ROWS}
         settings={settings}

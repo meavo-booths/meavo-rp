@@ -48,6 +48,12 @@ function titleForPath(
   if (pathname.startsWith("/log")) {
     return labels.logRp;
   }
+  if (pathname.startsWith("/admin/dashboard")) {
+    return "Admin dashboard";
+  }
+  if (pathname.startsWith("/admin/simulate")) {
+    return "Admin — Simulate";
+  }
   if (pathname.startsWith("/admin/automations")) {
     return "Automations";
   }
@@ -87,16 +93,14 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
 
   return (
     <div className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-[1720px] flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-2 sm:px-4">
-        <h1 className="text-sm font-semibold text-slate-900 sm:text-base">
+      <div className="mx-auto flex max-w-[1720px] flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-1.5 sm:px-4">
+        <h1 className="text-sm font-semibold text-slate-900 sm:text-[0.95rem]">
           {title}
         </h1>
         {viewer.isSimulating ? (
-          <p className="text-xs text-slate-500 sm:text-sm">
+          <p className="text-xs font-medium text-brand-700 sm:text-sm">
             {labels.viewingAs}{" "}
-            <strong className="font-medium text-slate-700">
-              {viewer.effectiveEmail}
-            </strong>
+            <strong className="font-semibold">{viewer.effectiveEmail}</strong>
           </p>
         ) : null}
       </div>

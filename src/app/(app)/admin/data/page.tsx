@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { AdminNeonSheetTable } from "@/components/admin/neon-sheet-table";
+import { AdminNav } from "@/components/admin/admin-nav";
 import {
   getNeonSheetPage,
   type NeonSheetTab,
@@ -30,17 +30,7 @@ export default async function AdminNeonDataPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3 text-sm">
-        <Link href="/dashboard" className="text-brand-600 hover:underline">
-          ← Dashboard
-        </Link>
-        <Link
-          href="/admin/automations"
-          className="text-brand-600 hover:underline"
-        >
-          Automations
-        </Link>
-      </div>
+      <AdminNav />
       <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
         <AdminNeonSheetTable data={data} />
       </Suspense>
