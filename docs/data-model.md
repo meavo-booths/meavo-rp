@@ -12,6 +12,7 @@ Current pinned version: see `package.json` → `"@meavo/db": "git+...#vX.Y.Z"`.
 RpRequest (1) ──< RpLineItem
      │
      ├──< RpPhoto
+     ├──< RpLifecycleEvent (polymorphic entityId)
      └──< RpInternalProductionRow (sourceRp)
 
 RpLineItem ── optional ──> RpInternalProductionRow (stock replacement / source)
@@ -44,6 +45,10 @@ One RP header. Maps 1:1 to a Rep.Parts26 row (columns via `sheet-row-mapper.ts`)
 | `syncedAt` | Last successful sheet backup |
 
 Enums: `urgency` → `RpUrgency` (`standard` \| `urgent`).
+
+### `RpLifecycleEvent` → `rp_lifecycle_events`
+
+Append-only history for RP/IP detail timelines (`@meavo/db` ≥ v0.25.0). Polymorphic via `entityType` (`rp`\|`ip`) + `entityId`. Written by domain mutations; older rows may also show inferred milestones from `entryDate` / `orderSentAt` / `readyMarkedAt` / stock timestamps.
 
 ### `RpLineItem` → `rp_line_items`
 

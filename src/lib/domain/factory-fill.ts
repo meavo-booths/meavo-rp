@@ -1,6 +1,7 @@
 import type { Prisma, RpRequest } from "@prisma/client";
 
 import { shouldRunInWebapp } from "@/lib/domain/automation-settings";
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { autoPayerUpdate } from "@/lib/domain/rp-payer";
 import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
@@ -88,6 +89,17 @@ async function applyBriefedRules(row: RpRequest): Promise<boolean> {
     where: { id: row.id },
     data: { ...updates, updatedAt: new Date() },
   });
+  if (typeof updates.status === "string") {
+    await recordLifecycleEvent({
+      entityType: "rp",
+      entityId: row.id,
+      eventType: "status_changed",
+      fromStatus: row.status,
+      toStatus: updates.status,
+      actorEmail: null,
+      payload: { source: "factory_fill" },
+    });
+  }
   await enqueueSheetSync("rp", row.id);
   return true;
 }

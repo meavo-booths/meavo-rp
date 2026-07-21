@@ -22,6 +22,7 @@ import {
   DashboardPartCardView,
   resolveDashboardPartCardLayout,
 } from "@/components/dashboard/dashboard-part-card";
+import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import {
   formatRegionalScopeParam,
   StandardRegionalScopeBar,
@@ -98,6 +99,7 @@ export function PartsDashboard({
   const [pending, startTransition] = useTransition();
   const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
+  const { openDetail, modal: detailModal } = useEntityDetailModal();
 
   const filters = initialFilters ?? {
     market: "all",
@@ -549,10 +551,12 @@ export function PartsDashboard({
               payerFooter={payerFooter}
               dueDateFooter={dueDateFooter}
               actionsColumn={reviewerActions}
+              onOpenDetail={() => openDetail(part.recordType, part.rpNum)}
             />
           );
         })}
       </div>
+      {detailModal}
     </div>
   );
 }

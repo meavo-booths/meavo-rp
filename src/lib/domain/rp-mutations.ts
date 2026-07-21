@@ -4,6 +4,7 @@ import {
   normalizeWorkshopFactoryGroup,
   canEditPayer,
 } from "@/lib/domain/authz";
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { computeRpPayerForDb } from "@/lib/domain/rp-payer";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
@@ -31,6 +32,7 @@ export async function updatePartToShipped(
   rpNum: string,
   method: string,
   tracking: string,
+  actorEmail?: string | null,
 ): Promise<void> {
   const row = await findRp(rpNum);
   await prisma.rpRequest.update({
@@ -41,6 +43,15 @@ export async function updatePartToShipped(
       tracking: tracking.trim(),
       updatedAt: new Date(),
     },
+  });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "shipped",
+    fromStatus: row.status,
+    toStatus: "Shipped",
+    actorEmail,
+    payload: { method: method.trim(), tracking: tracking.trim() },
   });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "status_changed");
@@ -57,6 +68,14 @@ export async function revertToActive(rpNum: string, actorEmail: string): Promise
     where: { id: row.id },
     data: { status: nextStatus, updatedAt: new Date() },
   });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: nextStatus === "Ready" ? "ready_marked" : "status_changed",
+    fromStatus: row.status,
+    toStatus: nextStatus,
+    actorEmail,
+  });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, nextStatus === "Ready" ? "ready_marked" : "status_changed");
 }
@@ -65,6 +84,7 @@ export async function saveShipInfoOnly(
   rpNum: string,
   method: string,
   tracking: string,
+  actorEmail?: string | null,
 ): Promise<void> {
   const row = await findRp(rpNum);
   await prisma.rpRequest.update({
@@ -75,11 +95,21 @@ export async function saveShipInfoOnly(
       updatedAt: new Date(),
     },
   });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "ship_info_changed",
+    actorEmail,
+    payload: { method: method.trim(), tracking: tracking.trim() },
+  });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "ship_info_changed");
 }
 
-export async function annaMarkReadyForLogistics(rpNum: string): Promise<void> {
+export async function annaMarkReadyForLogistics(
+  rpNum: string,
+  actorEmail?: string | null,
+): Promise<void> {
   const row = await findRp(rpNum);
   await prisma.rpRequest.update({
     where: { id: row.id },
@@ -90,11 +120,22 @@ export async function annaMarkReadyForLogistics(rpNum: string): Promise<void> {
       updatedAt: new Date(),
     },
   });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "ready_marked",
+    fromStatus: row.status,
+    toStatus: "Ready",
+    actorEmail,
+  });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "ready_marked");
 }
 
-export async function annaRevertReadyToActive(rpNum: string): Promise<void> {
+export async function annaRevertReadyToActive(
+  rpNum: string,
+  actorEmail?: string | null,
+): Promise<void> {
   const row = await findRp(rpNum);
   if ((row.status ?? "").trim() !== "Ready") {
     throw new Error("Not ready");
@@ -107,6 +148,14 @@ export async function annaRevertReadyToActive(rpNum: string): Promise<void> {
       updatedAt: new Date(),
     },
   });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "ready_reverted",
+    fromStatus: "Ready",
+    toStatus: "Briefed",
+    actorEmail,
+  });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "ready_reverted");
 }
@@ -114,6 +163,7 @@ export async function annaRevertReadyToActive(rpNum: string): Promise<void> {
 export async function briefActiveUrgentPanel(
   rpNum: string,
   productionEta: string,
+  actorEmail?: string | null,
 ): Promise<void> {
   const row = await findRp(rpNum);
   await prisma.rpRequest.update({
@@ -124,6 +174,15 @@ export async function briefActiveUrgentPanel(
       updatedAt: new Date(),
     },
   });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "status_changed",
+    fromStatus: row.status,
+    toStatus: "In Production",
+    actorEmail,
+    payload: productionEta ? { dueDate: productionEta } : undefined,
+  });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "status_changed");
 }
@@ -131,6 +190,7 @@ export async function briefActiveUrgentPanel(
 export async function updateActiveUrgentPanelsEta(
   rpNum: string,
   newDate: string,
+  actorEmail?: string | null,
 ): Promise<void> {
   const row = await findRp(rpNum);
   await prisma.rpRequest.update({
@@ -140,11 +200,21 @@ export async function updateActiveUrgentPanelsEta(
       updatedAt: new Date(),
     },
   });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "due_date_changed",
+    actorEmail,
+    payload: { dueDate: newDate || null },
+  });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "status_changed");
 }
 
-export async function markActiveUrgentPanelReady(rpNum: string): Promise<void> {
+export async function markActiveUrgentPanelReady(
+  rpNum: string,
+  actorEmail?: string | null,
+): Promise<void> {
   const row = await findRp(rpNum);
   const shipMethod = isUsaMarket(row.market) ? "Container" : "Pallet";
   await prisma.rpRequest.update({
@@ -155,6 +225,15 @@ export async function markActiveUrgentPanelReady(rpNum: string): Promise<void> {
       readyMarkedAt: new Date(),
       updatedAt: new Date(),
     },
+  });
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: row.id,
+    eventType: "ready_marked",
+    fromStatus: row.status,
+    toStatus: "Ready",
+    actorEmail,
+    payload: { shipMethod },
   });
   await enqueueSheetSync("rp", row.id);
   void notifyAfterRpMutation(rpNum, "ready_marked");
@@ -188,6 +267,13 @@ export async function updateWorkshopNote(
       where: { id: row.id },
       data: { workshopNote: note.trim(), updatedAt: new Date() },
     });
+    await recordLifecycleEvent({
+      entityType: "rp",
+      entityId: row.id,
+      eventType: "workshop_note",
+      actorEmail,
+      payload: { detail: note.trim() },
+    });
     await enqueueSheetSync("rp", row.id);
     return;
   }
@@ -199,6 +285,13 @@ export async function updateWorkshopNote(
   await prisma.rpInternalProductionRow.update({
     where: { id: ip.id },
     data: { workshopNote: note.trim(), updatedAt: new Date() },
+  });
+  await recordLifecycleEvent({
+    entityType: "ip",
+    entityId: ip.id,
+    eventType: "workshop_note",
+    actorEmail,
+    payload: { detail: note.trim() },
   });
   await enqueueSheetSync("ip", ip.id);
 }
@@ -236,6 +329,13 @@ export async function updatePayer(
         updatedAt: new Date(),
       },
     });
+    await recordLifecycleEvent({
+      entityType: "rp",
+      entityId: row.id,
+      eventType: "payer_changed",
+      actorEmail,
+      payload: { payer, payerManual: false },
+    });
   } else {
     await prisma.rpRequest.update({
       where: { id: row.id },
@@ -244,6 +344,13 @@ export async function updatePayer(
         payerManual: true,
         updatedAt: new Date(),
       },
+    });
+    await recordLifecycleEvent({
+      entityType: "rp",
+      entityId: row.id,
+      eventType: "payer_changed",
+      actorEmail,
+      payload: { payer: trimmed, payerManual: true },
     });
   }
   await enqueueSheetSync("rp", row.id);
@@ -265,6 +372,7 @@ export async function updateDueDate(
   recordNum: string,
   newDate: string,
   reason: string,
+  actorEmail?: string | null,
 ): Promise<void> {
   const due = newDate ? new Date(newDate) : null;
   if (recordType === "rp") {
@@ -278,6 +386,15 @@ export async function updateDueDate(
         notes: appendDelayNote(row.notes, reason),
         updatedAt: new Date(),
       },
+    });
+    await recordLifecycleEvent({
+      entityType: "rp",
+      entityId: row.id,
+      eventType: "delayed",
+      fromStatus: row.status,
+      toStatus: "Delayed",
+      actorEmail,
+      payload: { dueDate: newDate || null, reason },
     });
     await enqueueSheetSync("rp", row.id);
     // GAS updateDateFromWeb: shipping "no longer ready" when leaving Ready,
@@ -300,6 +417,15 @@ export async function updateDueDate(
       notes: appendDelayNote(ip.notes, reason),
       updatedAt: new Date(),
     },
+  });
+  await recordLifecycleEvent({
+    entityType: "ip",
+    entityId: ip.id,
+    eventType: "delayed",
+    fromStatus: ip.status,
+    toStatus: "Delayed",
+    actorEmail,
+    payload: { dueDate: newDate || null, reason },
   });
   await enqueueSheetSync("ip", ip.id);
 }

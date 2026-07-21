@@ -9,6 +9,7 @@ import {
   todorIpDeliveredAction,
   updateWorkshopNoteAction,
 } from "@/app/actions/rp-mutations";
+import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { Button, Card, Textarea } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
@@ -29,6 +30,7 @@ export function RoleIpDashboard({
   const [pending, startTransition] = useTransition();
   const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
+  const { openDetail, modal: detailModal } = useEntityDetailModal();
 
   async function run(action: () => Promise<{ error?: string }>) {
     const result = await runLocked(action);
@@ -48,9 +50,23 @@ export function RoleIpDashboard({
       ) : (
         <div className="grid gap-3">
           {cards.map((card) => (
-            <Card key={card.id}>
+            <Card
+              key={card.id}
+              className="cursor-pointer transition hover:border-brand-300 hover:shadow-md"
+            >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  title="Отвори детайли и история"
+                  onClick={() => openDetail("ip", card.ipNum)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openDetail("ip", card.ipNum);
+                    }
+                  }}
+                >
                   <h3 className="font-semibold">{card.ipNum}</h3>
                   <p className="text-sm text-slate-600">
                     {card.panel} · {card.batch} · {card.status}
@@ -59,7 +75,10 @@ export function RoleIpDashboard({
                     <p className="text-xs text-slate-500">RP: {card.sourceRp}</p>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div
+                  className="flex flex-wrap gap-2"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   {role === "nikolay" ? (
                     <Button
                       className="px-3 py-1 text-xs"
@@ -96,7 +115,7 @@ export function RoleIpDashboard({
                 </div>
               </div>
               {showWorkshopNoteEdit ? (
-                <div className="mt-2">
+                <div className="mt-2" onClick={(event) => event.stopPropagation()}>
                   <Textarea
                     label="Бележка цех"
                     defaultValue={card.workshopNote ?? ""}
@@ -119,6 +138,7 @@ export function RoleIpDashboard({
           ))}
         </div>
       )}
+      {detailModal}
     </section>
   );
 }

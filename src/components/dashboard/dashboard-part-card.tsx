@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 
 import { DashboardInfoLine } from "@/components/dashboard/dashboard-info-line";
 import { ItemsList } from "@/components/dashboard/items-list";
@@ -78,6 +78,7 @@ export function DashboardPartCardView({
   dueDateFooter,
   actionsColumn,
   shippingFooter,
+  onOpenDetail,
 }: {
   part: DashboardPartCard;
   labels: DashboardUiLabels;
@@ -95,6 +96,7 @@ export function DashboardPartCardView({
   dueDateFooter?: ReactNode;
   actionsColumn?: ReactNode;
   shippingFooter?: ReactNode;
+  onOpenDetail?: () => void;
 }) {
   const isUrgent = part.urgency === "urgent";
   const isArchive = view === "archive";
@@ -104,6 +106,10 @@ export function DashboardPartCardView({
   const showColor = shouldShowColor(part.color);
   const dueFallback = labels.locale === "bg" ? "---" : "TBC";
   const dueLabel = formatDueDate(part.dueDate, dueFallback);
+
+  const stopCardClick = (event: SyntheticEvent) => {
+    event.stopPropagation();
+  };
 
   const dueBadge = (
     <span className="text-base font-extrabold tracking-tight text-slate-900 sm:text-lg">
@@ -117,7 +123,7 @@ export function DashboardPartCardView({
         {labels.cardProductionDeadline}
       </span>
       {dueBadge}
-      {dueDateFooter}
+      {dueDateFooter ? <div onClick={stopCardClick}>{dueDateFooter}</div> : null}
     </div>
   );
 
@@ -128,7 +134,9 @@ export function DashboardPartCardView({
           {labels.cardWorkshopNote}
         </p>
         <p className="text-sm text-slate-800">{part.workshopNote || "—"}</p>
-        {workshopNoteFooter}
+        {workshopNoteFooter ? (
+          <div onClick={stopCardClick}>{workshopNoteFooter}</div>
+        ) : null}
       </div>
     ) : null;
 
@@ -144,7 +152,7 @@ export function DashboardPartCardView({
           ) : null}
         </p>
         <p className="text-sm text-slate-800">{part.payer || "—"}</p>
-        {payerFooter}
+        {payerFooter ? <div onClick={stopCardClick}>{payerFooter}</div> : null}
       </div>
     ) : null;
 
@@ -167,6 +175,8 @@ export function DashboardPartCardView({
   return (
     <div
       className={`rounded-xl border bg-white p-3 shadow-sm sm:p-4 ${
+        onOpenDetail ? "cursor-pointer transition hover:border-brand-300 hover:shadow-md" : ""
+      } ${
         isUrgent
           ? "border-l-[5px] border-l-amber-500 border-slate-200 bg-gradient-to-r from-amber-50/80 to-white"
           : isCancelled
@@ -175,6 +185,20 @@ export function DashboardPartCardView({
               ? "border-l-[5px] border-l-slate-300 border-slate-200 bg-gradient-to-r from-sky-50/50 to-white"
               : "border-l-[5px] border-l-slate-300 border-slate-200 bg-gradient-to-r from-sky-50/40 to-white"
       }`}
+      onClick={onOpenDetail}
+      onKeyDown={
+        onOpenDetail
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpenDetail();
+              }
+            }
+          : undefined
+      }
+      role={onOpenDetail ? "button" : undefined}
+      tabIndex={onOpenDetail ? 0 : undefined}
+      title={onOpenDetail ? "Отвори детайли и история" : undefined}
     >
       <div className={`grid items-stretch gap-0 ${gridCols}`}>
         <div className="flex min-h-0 min-w-0 flex-col border-b border-slate-200 pb-3 lg:min-h-[11rem] lg:border-b-0 lg:border-r lg:pb-0 lg:pr-3">
@@ -243,7 +267,7 @@ export function DashboardPartCardView({
 
           <div className="mt-auto flex flex-col gap-2 pt-2.5">
             {dueInTechColumn ? dueSection : null}
-            {techBottom}
+            {techBottom ? <div onClick={stopCardClick}>{techBottom}</div> : null}
           </div>
         </div>
 
@@ -305,12 +329,19 @@ export function DashboardPartCardView({
                 </DashboardInfoLine>
               ) : null}
             </div>
-            {shippingFooter ? <div className="mt-auto pt-3">{shippingFooter}</div> : null}
+            {shippingFooter ? (
+              <div className="mt-auto pt-3" onClick={stopCardClick}>
+                {shippingFooter}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
         {actionsColumn ? (
-          <div className="flex min-h-0 min-w-0 flex-col pt-3 lg:min-h-[11rem] lg:justify-center lg:pt-0 lg:pl-2">
+          <div
+            className="flex min-h-0 min-w-0 flex-col pt-3 lg:min-h-[11rem] lg:justify-center lg:pt-0 lg:pl-2"
+            onClick={stopCardClick}
+          >
             <div className="h-full rounded-lg border border-slate-200 bg-slate-50 p-2.5">
               {actionsColumn}
             </div>

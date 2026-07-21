@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { Button, Card, Input } from "@/components/ui";
 import type { NeonSheetPage } from "@/lib/domain/admin-neon-sheet";
 
@@ -11,6 +12,7 @@ export function AdminNeonSheetTable({ data }: { data: NeonSheetPage }) {
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [search, setSearch] = useState(data.search);
+  const { openDetail, modal } = useEntityDetailModal();
 
   const numLabel = data.tab === "rp" ? "RP" : "IP";
 
@@ -36,7 +38,7 @@ export function AdminNeonSheetTable({ data }: { data: NeonSheetPage }) {
           <strong>Rep.Parts26</strong> / <strong>Internal Production</strong> so
           you can compare with the Google Sheet. Sorted ascending from the first
           row; trimmed at the last row with data (columns A and urgency
-          excluded).
+          excluded). Click a row for details and history.
         </p>
       </div>
 
@@ -132,36 +134,45 @@ export function AdminNeonSheetTable({ data }: { data: NeonSheetPage }) {
                 </td>
               </tr>
             ) : (
-              data.rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-slate-100 odd:bg-white even:bg-slate-50/60 hover:bg-brand-50/40"
-                >
-                  {row.cells.map((cell, idx) => (
-                    <td
-                      key={`${row.id}-${idx}`}
-                      className={`max-w-[220px] px-2 py-1.5 align-top text-slate-800 ${
-                        idx === 0
-                          ? "sticky left-0 z-[1] bg-inherit shadow-[1px_0_0_0_rgb(241_245_249)]"
-                          : ""
-                      }`}
-                      title={cell}
-                    >
-                      {cell ? (
-                        <span className="whitespace-pre-wrap break-words">
-                          {cell}
-                        </span>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              data.rows.map((row) => {
+                const num = (row.cells[0] ?? "").trim();
+                return (
+                  <tr
+                    key={row.id}
+                    className="cursor-pointer border-b border-slate-100 odd:bg-white even:bg-slate-50/60 hover:bg-brand-50/40"
+                    title={num ? "Отвори детайли и история" : undefined}
+                    onClick={() => {
+                      if (!num) return;
+                      openDetail(data.tab, num);
+                    }}
+                  >
+                    {row.cells.map((cell, idx) => (
+                      <td
+                        key={`${row.id}-${idx}`}
+                        className={`max-w-[220px] px-2 py-1.5 align-top text-slate-800 ${
+                          idx === 0
+                            ? "sticky left-0 z-[1] bg-inherit font-medium text-brand-700 shadow-[1px_0_0_0_rgb(241_245_249)]"
+                            : ""
+                        }`}
+                        title={cell}
+                      >
+                        {cell ? (
+                          <span className="whitespace-pre-wrap break-words">
+                            {cell}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
+      {modal}
     </Card>
   );
 }

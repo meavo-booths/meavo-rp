@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
+import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { ItemsList } from "@/components/dashboard/items-list";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import {
@@ -54,6 +55,7 @@ export function LogisticsDashboard({
   const [search, setSearch] = useState("");
   useDashboardRefresh();
   const labels = getDashboardUiLabels("logistics");
+  const { openDetail, modal: detailModal } = useEntityDetailModal();
 
   const filtered = useMemo(
     () =>
@@ -109,7 +111,17 @@ export function LogisticsDashboard({
           return (
             <div
               key={part.id}
-              className={`rounded-xl border bg-white p-4 shadow-sm ${
+              role="button"
+              tabIndex={0}
+              title="Отвори детайли и история"
+              onClick={() => openDetail("rp", part.rpNum)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openDetail("rp", part.rpNum);
+                }
+              }}
+              className={`cursor-pointer rounded-xl border bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md ${
                 highlightUrgent
                   ? "border-amber-300 bg-amber-50/40"
                   : "border-slate-200"
@@ -203,6 +215,7 @@ export function LogisticsDashboard({
           );
         })}
       </div>
+      {detailModal}
     </div>
   );
 }

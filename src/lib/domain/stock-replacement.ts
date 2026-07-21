@@ -1,4 +1,5 @@
 import { mintNextIpNum } from "@/lib/domain/ip-numbers";
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { recomputeRpHeaderAfterStockChange } from "@/lib/domain/rp-header-stock";
 import { isPanelLineItem } from "@/lib/domain/rp-line-items";
@@ -179,6 +180,35 @@ export async function markPanelsFromStock(
       });
 
       createdIpNums.push(ipNum);
+      await recordLifecycleEvent(
+        {
+          entityType: "ip",
+          entityId: ipRow.id,
+          eventType: "created",
+          toStatus: "Briefed",
+          actorEmail,
+          payload: {
+            ipNum,
+            detail: `Stock Replacement for ${rp.rpNum}`,
+            sourceRpNum: rp.rpNum,
+          },
+        },
+        tx,
+      );
+      await recordLifecycleEvent(
+        {
+          entityType: "rp",
+          entityId: rpId,
+          eventType: "stock_taken",
+          actorEmail,
+          payload: {
+            detail: lineItem.panelName ?? `line ${lineItem.lineIndex + 1}`,
+            lineItemId: lineItem.id,
+            ipNum,
+          },
+        },
+        tx,
+      );
       await enqueueSheetSync("ip", ipRow.id, "upsert", tx);
     }
 

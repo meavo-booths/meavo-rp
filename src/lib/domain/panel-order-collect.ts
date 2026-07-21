@@ -1,5 +1,6 @@
 import type { RpInternalProductionRow, RpRequest } from "@prisma/client";
 
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { markPanelOrderSent, enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { prisma } from "@/lib/prisma";
 
@@ -214,16 +215,23 @@ export async function collectPanelsMissingWorkshopNote(
 
 export async function markPanelOrderEntriesSent(
   entries: PanelOrderEntry[],
+  actorEmail?: string | null,
 ): Promise<void> {
   const now = new Date();
   for (const entry of entries) {
     if (entry.recordType === "rp") {
-      await markPanelOrderSent(entry.recordId);
+      await markPanelOrderSent(entry.recordId, actorEmail);
       continue;
     }
     await prisma.rpInternalProductionRow.update({
       where: { id: entry.recordId },
       data: { orderSentAt: now, updatedAt: now },
+    });
+    await recordLifecycleEvent({
+      entityType: "ip",
+      entityId: entry.recordId,
+      eventType: "order_sent",
+      actorEmail,
     });
     await enqueueSheetSync("ip", entry.recordId);
   }

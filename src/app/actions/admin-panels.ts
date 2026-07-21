@@ -75,7 +75,7 @@ export async function markAdminPanelsSentAction(input: {
     return { error: "No unsent panels found for selection" };
   }
 
-  await markPanelOrderEntriesSent(entries);
+  await markPanelOrderEntriesSent(entries, email);
   revalidateAdminPaths();
   return { marked: entries.length };
 }

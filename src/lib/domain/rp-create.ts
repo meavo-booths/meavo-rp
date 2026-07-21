@@ -3,6 +3,7 @@ import type { Prisma, RpRequest, RpUrgency } from "@prisma/client";
 import type { DbExecutor } from "@/lib/db/executor";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { recalculateFactoryFillForRpId } from "@/lib/domain/factory-fill";
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { mintNextRpNum } from "@/lib/domain/rp-numbers";
 import {
@@ -90,6 +91,17 @@ async function createSingleRp(
   const data = buildRpRowData(form, items, userEmail, rpNum, true);
   const created = await executor.rpRequest.create({ data });
   await upsertRpLineItemsFromRow(created.id, created as RpRequest, executor);
+  await recordLifecycleEvent(
+    {
+      entityType: "rp",
+      entityId: created.id,
+      eventType: "created",
+      toStatus: created.status,
+      actorEmail: userEmail,
+      payload: { rpNum },
+    },
+    executor,
+  );
   await enqueueSheetSync("rp", created.id, "upsert", executor);
   await recalculateFactoryFillForRpId(created.id);
   void notifyAfterRpMutation(rpNum, "created");
@@ -136,6 +148,17 @@ export async function cancelRpRequest(
     where: { id: row.id },
     data: { status: "Cancelled", updatedAt: new Date() },
   });
+  await recordLifecycleEvent(
+    {
+      entityType: "rp",
+      entityId: row.id,
+      eventType: "cancelled",
+      fromStatus: status,
+      toStatus: "Cancelled",
+      actorEmail: userEmail,
+    },
+    executor,
+  );
   await enqueueSheetSync("rp", row.id, "upsert", executor);
   // GAS cancelRp: tell logistics when an RP leaves Ready via cancellation.
   if (status === "Ready") {

@@ -68,7 +68,7 @@ export async function shipRpAction(
     return { error: "Access denied" };
   }
   try {
-    await updatePartToShipped(rpNum, method, tracking);
+    await updatePartToShipped(rpNum, method, tracking, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -97,7 +97,7 @@ export async function saveShipInfoAction(
     return { error: "Access denied" };
   }
   try {
-    await saveShipInfoOnly(rpNum, method, tracking);
+    await saveShipInfoOnly(rpNum, method, tracking, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -111,7 +111,7 @@ export async function annaReadyAction(rpNum: string): Promise<ActionResult> {
     return { error: "Access denied" };
   }
   try {
-    await annaMarkReadyForLogistics(rpNum);
+    await annaMarkReadyForLogistics(rpNum, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -125,7 +125,7 @@ export async function annaRevertReadyAction(rpNum: string): Promise<ActionResult
     return { error: "Access denied" };
   }
   try {
-    await annaRevertReadyToActive(rpNum);
+    await annaRevertReadyToActive(rpNum, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -142,7 +142,7 @@ export async function briefUrgentPanelAction(
     return { error: "Access denied" };
   }
   try {
-    await briefActiveUrgentPanel(rpNum, productionEta);
+    await briefActiveUrgentPanel(rpNum, productionEta, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -159,7 +159,7 @@ export async function updateUrgentEtaAction(
     return { error: "Access denied" };
   }
   try {
-    await updateActiveUrgentPanelsEta(rpNum, newDate);
+    await updateActiveUrgentPanelsEta(rpNum, newDate, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -173,7 +173,7 @@ export async function markUrgentReadyAction(rpNum: string): Promise<ActionResult
     return { error: "Access denied" };
   }
   try {
-    await markActiveUrgentPanelReady(rpNum);
+    await markActiveUrgentPanelReady(rpNum, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -271,7 +271,7 @@ export async function updateDueDateAction(
     return { error: "Access denied" };
   }
   try {
-    await updateDueDate(recordType, recordNum, newDate, reason);
+    await updateDueDate(recordType, recordNum, newDate, reason, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -285,7 +285,7 @@ export async function nikolayIpReadyAction(ipNum: string): Promise<ActionResult>
     return { error: "Access denied" };
   }
   try {
-    await nikolayMarkIpReadyForWarehouse(ipNum);
+    await nikolayMarkIpReadyForWarehouse(ipNum, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -299,7 +299,7 @@ export async function stefanIpReadyAction(ipNum: string): Promise<ActionResult> 
     return { error: "Access denied" };
   }
   try {
-    await stefanMarkIpReadyForWarehouse(ipNum);
+    await stefanMarkIpReadyForWarehouse(ipNum, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {
@@ -313,7 +313,7 @@ export async function todorIpDeliveredAction(ipNum: string): Promise<ActionResul
     return { error: "Access denied" };
   }
   try {
-    await todorMarkIpDeliveredAtTopoli(ipNum);
+    await todorMarkIpDeliveredAtTopoli(ipNum, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {

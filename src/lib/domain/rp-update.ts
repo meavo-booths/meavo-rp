@@ -14,6 +14,7 @@ import { getRpEditWindowInfo } from "@/lib/domain/rp-edit-window";
 import { upsertRpLineItemsFromRow } from "@/lib/domain/rp-line-item-sync";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
 import { recalculateFactoryFillForRpId } from "@/lib/domain/factory-fill";
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { computeRpPayerForDb } from "@/lib/domain/rp-payer";
 import { prisma } from "@/lib/prisma";
@@ -162,6 +163,12 @@ export async function updateExistingRpEntry(
   });
 
   await upsertRpLineItemsFromRow(updated.id, updated, prisma);
+  await recordLifecycleEvent({
+    entityType: "rp",
+    entityId: updated.id,
+    eventType: "edited",
+    actorEmail: userEmail,
+  });
   await enqueueSheetSync("rp", updated.id);
   await recalculateFactoryFillForRpId(updated.id);
 }

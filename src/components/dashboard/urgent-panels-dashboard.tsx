@@ -10,6 +10,7 @@ import {
   updateUrgentEtaAction,
   useExistingPanelForRpAction,
 } from "@/app/actions/rp-mutations";
+import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { Button, Card } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
@@ -41,6 +42,7 @@ export function UrgentPanelsDashboard({
   const [pending, startTransition] = useTransition();
   const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
+  const { openDetail, modal: detailModal } = useEntityDetailModal();
 
   async function run(action: () => Promise<{ error?: string }>) {
     const result = await runLocked(action);
@@ -84,12 +86,31 @@ export function UrgentPanelsDashboard({
       ) : null}
       <div className="grid gap-3">
         {parts.map((part) => (
-          <Card key={part.id}>
-            <h2 className="font-semibold">{part.rpNum}</h2>
-            <p className="text-sm text-slate-600">
-              {part.reviewGroup} · {part.status} · {part.dueDate}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
+          <Card
+            key={part.id}
+            className="cursor-pointer transition hover:border-brand-300 hover:shadow-md"
+          >
+            <div
+              role="button"
+              tabIndex={0}
+              title="Отвори детайли и история"
+              onClick={() => openDetail(part.recordType, part.rpNum)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openDetail(part.recordType, part.rpNum);
+                }
+              }}
+            >
+              <h2 className="font-semibold">{part.rpNum}</h2>
+              <p className="text-sm text-slate-600">
+                {part.reviewGroup} · {part.status} · {part.dueDate}
+              </p>
+            </div>
+            <div
+              className="mt-2 flex flex-wrap gap-2"
+              onClick={(event) => event.stopPropagation()}
+            >
               {view === "unbriefed" ? (
                 <>
                 <Button
@@ -153,6 +174,7 @@ export function UrgentPanelsDashboard({
           </Card>
         ))}
       </div>
+      {detailModal}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { recordLifecycleEvent } from "@/lib/domain/lifecycle-events";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
 import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { getSheetsClient } from "@/lib/integrations/sheets-client";
@@ -267,6 +268,18 @@ export async function runExportStatusSync(): Promise<{
       await prisma.rpRequest.update({ where: { id: rp.id }, data: patch });
       await enqueueSheetSync("rp", rp.id);
       if (patch.status === "Shipped") {
+        await recordLifecycleEvent({
+          entityType: "rp",
+          entityId: rp.id,
+          eventType: "shipped",
+          fromStatus: rp.status,
+          toStatus: "Shipped",
+          actorEmail: null,
+          payload: {
+            source: "export_sync",
+            tracking: patch.tracking ?? rp.tracking,
+          },
+        });
         void notifyAfterRpMutation(rp.rpNum, "status_changed");
       }
       synced++;

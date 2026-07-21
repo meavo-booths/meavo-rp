@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { RoleIpDashboard } from "@/components/dashboard/role-ip-dashboard";
-import { Card } from "@/components/ui";
+import { ClickableEntityCards } from "@/components/dashboard/clickable-entity-cards";
 import {
   getTodorDashboardParts,
   getTodorTopoliIpCards,
@@ -97,27 +97,22 @@ export default async function TodorDashboardPage({
           showWorkshopNoteEdit={false}
         />
       ) : (
-        <div className="grid gap-3">
-          {rows.length === 0 ? (
-            <p className="text-sm text-slate-500">Няма записи за този изглед.</p>
-          ) : null}
-          {rows.map((row) => (
-            <Card key={`${row.source}-${row.rpNum}`}>
-              <h2 className="font-semibold">{row.rpNum}</h2>
-              <p className="text-sm text-slate-600">
-                {[
-                  row.reviewGroup ?? row.factoryName,
-                  row.market,
-                  row.status,
-                  row.shippingWeekCode,
-                  row.pallet ? `Палет ${row.pallet}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            </Card>
-          ))}
-        </div>
+        <ClickableEntityCards
+          rows={rows.map((row) => ({
+            key: `${row.source}-${row.rpNum}`,
+            recordType: "rp" as const,
+            num: row.rpNum,
+            subtitle: [
+              row.reviewGroup ?? row.factoryName,
+              row.market,
+              row.status,
+              row.shippingWeekCode,
+              row.pallet ? `Палет ${row.pallet}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          }))}
+        />
       )}
     </div>
   );

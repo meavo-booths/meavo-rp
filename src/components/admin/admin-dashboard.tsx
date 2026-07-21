@@ -1,4 +1,7 @@
+"use client";
+
 import { AdminPanelExportSection } from "@/components/admin/admin-panel-export";
+import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { Card } from "@/components/ui";
 import type {
   AdminDashboardData,
@@ -6,7 +9,13 @@ import type {
   AdminIssueRow,
 } from "@/lib/domain/admin-dashboard";
 
-function IssuesTable({ rows }: { rows: AdminIssueRow[] }) {
+function IssuesTable({
+  rows,
+  onOpen,
+}: {
+  rows: AdminIssueRow[];
+  onOpen: (rpNum: string) => void;
+}) {
   if (!rows.length) {
     return (
       <p className="text-sm text-slate-500">No panel RPs with missing required data.</p>
@@ -27,8 +36,15 @@ function IssuesTable({ rows }: { rows: AdminIssueRow[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.rpNum} className="border-t border-slate-100">
-              <td className="px-3 py-2 font-medium">{row.rpNum}</td>
+            <tr
+              key={row.rpNum}
+              className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
+              onClick={() => onOpen(row.rpNum)}
+              title="Отвори детайли и история"
+            >
+              <td className="px-3 py-2 font-medium text-brand-700 underline-offset-2 hover:underline">
+                {row.rpNum}
+              </td>
               <td className="px-3 py-2">{row.reviewGroup ?? "—"}</td>
               <td className="px-3 py-2">{row.dueDate ?? "—"}</td>
               <td className="px-3 py-2">{row.status ?? "—"}</td>
@@ -52,7 +68,13 @@ function IssuesTable({ rows }: { rows: AdminIssueRow[] }) {
   );
 }
 
-function DelayedTable({ rows }: { rows: AdminDelayedRow[] }) {
+function DelayedTable({
+  rows,
+  onOpen,
+}: {
+  rows: AdminDelayedRow[];
+  onOpen: (recordType: "rp" | "ip", num: string) => void;
+}) {
   if (!rows.length) {
     return <p className="text-sm text-slate-500">No overdue RPs or IPs.</p>;
   }
@@ -73,8 +95,15 @@ function DelayedTable({ rows }: { rows: AdminDelayedRow[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={`${row.recordType}:${row.rpNum}`} className="border-t border-slate-100">
-              <td className="px-3 py-2 font-medium">{row.rpNum}</td>
+            <tr
+              key={`${row.recordType}:${row.rpNum}`}
+              className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
+              onClick={() => onOpen(row.recordType, row.rpNum)}
+              title="Отвори детайли и история"
+            >
+              <td className="px-3 py-2 font-medium text-brand-700 underline-offset-2 hover:underline">
+                {row.rpNum}
+              </td>
               <td className="px-3 py-2 uppercase text-slate-500">{row.recordType}</td>
               <td className="px-3 py-2">{row.reviewGroup ?? "—"}</td>
               <td className="px-3 py-2">{row.dueDate ?? "—"}</td>
@@ -92,6 +121,8 @@ function DelayedTable({ rows }: { rows: AdminDelayedRow[] }) {
 }
 
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
+  const { openDetail, modal } = useEntityDetailModal();
+
   return (
     <div className="space-y-4">
       <Card className="space-y-3">
@@ -99,7 +130,7 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
         <p className="text-sm text-slate-600">
           Active panel RPs without factory, due date, or workshop note (KAZ/VAR).
         </p>
-        <IssuesTable rows={data.issues} />
+        <IssuesTable rows={data.issues} onOpen={(rpNum) => openDetail("rp", rpNum)} />
       </Card>
 
       <Card className="space-y-3">
@@ -107,7 +138,10 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
         <p className="text-sm text-slate-600">
           RPs and IPs whose deadline date has already passed, sorted by most overdue first.
         </p>
-        <DelayedTable rows={data.delayed} />
+        <DelayedTable
+          rows={data.delayed}
+          onOpen={(recordType, num) => openDetail(recordType, num)}
+        />
       </Card>
 
       <AdminPanelExportSection
@@ -120,6 +154,7 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
         panels={data.unsentVar}
         recentPanels={data.recentVar}
       />
+      {modal}
     </div>
   );
 }
