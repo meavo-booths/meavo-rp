@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const linkClass = (active: boolean) =>
-  `inline-flex shrink-0 items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${
+  `inline-flex shrink-0 items-center rounded-full border px-3 py-1.5 text-[0.8125rem] font-semibold transition-colors ${
     active
-      ? "border-brand-600 bg-brand-50 text-brand-800"
-      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+      ? "border-brand-600 bg-brand-600 text-white shadow-[0_2px_10px_rgba(12,143,97,0.25)]"
+      : "border-slate-300 bg-white text-slate-700 hover:border-brand-600 hover:bg-brand-50 hover:text-brand-700"
   }`;
 
 export function AdminNav() {
   const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
+  const own = searchParams.get("own") === "1";
 
   const items = [
     { href: "/admin/dashboard", label: "Dashboard" },
@@ -22,14 +24,11 @@ export function AdminNav() {
   ];
 
   return (
-    <nav className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 shadow-sm">
-      <span className="mr-1 text-[0.7rem] font-semibold uppercase tracking-wide text-slate-500">
-        Admin
-      </span>
+    <nav className="flex flex-wrap items-center gap-2">
       {items.map((item) => {
         const active =
           item.href === "/dashboard?own=1"
-            ? false
+            ? pathname === "/dashboard" && own
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
           <Link key={item.href} href={item.href} className={linkClass(active)}>

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { AutomationSettingsForm } from "@/components/admin/automation-settings-form";
-import { AdminNav } from "@/components/admin/admin-nav";
 import {
   AUTOMATION_SETTING_ROWS,
   getAutomationSettings,
@@ -20,13 +19,10 @@ export default async function AdminAutomationsPage() {
   const settings = await getAutomationSettings();
 
   return (
-    <div className="space-y-4">
-      <AdminNav />
-      <AutomationSettingsForm
-        rows={AUTOMATION_SETTING_ROWS}
-        settings={settings}
-        forceOff={isNotificationsForceOff()}
-      />
-    </div>
+    <AutomationSettingsForm
+      rows={AUTOMATION_SETTING_ROWS}
+      settings={settings}
+      forceOff={isNotificationsForceOff()}
+    />
   );
 }

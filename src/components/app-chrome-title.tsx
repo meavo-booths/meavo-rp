@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 
+import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminQuickLinks } from "@/components/admin/admin-quick-links";
 import {
   getDashboardUiLabels,
@@ -88,6 +89,7 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
   const pathname = usePathname() ?? "/dashboard";
   const searchParams = useSearchParams();
   const title = titleForPath(pathname, searchParams, viewer);
+  const isAdminRoute = pathname.startsWith("/admin");
   const labels = getDashboardUiLabels(viewer.role, {
     ownLoggedParts: true,
   });
@@ -95,10 +97,11 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
   return (
     <div className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-[1720px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-3 py-1.5 sm:px-4">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
           <h1 className="text-sm font-semibold text-slate-900 sm:text-[0.95rem]">
             {title}
           </h1>
+          {viewer.isAdmin && isAdminRoute ? <AdminNav /> : null}
           {viewer.isSimulating ? (
             <p className="text-xs font-medium text-brand-700 sm:text-sm">
               {labels.viewingAs}{" "}
