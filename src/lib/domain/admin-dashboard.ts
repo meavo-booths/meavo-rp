@@ -46,6 +46,7 @@ export type AdminPanelRow = {
   market: string | null;
   clarifications: string | null;
   notes: string | null;
+  payer: string | null;
   orderSentAt?: string | null;
 };
 
@@ -157,6 +158,7 @@ function panelEntryToRow(entry: PanelOrderEntry): AdminPanelRow {
     market: entry.market ?? null,
     clarifications: entry.clarifications ?? null,
     notes: entry.notes ?? null,
+    payer: entry.payer ?? null,
   };
 }
 
@@ -235,6 +237,7 @@ async function collectUnsentPanelsForDisplay(
       market: row.market,
       clarifications: row.clarifications,
       notes: row.notes,
+      payer: row.payer,
     });
   }
 
@@ -258,6 +261,7 @@ async function collectUnsentPanelsForDisplay(
       market: null,
       clarifications: row.panelClarification,
       notes: row.notes,
+      payer: row.payer,
     });
   }
 
@@ -317,6 +321,7 @@ export async function collectLatestFactoryPanels(
       market: row.market,
       clarifications: row.clarifications,
       notes: row.notes,
+      payer: row.payer,
       orderSentAt: formatDate(row.orderSentAt),
     });
   }
@@ -341,6 +346,7 @@ export async function collectLatestFactoryPanels(
       market: null,
       clarifications: row.panelClarification,
       notes: row.notes,
+      payer: row.payer,
       orderSentAt: formatDate(row.orderSentAt),
     });
   }
@@ -435,7 +441,7 @@ export function adminPanelToExportRow(row: AdminPanelRow) {
   return {
     num: row.num,
     issue: row.issueType ?? "",
-    payer: row.factory,
+    payer: row.payer ?? "",
     boothId: row.boothId ?? "",
     model: row.model ?? "",
     colour: row.color ?? "",
@@ -476,6 +482,7 @@ export async function loadPanelExportRowsByNums(
         market: row.market,
         clarifications: row.clarifications,
         notes: row.notes,
+        payer: row.payer,
       });
     }
   }
@@ -502,6 +509,7 @@ export async function loadPanelExportRowsByNums(
         market: null,
         clarifications: row.panelClarification,
         notes: row.notes,
+        payer: row.payer,
       });
     }
   }

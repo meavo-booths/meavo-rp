@@ -40,7 +40,7 @@ export function partCardToStefanExportRow(
   return {
     num: part.rpNum,
     issue: part.issueType ?? "",
-    payer: part.reviewGroup ?? "",
+    payer: part.payer ?? "",
     boothId: part.boothId ?? "",
     model: part.model ?? "",
     colour: part.color ?? "",

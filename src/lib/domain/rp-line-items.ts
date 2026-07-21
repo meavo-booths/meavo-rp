@@ -5,7 +5,15 @@
 
 import type { RpRequest } from "@prisma/client";
 
-type RpRow = RpRequest;
+/** Fields required to rebuild line items from a flat RP header row. */
+export type RpRowForLineItems = Pick<
+  RpRequest,
+  | "itemType"
+  | "quantity"
+  | "partRpCode"
+  | "partDescription"
+  | "clarifications"
+>;
 
 export type ParsedRpLineItem = {
   lineIndex: number;
@@ -61,7 +69,7 @@ function classifyKind(itemType: string, code: string): "panel" | "part" {
 }
 
 /** Build line items from a flat rp_requests row (sheet-style columns). */
-export function parseRpLineItemsFromRow(row: RpRow): ParsedRpLineItem[] {
+export function parseRpLineItemsFromRow(row: RpRowForLineItems): ParsedRpLineItem[] {
   const quantities = splitMultiValue(row.quantity ?? "");
   const codes = splitMultiValue(row.partRpCode ?? "");
   const descriptions = splitMultiValue(row.partDescription ?? "");

@@ -14,6 +14,7 @@ import {
   shipRpAction,
   stefanIpReadyAction,
   updateDueDateAction,
+  updatePayerAction,
   updateWorkshopNoteAction,
 } from "@/app/actions/rp-mutations";
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
@@ -30,6 +31,7 @@ import { Button } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import {
+  canEditPayer,
   canEditWorkshopNote,
   canLogIp,
   isWorkshopNoteDashboardViewer,
@@ -169,6 +171,8 @@ export function PartsDashboard({
   const showReadyTab = Boolean(reviewerConfig);
   const canEditDueDate = Boolean(reviewerConfig);
   const viewerEmail = viewer.effectiveEmail;
+  const payerEditable = canEditPayer(viewerEmail);
+  const showPayerOnCards = payerEditable || Boolean(reviewerConfig);
   const isAnna = viewerEmail === "anna@meavo.com";
   const canCreateSimilar = viewer.role === "standard";
   const isStandardViewer = !reviewerConfig;
@@ -360,6 +364,25 @@ export function PartsDashboard({
             </Button>
           ) : null;
 
+          const payerFooter =
+            !isIp && payerEditable ? (
+              <Button
+                disabled={actionBusy}
+                variant="secondary"
+                className="mt-1 px-2 py-0.5 text-xs"
+                onClick={() => {
+                  const next = prompt(
+                    labels.promptPayer,
+                    part.payer ?? "",
+                  );
+                  if (next === null) return;
+                  void run(() => updatePayerAction(part.rpNum, next));
+                }}
+              >
+                {labels.cardEdit}
+              </Button>
+            ) : null;
+
           const standardTechBottom =
             isStandardViewer && isOwner ? (
               <div>
@@ -519,9 +542,11 @@ export function PartsDashboard({
               hideShippingSection={hideShippingSection}
               dueInTechColumn={dueInTechColumn}
               showWorkshopNote={workshopEditable}
+              showPayer={showPayerOnCards && !isIp}
               showStatusBadge={showStatusBadge}
               techBottom={standardTechBottom}
               workshopNoteFooter={workshopNoteFooter}
+              payerFooter={payerFooter}
               dueDateFooter={dueDateFooter}
               actionsColumn={reviewerActions}
             />

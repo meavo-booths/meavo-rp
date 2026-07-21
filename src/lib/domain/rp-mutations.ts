@@ -2,8 +2,10 @@ import {
   isPanelLikeItemTypeForWorkshopNote,
   isWorkshopNoteViewerForFactory,
   normalizeWorkshopFactoryGroup,
+  canEditPayer,
 } from "@/lib/domain/authz";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { computeRpPayerForDb } from "@/lib/domain/rp-payer";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
 import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
 import { prisma } from "@/lib/prisma";
@@ -199,6 +201,52 @@ export async function updateWorkshopNote(
     data: { workshopNote: note.trim(), updatedAt: new Date() },
   });
   await enqueueSheetSync("ip", ip.id);
+}
+
+/**
+ * Manual Платец override. Empty input clears the lock and restores the
+ * auto formula from current issue / factory / item type.
+ */
+export async function updatePayer(
+  rpNum: string,
+  payerInput: string,
+  actorEmail: string,
+): Promise<void> {
+  if (!canEditPayer(actorEmail)) {
+    throw new Error("Access denied.");
+  }
+  const row = await findRp(rpNum);
+  const trimmed = payerInput.trim();
+
+  if (!trimmed) {
+    const payer = computeRpPayerForDb({
+      issueType: row.issueType,
+      reviewGroup: row.reviewGroup,
+      itemType: row.itemType,
+      quantity: row.quantity,
+      partRpCode: row.partRpCode,
+      partDescription: row.partDescription,
+      clarifications: row.clarifications,
+    });
+    await prisma.rpRequest.update({
+      where: { id: row.id },
+      data: {
+        payer,
+        payerManual: false,
+        updatedAt: new Date(),
+      },
+    });
+  } else {
+    await prisma.rpRequest.update({
+      where: { id: row.id },
+      data: {
+        payer: trimmed,
+        payerManual: true,
+        updatedAt: new Date(),
+      },
+    });
+  }
+  await enqueueSheetSync("rp", row.id);
 }
 
 /** Legacy note format from GAS updateDateFromWeb: "[dd/MM Delayed: reason]". */

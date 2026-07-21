@@ -66,6 +66,7 @@ export type DashboardUiLabels = {
   cardDescription: string;
   cardShipping: string;
   cardWorkshopNote: string;
+  cardPayer: string;
   cardChangeDueDate: string;
   cardMarkShipped: string;
   cardSaveShipping: string;
@@ -82,6 +83,7 @@ export type DashboardUiLabels = {
   cardNotes: string;
   cardTracking: string;
   promptWorkshopNote: string;
+  promptPayer: string;
   promptNewDueDate: string;
   promptDueDateReason: string;
   promptShipMethod: string;
@@ -137,6 +139,7 @@ const EN: DashboardUiLabels = {
   cardDescription: "Description",
   cardShipping: "Shipping",
   cardWorkshopNote: "Бележка Цех",
+  cardPayer: "Платец",
   cardChangeDueDate: "Change",
   cardMarkShipped: "Mark Shipped",
   cardSaveShipping: "Save",
@@ -153,6 +156,7 @@ const EN: DashboardUiLabels = {
   cardNotes: "Notes",
   cardTracking: "Tracking",
   promptWorkshopNote: "Workshop note",
+  promptPayer: "Payer (leave blank to restore auto)",
   promptNewDueDate: "New due date (YYYY-MM-DD)",
   promptDueDateReason: "Reason for change",
   promptShipMethod: "Ship method",
@@ -208,6 +212,7 @@ const BG: DashboardUiLabels = {
   cardDescription: "Описание",
   cardShipping: "Доставка",
   cardWorkshopNote: "Бележка цех",
+  cardPayer: "Платец",
   cardChangeDueDate: "Промени",
   cardMarkShipped: "Маркирай изпратен",
   cardSaveShipping: "Запази доставка",
@@ -224,6 +229,7 @@ const BG: DashboardUiLabels = {
   cardNotes: "Бележки",
   cardTracking: "Тракинг",
   promptWorkshopNote: "Бележка цех",
+  promptPayer: "Платец (празно = автоматично)",
   promptNewDueDate: "Нов срок (YYYY-MM-DD)",
   promptDueDateReason: "Причина за промяна",
   promptShipMethod: "Метод на изпращане",

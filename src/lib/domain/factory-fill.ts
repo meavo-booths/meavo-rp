@@ -2,8 +2,8 @@ import type { Prisma, RpRequest } from "@prisma/client";
 
 import { shouldRunInWebapp } from "@/lib/domain/automation-settings";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { autoPayerUpdate } from "@/lib/domain/rp-payer";
 import { notifyAfterRpMutation } from "@/lib/integrations/slack/rp-slack-bot";
-import { deduceFactoryFromBatch } from "@/lib/domain/stock-replacement";
 import { computeStandardPanelDeadline } from "@/lib/domain/working-days";
 import { prisma } from "@/lib/prisma";
 
@@ -100,7 +100,11 @@ export async function recalculateFactoryFillForRpId(
   if (!row) return;
 
   const factory = computeFactoryFromRow(row.boothId, row.itemType);
-  const data: { reviewGroup?: string; updatedAt: Date } = {
+  const data: {
+    reviewGroup?: string;
+    payer?: string | null;
+    updatedAt: Date;
+  } = {
     updatedAt: new Date(),
   };
   if (factory && factory !== norm(row.reviewGroup)) {
@@ -109,11 +113,30 @@ export async function recalculateFactoryFillForRpId(
     data.reviewGroup = "";
   }
 
-  if (data.reviewGroup !== undefined) {
+  const nextReviewGroup =
+    data.reviewGroup !== undefined ? data.reviewGroup : row.reviewGroup;
+  const payerPatch = autoPayerUpdate({
+    issueType: row.issueType,
+    reviewGroup: nextReviewGroup,
+    itemType: row.itemType,
+    quantity: row.quantity,
+    partRpCode: row.partRpCode,
+    partDescription: row.partDescription,
+    clarifications: row.clarifications,
+    payer: row.payer,
+    payerManual: row.payerManual,
+  });
+  if (payerPatch) data.payer = payerPatch.payer;
+
+  if (data.reviewGroup !== undefined || payerPatch) {
     const hadFactory = norm(row.reviewGroup);
     await prisma.rpRequest.update({ where: { id: rpId }, data });
     await enqueueSheetSync("rp", rpId);
-    if (factory && factory !== hadFactory) {
+    if (
+      data.reviewGroup !== undefined &&
+      factory &&
+      factory !== hadFactory
+    ) {
       void notifyAfterRpMutation(row.rpNum, "factory_assigned");
     }
   }
@@ -134,6 +157,14 @@ export async function runFactoryFillSweep(): Promise<{ updated: number }> {
       urgency: true,
       entryDate: true,
       dueDate: true,
+      issueType: true,
+      quantity: true,
+      partRpCode: true,
+      partDescription: true,
+      clarifications: true,
+      payer: true,
+      payerManual: true,
+      rpNum: true,
     },
   });
 
@@ -142,9 +173,29 @@ export async function runFactoryFillSweep(): Promise<{ updated: number }> {
     const factory = computeFactoryFromRow(row.boothId, row.itemType);
     const patch: Record<string, unknown> = { updatedAt: new Date() };
     let changed = false;
+    let factoryAssigned = false;
 
     if (!norm(row.reviewGroup) && factory) {
       patch.reviewGroup = factory;
+      changed = true;
+      factoryAssigned = true;
+    }
+
+    const nextReviewGroup =
+      typeof patch.reviewGroup === "string" ? patch.reviewGroup : row.reviewGroup;
+    const payerPatch = autoPayerUpdate({
+      issueType: row.issueType,
+      reviewGroup: nextReviewGroup,
+      itemType: row.itemType,
+      quantity: row.quantity,
+      partRpCode: row.partRpCode,
+      partDescription: row.partDescription,
+      clarifications: row.clarifications,
+      payer: row.payer,
+      payerManual: row.payerManual,
+    });
+    if (payerPatch) {
+      patch.payer = payerPatch.payer;
       changed = true;
     }
 
@@ -154,13 +205,8 @@ export async function runFactoryFillSweep(): Promise<{ updated: number }> {
         data: patch,
       });
       await enqueueSheetSync("rp", row.id);
-      if (factory) {
-        const refreshed = await prisma.rpRequest.findUnique({
-          where: { id: row.id },
-        });
-        if (refreshed) {
-          void notifyAfterRpMutation(refreshed.rpNum, "factory_assigned");
-        }
+      if (factoryAssigned && factory) {
+        void notifyAfterRpMutation(row.rpNum, "factory_assigned");
       }
       updated++;
     }

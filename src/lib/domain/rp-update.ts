@@ -15,6 +15,7 @@ import { upsertRpLineItemsFromRow } from "@/lib/domain/rp-line-item-sync";
 import { normalizeRpNum } from "@/lib/domain/rp-numbers";
 import { recalculateFactoryFillForRpId } from "@/lib/domain/factory-fill";
 import { enqueueSheetSync } from "@/lib/domain/panel-orders";
+import { computeRpPayerForDb } from "@/lib/domain/rp-payer";
 import { prisma } from "@/lib/prisma";
 
 function rowToLoggerForm(row: {
@@ -112,6 +113,28 @@ export async function updateExistingRpEntry(
   const items = normalizeLoggerItems(form.items);
   assertRpReasonWhenRequired(form.issueType, form.notes);
 
+  const itemType = formatItemTypeForSheet(items, form.model);
+  const quantity = formatQuantityColumn(items);
+  const partRpCode = formatPartCodeColumn(items);
+  const partDescription = formatDescriptionColumn(items);
+  const clarifications = formatClarificationsColumn(items);
+  const payerData = existing.payerManual
+    ? {}
+    : {
+        payer: computeRpPayerForDb({
+          issueType: form.issueType.trim(),
+          reviewGroup: existing.reviewGroup,
+          itemType,
+          quantity,
+          partRpCode,
+          partDescription,
+          clarifications,
+          lineItems: items.map((item) => ({
+            kind: item.itemType === "Panel" ? "panel" : "part",
+          })),
+        }),
+      };
+
   const updated = await prisma.rpRequest.update({
     where: { id: existing.id },
     data: {
@@ -121,11 +144,11 @@ export async function updateExistingRpEntry(
       model: mapBoothModelToAbbreviation(form.model),
       boothId: form.boothId.trim(),
       color: form.color.trim(),
-      itemType: formatItemTypeForSheet(items, form.model),
-      quantity: formatQuantityColumn(items),
-      partRpCode: formatPartCodeColumn(items),
-      partDescription: formatDescriptionColumn(items),
-      clarifications: formatClarificationsColumn(items),
+      itemType,
+      quantity,
+      partRpCode,
+      partDescription,
+      clarifications,
       notes: form.notes.trim(),
       client: form.client.trim(),
       address: form.address.trim(),
@@ -133,6 +156,7 @@ export async function updateExistingRpEntry(
       phone: form.phone.trim(),
       email: form.email.trim(),
       itemsJson: items,
+      ...payerData,
       updatedAt: new Date(),
     },
   });

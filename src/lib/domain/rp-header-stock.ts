@@ -2,6 +2,7 @@ import type { RpRequest } from "@prisma/client";
 
 import type { DbExecutor } from "@/lib/db/executor";
 import { isPanelLineItem } from "@/lib/domain/rp-line-items";
+import { autoPayerUpdate } from "@/lib/domain/rp-payer";
 import { prisma } from "@/lib/prisma";
 
 /** Workshop note written to Rep.Parts26 when all panels are taken from stock. */
@@ -75,6 +76,7 @@ export async function recomputeRpHeaderAfterStockChange(
     status?: string;
     shipMethod?: string;
     workshopNote?: string | null;
+    payer?: string | null;
   } = {
     stockReplacementSummary: summary,
     updatedAt: now,
@@ -95,6 +97,21 @@ export async function recomputeRpHeaderAfterStockChange(
         ? null
         : rp.workshopNote;
   }
+
+  const nextReviewGroup =
+    updates.reviewGroup !== undefined ? updates.reviewGroup : rp.reviewGroup;
+  const payerPatch = autoPayerUpdate({
+    issueType: rp.issueType,
+    reviewGroup: nextReviewGroup,
+    itemType: rp.itemType,
+    quantity: rp.quantity,
+    partRpCode: rp.partRpCode,
+    partDescription: rp.partDescription,
+    clarifications: rp.clarifications,
+    payer: rp.payer,
+    payerManual: rp.payerManual,
+  });
+  if (payerPatch) updates.payer = payerPatch.payer;
 
   await executor.rpRequest.update({
     where: { id: rpId },

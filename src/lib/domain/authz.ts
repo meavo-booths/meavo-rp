@@ -172,6 +172,11 @@ export function canEditDueDate(
   return DUE_DATE_EDITORS.has(e);
 }
 
+/** Manual Платец override on RP cards (admins + due-date editors). */
+export function canEditPayer(email: string | null | undefined): boolean {
+  return canEditDueDate(email);
+}
+
 const WORKSHOP_NOTE_DASHBOARD_VIEWERS = new Set([
   "stefan@meavo.com",
   "ivan@meavo.com",

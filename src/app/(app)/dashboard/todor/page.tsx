@@ -91,6 +91,7 @@ export default async function TodorDashboardPage({
             status: c.status,
             tracking: null,
             orderSentAt: null,
+            payer: null,
           }))}
           role="todor"
           showWorkshopNoteEdit={false}

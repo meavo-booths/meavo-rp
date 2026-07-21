@@ -22,11 +22,12 @@ function ipCardToStefanRow(card: {
   panel: string | null;
   workshopNote: string | null;
   due: string | null;
+  payer: string | null;
 }): StefanPanelExportRow {
   return {
     num: card.ipNum,
     issue: card.issue ?? "",
-    payer: card.factory ?? "",
+    payer: card.payer ?? "",
     boothId: card.batch ?? "",
     model: card.model ?? "",
     colour: card.color ?? "",

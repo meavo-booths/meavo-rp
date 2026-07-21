@@ -6,6 +6,7 @@ import { requireActionSession } from "@/lib/api/require-session";
 import {
   canAnnaMarkReady,
   canEditDueDate,
+  canEditPayer,
   canLogIp,
   canShipRpParts,
   isActiveUrgentPanelsUser,
@@ -34,6 +35,7 @@ import {
   updateActiveUrgentPanelsEta,
   updateDueDate,
   updatePartToShipped,
+  updatePayer,
   updateWorkshopNote,
 } from "@/lib/domain/rp-mutations";
 import { markPanelsFromStock } from "@/lib/domain/stock-replacement";
@@ -234,6 +236,23 @@ export async function updateWorkshopNoteAction(
   const { viewer } = await requireActionSession();
   try {
     await updateWorkshopNote(recordType, recordNum, note, viewer.effectiveEmail);
+    revalidateDashboards();
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed" };
+  }
+}
+
+export async function updatePayerAction(
+  rpNum: string,
+  payer: string,
+): Promise<ActionResult> {
+  const { viewer } = await requireActionSession();
+  if (!canEditPayer(viewer.effectiveEmail)) {
+    return { error: "Access denied" };
+  }
+  try {
+    await updatePayer(rpNum, payer, viewer.effectiveEmail);
     revalidateDashboards();
     return {};
   } catch (e) {

@@ -2,6 +2,7 @@ import type { RpRequest } from "@prisma/client";
 
 import {
   canEditDueDate,
+  canEditPayer,
   canEditWorkshopNote,
   getEffectiveUserEmail,
   getReviewerDashboardConfig,
@@ -50,12 +51,15 @@ export type DashboardPartCard = {
   status: string | null;
   tracking: string | null;
   reviewGroup: string | null;
+  payer: string | null;
+  payerManual: boolean;
   workshopNote: string | null;
   orderSentAt: string | null;
   canEditRp: boolean;
   editRpDisabledReason: string;
   canEditWorkshopNote: boolean;
   canEditDueDate: boolean;
+  canEditPayer: boolean;
   items: ReturnType<typeof parseRpLineItemsFromRow>;
 };
 
@@ -145,12 +149,15 @@ function toCard(row: RpRequest, viewerEmail: string): DashboardPartCard {
     status: row.status,
     tracking: row.tracking,
     reviewGroup: row.reviewGroup,
+    payer: row.payer,
+    payerManual: row.payerManual,
     workshopNote: row.workshopNote,
     orderSentAt: row.orderSentAt?.toISOString().slice(0, 10) ?? null,
     canEditRp: edit.canEdit,
     editRpDisabledReason: edit.reason,
     canEditWorkshopNote: canEditWorkshopNote(viewerEmail, row.reviewGroup, row.itemType),
     canEditDueDate: canEditDueDate(viewerEmail),
+    canEditPayer: canEditPayer(viewerEmail),
     items: parseRpLineItemsFromRow(row),
   };
 }

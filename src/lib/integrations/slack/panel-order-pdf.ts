@@ -10,7 +10,7 @@ function entryToExportRow(entry: PanelOrderEntry): StefanPanelExportRow {
   return {
     num: entry.rpNum,
     issue: entry.issueType ?? "",
-    payer: entry.factory,
+    payer: entry.payer ?? "",
     boothId: entry.boothId ?? "",
     model: entry.model ?? "",
     colour: entry.color ?? "",

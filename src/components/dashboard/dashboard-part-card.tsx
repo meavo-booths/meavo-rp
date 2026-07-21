@@ -70,9 +70,11 @@ export function DashboardPartCardView({
   hideShippingSection,
   dueInTechColumn,
   showWorkshopNote,
+  showPayer,
   showStatusBadge,
   techBottom,
   workshopNoteFooter,
+  payerFooter,
   dueDateFooter,
   actionsColumn,
   shippingFooter,
@@ -85,9 +87,11 @@ export function DashboardPartCardView({
   hideShippingSection: boolean;
   dueInTechColumn: boolean;
   showWorkshopNote: boolean;
+  showPayer: boolean;
   showStatusBadge: boolean;
   techBottom?: ReactNode;
   workshopNoteFooter?: ReactNode;
+  payerFooter?: ReactNode;
   dueDateFooter?: ReactNode;
   actionsColumn?: ReactNode;
   shippingFooter?: ReactNode;
@@ -125,6 +129,22 @@ export function DashboardPartCardView({
         </p>
         <p className="text-sm text-slate-800">{part.workshopNote || "—"}</p>
         {workshopNoteFooter}
+      </div>
+    ) : null;
+
+  const payerSection =
+    showPayer && !isIp ? (
+      <div className="space-y-1">
+        <p className="text-[0.68rem] font-bold uppercase tracking-wide text-slate-500">
+          {labels.cardPayer}
+          {part.payerManual ? (
+            <span className="ml-1 font-semibold normal-case tracking-normal text-amber-700">
+              (manual)
+            </span>
+          ) : null}
+        </p>
+        <p className="text-sm text-slate-800">{part.payer || "—"}</p>
+        {payerFooter}
       </div>
     ) : null;
 
@@ -253,6 +273,7 @@ export function DashboardPartCardView({
             ) : null}
           </div>
           <div className="mt-auto flex flex-col gap-2 pt-2.5">
+            {payerSection}
             {workshopNoteSection}
             {!dueInTechColumn ? dueSection : null}
           </div>

@@ -22,6 +22,7 @@ export type PanelOrderEntry = {
   notes?: string | null;
   market?: string | null;
   dueDate?: Date | null;
+  payer?: string | null;
 };
 
 export type PanelUrgencyMode = "all" | "standard" | "urgent";
@@ -87,6 +88,7 @@ function rpToEntry(row: RpRequest): PanelOrderEntry {
     notes: row.notes,
     market: row.market,
     dueDate: row.dueDate,
+    payer: row.payer,
   };
 }
 
@@ -107,6 +109,7 @@ function ipToEntry(row: RpInternalProductionRow): PanelOrderEntry {
     clarifications: row.panelClarification,
     notes: row.notes,
     dueDate: row.deadline,
+    payer: row.payer,
   };
 }
 

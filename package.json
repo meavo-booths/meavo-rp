@@ -18,7 +18,7 @@
     "schema": "node_modules/@meavo/db/prisma/schema.prisma"
   },
   "dependencies": {
-    "@meavo/db": "github:meavo-booths/meavo-db#v0.14.0",
+    "@meavo/db": "github:meavo-booths/meavo-db#v0.24.0",
     "@meavo/navigation": "github:meavo-booths/meavo-navigation#v0.2.1",
     "@pdf-lib/fontkit": "^1.1.1",
     "@prisma/client": "^6.19.3",

@@ -18,6 +18,7 @@ import {
   shouldSplitItemsIntoSeparateRps,
 } from "@/lib/domain/rp-form-mapper";
 import { upsertRpLineItemsFromRow } from "@/lib/domain/rp-line-item-sync";
+import { computeRpPayerForDb } from "@/lib/domain/rp-payer";
 import { computeAutoDueDate } from "@/lib/domain/working-days";
 import { prisma } from "@/lib/prisma";
 
@@ -62,6 +63,19 @@ function buildRpRowData(
     email: form.email.trim(),
     status: "",
     dueDate: dueDate ?? undefined,
+    payer: computeRpPayerForDb({
+      issueType: form.issueType.trim(),
+      reviewGroup: null,
+      itemType,
+      quantity: formatQuantityColumn(items),
+      partRpCode: formatPartCodeColumn(items),
+      partDescription: formatDescriptionColumn(items),
+      clarifications: formatClarificationsColumn(items),
+      lineItems: items.map((item) => ({
+        kind: item.itemType === "Panel" ? "panel" : "part",
+      })),
+    }),
+    payerManual: false,
     itemsJson: items as unknown as Prisma.InputJsonValue,
   };
 }
