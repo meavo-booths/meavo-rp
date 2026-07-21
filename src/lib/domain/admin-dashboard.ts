@@ -46,6 +46,7 @@ export type AdminPanelRow = {
   market: string | null;
   clarifications: string | null;
   notes: string | null;
+  orderSentAt?: string | null;
 };
 
 export type AdminDashboardData = {
@@ -53,6 +54,8 @@ export type AdminDashboardData = {
   delayed: AdminDelayedRow[];
   unsentKaz: AdminPanelRow[];
   unsentVar: AdminPanelRow[];
+  recentKaz: AdminPanelRow[];
+  recentVar: AdminPanelRow[];
 };
 
 function norm(value: string | null | undefined): string {
@@ -261,6 +264,92 @@ async function collectUnsentPanelsForDisplay(
   return rows.sort((a, b) => a.num.localeCompare(b.num, undefined, { numeric: true }));
 }
 
+function parseEntityNum(raw: string): number {
+  const match = raw.match(/(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+/** Latest N panels for a factory (includes already-sent), for the “Select other panels” picker. */
+export async function collectLatestFactoryPanels(
+  factoryGroup: "KAZ" | "VAR",
+  limit = 15,
+): Promise<AdminPanelRow[]> {
+  const rpRows = await prisma.rpRequest.findMany({
+    where: {
+      reviewGroup: { contains: factoryGroup, mode: "insensitive" },
+    },
+  });
+
+  const ipRows = await prisma.rpInternalProductionRow.findMany({
+    where: {
+      factory: { contains: factoryGroup, mode: "insensitive" },
+    },
+  });
+
+  const suppressed = new Set<string>();
+  for (const row of ipRows) {
+    const source = norm(row.sourceRpNum).toUpperCase();
+    if (source) suppressed.add(source);
+  }
+
+  const rows: AdminPanelRow[] = [];
+
+  for (const row of rpRows) {
+    if (!hasMeaningfulRpData(row)) continue;
+    if (!isPanelRow(row.itemType)) continue;
+    if (norm(row.status).toLowerCase() === "cancelled") continue;
+    const key = row.rpNum.replace(/\s+/g, "").toUpperCase();
+    if (suppressed.has(key)) continue;
+    rows.push({
+      recordType: "rp",
+      recordId: row.id,
+      num: row.rpNum,
+      factory: row.reviewGroup ?? "",
+      description: row.partDescription ?? row.itemType ?? "",
+      workshopNote: row.workshopNote,
+      dueDate: formatDate(row.dueDate),
+      urgency: row.urgency,
+      status: row.status,
+      issueType: row.issueType,
+      boothId: row.boothId,
+      model: row.model,
+      color: row.color,
+      market: row.market,
+      clarifications: row.clarifications,
+      notes: row.notes,
+      orderSentAt: formatDate(row.orderSentAt),
+    });
+  }
+
+  for (const row of ipRows) {
+    if (!isPanelRow(row.panel)) continue;
+    if (norm(row.status).toLowerCase() === "cancelled") continue;
+    rows.push({
+      recordType: "ip",
+      recordId: row.id,
+      num: row.ipNum,
+      factory: row.factory ?? "",
+      description: row.panel ?? "",
+      workshopNote: row.workshopNote,
+      dueDate: formatDate(row.deadline),
+      urgency: row.urgency,
+      status: row.status,
+      issueType: row.reason,
+      boothId: row.batch,
+      model: row.model,
+      color: row.colour,
+      market: null,
+      clarifications: row.panelClarification,
+      notes: row.notes,
+      orderSentAt: formatDate(row.orderSentAt),
+    });
+  }
+
+  return rows
+    .sort((a, b) => parseEntityNum(b.num) - parseEntityNum(a.num))
+    .slice(0, limit);
+}
+
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const rpRows = await prisma.rpRequest.findMany({
     orderBy: { rpNum: "asc" },
@@ -324,12 +413,14 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     return a.rpNum.localeCompare(b.rpNum, undefined, { numeric: true });
   });
 
-  const [unsentKaz, unsentVar] = await Promise.all([
+  const [unsentKaz, unsentVar, recentKaz, recentVar] = await Promise.all([
     collectUnsentPanelsForDisplay("KAZ"),
     collectUnsentPanelsForDisplay("VAR"),
+    collectLatestFactoryPanels("KAZ", 15),
+    collectLatestFactoryPanels("VAR", 15),
   ]);
 
-  return { issues, delayed, unsentKaz, unsentVar };
+  return { issues, delayed, unsentKaz, unsentVar, recentKaz, recentVar };
 }
 
 /** Panels eligible for PDF export (workshop note required — same as Slack automation). */

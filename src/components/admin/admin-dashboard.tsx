@@ -110,8 +110,16 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
         <DelayedTable rows={data.delayed} />
       </Card>
 
-      <AdminPanelExportSection factory="KAZ" panels={data.unsentKaz} />
-      <AdminPanelExportSection factory="VAR" panels={data.unsentVar} />
+      <AdminPanelExportSection
+        factory="KAZ"
+        panels={data.unsentKaz}
+        recentPanels={data.recentKaz}
+      />
+      <AdminPanelExportSection
+        factory="VAR"
+        panels={data.unsentVar}
+        recentPanels={data.recentVar}
+      />
     </div>
   );
 }
