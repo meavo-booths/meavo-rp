@@ -5,10 +5,7 @@ import {
   adminPanelToExportRow,
   loadPanelExportRowsByNums,
 } from "@/lib/domain/admin-dashboard";
-import {
-  allRowsHaveWorkshopNote,
-  buildStefanPanelsPdf,
-} from "@/lib/domain/stefan-panel-pdf";
+import { buildStefanPanelsPdf } from "@/lib/domain/stefan-panel-pdf";
 
 export async function GET(request: Request) {
   const authResult = await requireApiSession();
@@ -35,30 +32,36 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "rpNums or ipNums required" }, { status: 400 });
   }
 
-  const panels = await loadPanelExportRowsByNums(rpNums, ipNums);
-  if (!panels.length) {
-    return NextResponse.json({ error: "No matching panels found" }, { status: 404 });
-  }
+  try {
+    const panels = await loadPanelExportRowsByNums(rpNums, ipNums);
+    if (!panels.length) {
+      return NextResponse.json({ error: "No matching panels found" }, { status: 404 });
+    }
 
-  const rows = panels.map(adminPanelToExportRow);
-  if (!allRowsHaveWorkshopNote(rows)) {
+    // Admin export allows missing workshop notes so recently sent / incomplete
+    // panels can still be reviewed as PDF.
+    const rows = panels.map(adminPanelToExportRow);
+    const dateLabel = new Date().toLocaleDateString("bg-BG");
+    const pdfBytes = await buildStefanPanelsPdf(
+      rows,
+      `${factory} панели — ${dateLabel}`,
+    );
+    const fileName = `${factory}-panels-${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    return new NextResponse(Buffer.from(pdfBytes), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
+    });
+  } catch (error) {
+    console.error("Admin panels PDF failed:", error);
     return NextResponse.json(
-      { error: "Въведи бележка цех за всички панели" },
-      { status: 400 },
+      {
+        error:
+          error instanceof Error ? error.message : "PDF export failed",
+      },
+      { status: 500 },
     );
   }
-
-  const dateLabel = new Date().toLocaleDateString("bg-BG");
-  const pdfBytes = await buildStefanPanelsPdf(
-    rows,
-    `${factory} панели — ${dateLabel}`,
-  );
-  const fileName = `${factory}-panels-${new Date().toISOString().slice(0, 10)}.pdf`;
-
-  return new NextResponse(Buffer.from(pdfBytes), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
-    },
-  });
 }

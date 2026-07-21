@@ -1,4 +1,8 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { readFile } from "fs/promises";
+import path from "path";
+
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, rgb } from "pdf-lib";
 
 import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
 
@@ -58,13 +62,24 @@ function truncate(text: string, max: number): string {
   return `${value.slice(0, max - 1)}…`;
 }
 
+async function loadDejaVuFonts(): Promise<{ regular: Uint8Array; bold: Uint8Array }> {
+  const fontsDir = path.join(process.cwd(), "src/lib/fonts");
+  const [regular, bold] = await Promise.all([
+    readFile(path.join(fontsDir, "DejaVuSans.ttf")),
+    readFile(path.join(fontsDir, "DejaVuSans-Bold.ttf")),
+  ]);
+  return { regular, bold };
+}
+
 export async function buildStefanPanelsPdf(
   rows: StefanPanelExportRow[],
   exportTitle?: string,
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  pdf.registerFontkit(fontkit);
+  const fontFiles = await loadDejaVuFonts();
+  const font = await pdf.embedFont(fontFiles.regular, { subset: true });
+  const fontBold = await pdf.embedFont(fontFiles.bold, { subset: true });
 
   const pageWidth = 842;
   const pageHeight = 595;

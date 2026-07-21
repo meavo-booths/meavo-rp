@@ -22,9 +22,13 @@ async function downloadPanelsPdf(
   if (ipNums.length) params.set("ipNums", ipNums.join(","));
 
   const res = await fetch(`/api/admin/panels-pdf?${params.toString()}`);
+  const contentType = res.headers.get("content-type") ?? "";
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error ?? "PDF export failed");
+    if (contentType.includes("application/json")) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? `PDF export failed (${res.status})`);
+    }
+    throw new Error(`PDF export failed (${res.status})`);
   }
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);

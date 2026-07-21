@@ -84,13 +84,24 @@ export async function GET(request: Request) {
     );
   }
 
-  const pdfBytes = await buildStefanPanelsPdf(rows);
-  const fileName = `panels-${new Date().toISOString().slice(0, 10)}.pdf`;
+  try {
+    const pdfBytes = await buildStefanPanelsPdf(rows);
+    const fileName = `panels-${new Date().toISOString().slice(0, 10)}.pdf`;
 
-  return new NextResponse(Buffer.from(pdfBytes), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
-    },
-  });
+    return new NextResponse(Buffer.from(pdfBytes), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
+    });
+  } catch (error) {
+    console.error("Stefan panels PDF failed:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "PDF export failed",
+      },
+      { status: 500 },
+    );
+  }
 }

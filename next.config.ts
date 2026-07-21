@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  // Keep Cyrillic-capable fonts available to serverless PDF routes.
+  outputFileTracingIncludes: {
+    "/api/admin/panels-pdf": ["./src/lib/fonts/**/*"],
+    "/api/stefan/panels-pdf": ["./src/lib/fonts/**/*"],
+    "/api/cron/kaz-panel-slack": ["./src/lib/fonts/**/*"],
+    "/api/cron/var-panel-slack": ["./src/lib/fonts/**/*"],
+    "/api/cron/kaz-weekly-standard": ["./src/lib/fonts/**/*"],
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
