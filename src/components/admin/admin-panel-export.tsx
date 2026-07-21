@@ -116,16 +116,16 @@ export function AdminPanelExportSection({
         <p className="text-sm text-slate-500">No unsent {factory} panels.</p>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Selection
-            </span>
-            <Button variant="secondary" className="px-2 py-1 text-xs" onClick={selectAll}>
-              Select all panels
-            </Button>
-            <Button variant="secondary" className="px-2 py-1 text-xs" onClick={deselectAll}>
-              Clear selection
-            </Button>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-medium text-slate-900">Selection</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={selectAll}>
+                Select all panels
+              </Button>
+              <Button variant="secondary" onClick={deselectAll}>
+                Clear selection
+              </Button>
+            </div>
           </div>
           <div className="max-h-80 overflow-y-auto rounded-lg border border-slate-200">
             <table className="w-full text-left text-sm">
@@ -172,20 +172,27 @@ export function AdminPanelExportSection({
               </tbody>
             </table>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={busy !== null || selected.size === 0}
-              onClick={() => void downloadPdf()}
-            >
-              {busy === "pdf" ? "Generating PDF…" : `Download selected PDF (${selected.size})`}
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={busy !== null || selected.size === 0}
-              onClick={() => void markSent()}
-            >
-              {busy === "sent" ? "Saving sent status…" : `Mark selected as sent (${selected.size})`}
-            </Button>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-medium text-slate-900">Actions for selected panels</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                disabled={busy !== null || selected.size === 0}
+                onClick={() => void downloadPdf()}
+              >
+                {busy === "pdf"
+                  ? "Generating PDF…"
+                  : `Download selected PDF (${selected.size})`}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={busy !== null || selected.size === 0}
+                onClick={() => void markSent()}
+              >
+                {busy === "sent"
+                  ? "Saving sent status…"
+                  : `Mark selected as sent (${selected.size})`}
+              </Button>
+            </div>
           </div>
         </>
       )}
