@@ -65,6 +65,8 @@ export function resolveViewerRole(email: string): ViewerRole {
 
 function defaultPathForRole(role: ViewerRole): string {
   switch (role) {
+    case "admin":
+      return "/admin/dashboard";
     case "nikolay":
       return "/dashboard/nikolay";
     case "stefan":

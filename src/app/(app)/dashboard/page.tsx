@@ -35,6 +35,16 @@ export default async function DashboardPage({
   const viewer = await resolveViewerContext(email);
   const params = await searchParams;
 
+  // Admins land on the admin dashboard unless they explicitly open own RPs
+  // (or are simulating another user).
+  if (
+    viewer.isAdmin &&
+    !viewer.isSimulating &&
+    params.own !== "1"
+  ) {
+    redirect("/admin/dashboard");
+  }
+
   if (
     ROLE_REDIRECTS.has(viewer.role) &&
     viewer.defaultDashboardPath !== "/dashboard" &&

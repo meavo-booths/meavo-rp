@@ -42,7 +42,7 @@ export async function Nav() {
   return (
     <MeavoNavBar
       links={[]}
-      logoHref="/dashboard"
+      logoHref={admin ? "/admin/dashboard" : "/dashboard"}
       toolSwitcher={{
         currentId: resolveRpToolId(toolOptions),
         options: toolOptions,

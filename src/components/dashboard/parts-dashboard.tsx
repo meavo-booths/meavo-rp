@@ -208,12 +208,6 @@ export function PartsDashboard({
           </Link>
         ) : null}
 
-        {viewer.isAdmin ? (
-          <Link href="/admin/dashboard" className={pillSecondary}>
-            Admin
-          </Link>
-        ) : null}
-
         {regionalButtonDefs.length > 0 ? (
           <StandardRegionalScopeBar
             defs={regionalButtonDefs}

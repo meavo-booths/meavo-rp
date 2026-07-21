@@ -2,8 +2,9 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 
+import { AdminHeaderActions } from "@/components/admin/admin-header-actions";
 import { AdminNav } from "@/components/admin/admin-nav";
-import { AdminQuickLinks } from "@/components/admin/admin-quick-links";
+import { SimulationExitButton } from "@/components/admin/simulation-exit-button";
 import {
   getDashboardUiLabels,
   ownRpsTitleForEmail,
@@ -89,7 +90,7 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
   const pathname = usePathname() ?? "/dashboard";
   const searchParams = useSearchParams();
   const title = titleForPath(pathname, searchParams, viewer);
-  const isAdminRoute = pathname.startsWith("/admin");
+  const showAdminChrome = viewer.isAdmin && !viewer.isSimulating;
   const labels = getDashboardUiLabels(viewer.role, {
     ownLoggedParts: true,
   });
@@ -101,7 +102,7 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
           <h1 className="text-sm font-semibold text-slate-900 sm:text-[0.95rem]">
             {title}
           </h1>
-          {viewer.isAdmin && isAdminRoute ? <AdminNav /> : null}
+          {showAdminChrome ? <AdminNav /> : null}
           {viewer.isSimulating ? (
             <p className="text-xs font-medium text-brand-700 sm:text-sm">
               {labels.viewingAs}{" "}
@@ -109,9 +110,8 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
             </p>
           ) : null}
         </div>
-        {viewer.isAdmin ? (
-          <AdminQuickLinks isSimulating={viewer.isSimulating} />
-        ) : null}
+        {showAdminChrome ? <AdminHeaderActions /> : null}
+        {viewer.isSimulating ? <SimulationExitButton /> : null}
       </div>
     </div>
   );
