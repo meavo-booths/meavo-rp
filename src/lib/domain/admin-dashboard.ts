@@ -22,6 +22,7 @@ export type AdminDelayedRow = {
   rpNum: string;
   recordType: "rp" | "ip";
   dueDate: string | null;
+  overdueDays: number;
   status: string | null;
   reviewGroup: string | null;
   itemType: string | null;
@@ -87,6 +88,54 @@ function formatDate(value: Date | null | undefined): string | null {
   return value.toISOString().slice(0, 10);
 }
 
+function startOfToday(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function toStartOfDay(value: Date): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
+function getOverdueDays(value: Date | null | undefined): number | null {
+  if (!value) return null;
+  const diffMs = startOfToday().getTime() - toStartOfDay(value).getTime();
+  if (diffMs <= 0) return null;
+  return Math.floor(diffMs / (24 * 60 * 60 * 1000));
+}
+
+function hasMeaningfulRpData(row: RpRequest): boolean {
+  return [
+    row.entryDate,
+    row.dueDate,
+    row.market,
+    row.issueType,
+    row.model,
+    row.boothId,
+    row.color,
+    row.itemType,
+    row.partDescription,
+    row.clarifications,
+    row.notes,
+    row.client,
+    row.address,
+    row.recipient,
+    row.phone,
+    row.email,
+    row.reviewGroup,
+    row.shipMethod,
+    row.status,
+    row.tracking,
+    row.payer,
+    row.currentLocation,
+    row.workshopNote,
+    row.orderSentAt,
+  ].some((value) => {
+    if (value instanceof Date) return true;
+    return norm(String(value ?? "")) !== "";
+  });
+}
+
 function panelEntryToRow(entry: PanelOrderEntry): AdminPanelRow {
   return {
     recordType: entry.recordType,
@@ -109,6 +158,7 @@ function panelEntryToRow(entry: PanelOrderEntry): AdminPanelRow {
 }
 
 function detectRpIssues(row: RpRequest): string[] {
+  if (!hasMeaningfulRpData(row)) return [];
   if (!isPanelRow(row.itemType)) return [];
   if (isTerminalStatus(row.status)) return [];
 
@@ -160,6 +210,7 @@ async function collectUnsentPanelsForDisplay(
   const rows: AdminPanelRow[] = [];
 
   for (const row of rpRows) {
+    if (!hasMeaningfulRpData(row)) continue;
     if (!isPanelRow(row.itemType)) continue;
     if (isTerminalStatus(row.status)) continue;
     const key = row.rpNum.replace(/\s+/g, "").toUpperCase();
@@ -235,11 +286,15 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const delayed: AdminDelayedRow[] = [];
 
   for (const row of rpRows) {
-    if (norm(row.status).toLowerCase() !== "delayed") continue;
+    if (!hasMeaningfulRpData(row)) continue;
+    if (isTerminalStatus(row.status)) continue;
+    const overdueDays = getOverdueDays(row.dueDate);
+    if (overdueDays == null) continue;
     delayed.push({
       rpNum: row.rpNum,
       recordType: "rp",
       dueDate: formatDate(row.dueDate),
+      overdueDays,
       status: row.status,
       reviewGroup: row.reviewGroup,
       itemType: row.itemType,
@@ -247,14 +302,16 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     });
   }
 
-  const ipRows = await prisma.rpInternalProductionRow.findMany({
-    where: { status: { equals: "Delayed", mode: "insensitive" } },
-  });
+  const ipRows = await prisma.rpInternalProductionRow.findMany();
   for (const row of ipRows) {
+    if (isTerminalStatus(row.status)) continue;
+    const overdueDays = getOverdueDays(row.deadline);
+    if (overdueDays == null) continue;
     delayed.push({
       rpNum: row.ipNum,
       recordType: "ip",
       dueDate: formatDate(row.deadline),
+      overdueDays,
       status: row.status,
       reviewGroup: row.factory,
       itemType: row.panel,
@@ -262,7 +319,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     });
   }
 
-  delayed.sort((a, b) => a.rpNum.localeCompare(b.rpNum, undefined, { numeric: true }));
+  delayed.sort((a, b) => {
+    if (b.overdueDays !== a.overdueDays) return b.overdueDays - a.overdueDays;
+    return a.rpNum.localeCompare(b.rpNum, undefined, { numeric: true });
+  });
 
   const [unsentKaz, unsentVar] = await Promise.all([
     collectUnsentPanelsForDisplay("KAZ"),
@@ -307,6 +367,7 @@ export async function loadPanelExportRowsByNums(
       where: { rpNum: { in: rpNums } },
     });
     for (const row of rpRows) {
+      if (!hasMeaningfulRpData(row)) continue;
       rows.push({
         recordType: "rp",
         recordId: row.id,

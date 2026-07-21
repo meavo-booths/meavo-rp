@@ -54,7 +54,7 @@ function IssuesTable({ rows }: { rows: AdminIssueRow[] }) {
 
 function DelayedTable({ rows }: { rows: AdminDelayedRow[] }) {
   if (!rows.length) {
-    return <p className="text-sm text-slate-500">No delayed RPs or IPs.</p>;
+    return <p className="text-sm text-slate-500">No overdue RPs or IPs.</p>;
   }
 
   return (
@@ -66,6 +66,7 @@ function DelayedTable({ rows }: { rows: AdminDelayedRow[] }) {
             <th className="px-3 py-2">Type</th>
             <th className="px-3 py-2">Factory</th>
             <th className="px-3 py-2">Due</th>
+            <th className="px-3 py-2">Overdue by</th>
             <th className="px-3 py-2">Item</th>
             <th className="px-3 py-2">Notes</th>
           </tr>
@@ -77,6 +78,9 @@ function DelayedTable({ rows }: { rows: AdminDelayedRow[] }) {
               <td className="px-3 py-2 uppercase text-slate-500">{row.recordType}</td>
               <td className="px-3 py-2">{row.reviewGroup ?? "—"}</td>
               <td className="px-3 py-2">{row.dueDate ?? "—"}</td>
+              <td className="px-3 py-2 font-medium text-amber-700">
+                {row.overdueDays} day{row.overdueDays === 1 ? "" : "s"}
+              </td>
               <td className="px-3 py-2">{row.itemType ?? "—"}</td>
               <td className="px-3 py-2 text-slate-600">{row.notes?.trim() || "—"}</td>
             </tr>
@@ -99,9 +103,9 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-lg font-semibold">Delayed</h2>
+        <h2 className="text-lg font-semibold">Overdue</h2>
         <p className="text-sm text-slate-600">
-          RPs and IPs currently in Delayed status.
+          RPs and IPs whose deadline date has already passed, sorted by most overdue first.
         </p>
         <DelayedTable rows={data.delayed} />
       </Card>

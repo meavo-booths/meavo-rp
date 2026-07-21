@@ -116,12 +116,15 @@ export function AdminPanelExportSection({
         <p className="text-sm text-slate-500">No unsent {factory} panels.</p>
       ) : (
         <>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Selection
+            </span>
             <Button variant="secondary" className="px-2 py-1 text-xs" onClick={selectAll}>
-              Select all
+              Select all panels
             </Button>
             <Button variant="secondary" className="px-2 py-1 text-xs" onClick={deselectAll}>
-              Clear
+              Clear selection
             </Button>
           </div>
           <div className="max-h-80 overflow-y-auto rounded-lg border border-slate-200">
@@ -174,14 +177,14 @@ export function AdminPanelExportSection({
               disabled={busy !== null || selected.size === 0}
               onClick={() => void downloadPdf()}
             >
-              {busy === "pdf" ? "Generating…" : `Download PDF (${selected.size})`}
+              {busy === "pdf" ? "Generating PDF…" : `Download selected PDF (${selected.size})`}
             </Button>
             <Button
               variant="secondary"
               disabled={busy !== null || selected.size === 0}
               onClick={() => void markSent()}
             >
-              {busy === "sent" ? "Saving…" : `Mark as sent (${selected.size})`}
+              {busy === "sent" ? "Saving sent status…" : `Mark selected as sent (${selected.size})`}
             </Button>
           </div>
         </>
