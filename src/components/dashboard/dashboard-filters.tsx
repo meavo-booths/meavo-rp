@@ -109,32 +109,42 @@ export function DashboardFilters({
     capabilities.market || capabilities.factory || capabilities.source || capabilities.item;
 
   return (
-    <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+    <div className="space-y-2">
       {hasTopRow ? (
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {onSearchChange ? (
-            <div className="w-full md:max-w-xl md:flex-1">
+            <div className="w-full sm:max-w-xl sm:flex-1">
               <Input
                 type="search"
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
                 placeholder={searchPlaceholder}
+                className="!rounded-full border-slate-300 bg-white"
               />
             </div>
           ) : (
             <div />
           )}
           {capabilities.sort ? (
-            <div className="md:shrink-0">
-              <FilterSelect
-                label={labels.sortLabel}
-                value={filters.sort}
-                options={[
-                  { value: "newest", label: labels.sortNewest },
-                  { value: "oldest", label: labels.sortOldest },
-                ]}
-                onChangeHref={(v) => href({ sort: v as "newest" | "oldest" })}
-              />
+            <div className="sm:shrink-0">
+              <label className="flex items-center gap-2 text-xs">
+                <span className="sr-only sm:not-sr-only sm:font-semibold sm:uppercase sm:tracking-wide sm:text-slate-500">
+                  {labels.sortLabel}
+                </span>
+                <select
+                  value={filters.sort}
+                  onChange={(e) => {
+                    window.location.href = href({
+                      sort: e.target.value as "newest" | "oldest",
+                    });
+                  }}
+                  aria-label={labels.sortLabel}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-2 text-[0.8125rem] font-semibold text-slate-800 hover:border-brand-600"
+                >
+                  <option value="newest">{labels.sortNewest}</option>
+                  <option value="oldest">{labels.sortOldest}</option>
+                </select>
+              </label>
             </div>
           ) : null}
         </div>
@@ -192,7 +202,7 @@ export function DashboardFilters({
             filters.item !== "all") && (
             <Link
               href={path}
-              className="rounded-md px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-200"
+              className="rounded-md px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
             >
               {labels.clearFilters}
             </Link>

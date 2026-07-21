@@ -3,20 +3,13 @@
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { pillSecondary } from "@/components/app-action-bar";
 import type { StandardRegionalButtonDef } from "@/lib/domain/standard-regional-scopes";
 import {
   formatRegionalScopeParam,
   parseActiveRegionalScopes,
   toggleRegionalScope,
 } from "@/lib/domain/standard-regional-scopes";
-
-function scopeButtonClass(active: boolean): string {
-  return `rounded-md px-3 py-1.5 text-sm font-medium ${
-    active
-      ? "bg-brand-600 text-white"
-      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-  }`;
-}
 
 function ScopeToggleLink({
   def,
@@ -32,7 +25,11 @@ function ScopeToggleLink({
   return (
     <Link
       href={hrefForScopes(nextScopes)}
-      className={scopeButtonClass(active)}
+      className={
+        active
+          ? "inline-flex items-center justify-center rounded-full bg-brand-600 px-3.5 py-1.5 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"
+          : pillSecondary
+      }
     >
       {def.label}
     </Link>
@@ -76,7 +73,11 @@ export function StandardRegionalScopeBar({
         ))}
         <details className="relative">
           <summary
-            className={`${scopeButtonClass(anySecondaryActive)} list-none cursor-pointer [&::-webkit-details-marker]:hidden`}
+            className={`${
+              anySecondaryActive
+                ? "inline-flex cursor-pointer list-none items-center justify-center rounded-full bg-brand-600 px-3.5 py-1.5 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"
+                : `${pillSecondary} cursor-pointer list-none`
+            } [&::-webkit-details-marker]:hidden`}
           >
             Other
           </summary>
@@ -89,7 +90,9 @@ export function StandardRegionalScopeBar({
                   key={def.scope}
                   href={hrefForScopes(nextScopes)}
                   className={`block px-3 py-2 text-sm hover:bg-slate-50 ${
-                    active ? "bg-brand-50 font-medium text-brand-800" : "text-slate-700"
+                    active
+                      ? "bg-brand-50 font-medium text-brand-800"
+                      : "text-slate-700"
                   }`}
                 >
                   {def.label}
@@ -103,7 +106,7 @@ export function StandardRegionalScopeBar({
   }
 
   return (
-    <nav className="flex flex-wrap gap-2">
+    <nav className="flex flex-wrap items-center gap-2">
       {defs.map((def) => (
         <ScopeToggleLink
           key={def.scope}

@@ -142,6 +142,7 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
     if (!normalized) {
       jar.delete(SIMULATE_COOKIE);
       revalidatePath("/dashboard");
+      revalidatePath("/admin", "layout");
       return {};
     }
     if (!isMeavoSimulationEmail(normalized)) {
@@ -178,6 +179,7 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
       path: "/",
     });
     revalidatePath("/dashboard");
+    revalidatePath("/admin", "layout");
     return {};
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Forbidden" };

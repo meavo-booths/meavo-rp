@@ -25,11 +25,13 @@ import {
   formatRegionalScopeParam,
   StandardRegionalScopeBar,
 } from "@/components/dashboard/standard-regional-scope-bar";
+import { pillPrimary, pillSecondary } from "@/components/app-action-bar";
 import { Button } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import {
   canEditWorkshopNote,
+  canLogIp,
   isWorkshopNoteDashboardViewer,
   normalizeEmail,
 } from "@/lib/domain/authz";
@@ -188,41 +190,65 @@ export function PartsDashboard({
       : [];
 
   return (
-    <div className="space-y-4">
-      {showNewRpButton ? (
-        <div className="flex justify-end">
-          <Link
-            href="/log"
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
-          >
+    <div className="space-y-3">
+      {/* GAS headerControls row: New Entry + regional + view toggles */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <Link href="/log" className={pillPrimary}>
+          {labels.logRp}
+        </Link>
+        {canLogIp(viewer.sessionEmail) ? (
+          <Link href="/log/ip" className={pillSecondary}>
+            {labels.logIp}
+          </Link>
+        ) : null}
+
+        {showNewRpButton ? (
+          <Link href="/log" className={pillPrimary}>
             {labels.newRp}
           </Link>
-        </div>
-      ) : null}
+        ) : null}
 
-      {regionalButtonDefs.length > 0 ? (
-        <StandardRegionalScopeBar
-          defs={regionalButtonDefs}
-          activeScopeParam={regionalScope}
-          hrefForScopes={hrefForRegionalScopes}
-        />
-      ) : null}
-
-      <nav className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
-        {tabs.filter((tab) => tab.id !== "ready" || showReadyTab).map((tab) => (
-          <Link
-            key={tab.id}
-            href={dashboardHref(tab.id, regionalScope)}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              view === tab.id
-                ? "bg-white text-brand-700 shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {tab.label}
+        {viewer.isAdmin ? (
+          <Link href="/admin/dashboard" className={pillSecondary}>
+            Admin
           </Link>
-        ))}
-      </nav>
+        ) : null}
+
+        {regionalButtonDefs.length > 0 ? (
+          <StandardRegionalScopeBar
+            defs={regionalButtonDefs}
+            activeScopeParam={regionalScope}
+            hrefForScopes={hrefForRegionalScopes}
+          />
+        ) : null}
+
+        <nav
+          className="inline-flex flex-wrap items-stretch gap-0.5 rounded-[11px] border border-slate-300 bg-white/80 p-1 shadow-[inset_0_1px_2px_rgba(33,33,33,0.04)] sm:ms-auto"
+          role="tablist"
+          aria-label="Orders view"
+        >
+          {tabs
+            .filter((tab) => tab.id !== "ready" || showReadyTab)
+            .map((tab) => {
+              const active = view === tab.id;
+              return (
+                <Link
+                  key={tab.id}
+                  href={dashboardHref(tab.id, regionalScope)}
+                  role="tab"
+                  aria-selected={active}
+                  className={`rounded-lg px-3.5 py-1.5 text-[0.8125rem] font-semibold transition-colors ${
+                    active
+                      ? "bg-brand-600 text-white shadow-[0_2px_10px_rgba(12,143,97,0.35)]"
+                      : "text-slate-500 hover:bg-sky-50 hover:text-slate-900"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+        </nav>
+      </div>
 
       {hasIpRecords ? (
         <nav className="flex flex-wrap gap-1">
@@ -231,10 +257,10 @@ export function PartsDashboard({
               key={filter.id}
               type="button"
               onClick={() => setSourceFilter(filter.id)}
-              className={`rounded-md px-3 py-1 text-xs ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
                 sourceFilter === filter.id
                   ? "bg-brand-600 text-white"
-                  : "bg-slate-100 text-slate-700"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               }`}
             >
               {filter.label}
