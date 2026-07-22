@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import {
   getEffectiveUserEmail,
@@ -10,6 +10,7 @@ import {
   normalizeEmail,
   type ReviewerDashboardConfig,
 } from "@/lib/domain/authz";
+import { SIMULATE_HEADER, SIMULATE_QUERY_PARAM } from "@/lib/simulate-as";
 
 export type ViewerRole =
   | "admin"
@@ -33,6 +34,7 @@ export type ViewerContext = {
   defaultDashboardPath: string;
 };
 
+/** @deprecated Legacy shared-cookie name — cleared on simulate apply/exit. */
 const SIMULATE_COOKIE = "rp_simulate_email";
 
 const TODOR_EMAIL = "todor.dimitrov@meavo.com";
@@ -42,7 +44,31 @@ const STEFAN_EMAIL = "stefan@meavo.com";
 const KALIN_EMAIL = "kalin@meavo.com";
 const YAVOR_EMAIL = "yavor@meavo.com";
 
+/**
+ * Per-tab simulate identity from the request URL (`?as=` → middleware header).
+ * Falls back to legacy cookie only so an old tab can still resolve until exit.
+ */
 export async function getSimulatedEmail(): Promise<string | null> {
+  const hdrs = await headers();
+  const fromHeader = hdrs.get(SIMULATE_HEADER)?.trim().toLowerCase();
+  if (fromHeader?.endsWith("@meavo.com")) return fromHeader;
+
+  // Server Actions POST to the page URL; Next may expose it here.
+  const nextUrl = hdrs.get("next-url") ?? hdrs.get("x-url") ?? "";
+  const referer = hdrs.get("referer") ?? "";
+  for (const raw of [nextUrl, referer]) {
+    if (!raw) continue;
+    try {
+      const url = raw.startsWith("http")
+        ? new URL(raw)
+        : new URL(raw, "https://rp.local");
+      const as = url.searchParams.get(SIMULATE_QUERY_PARAM)?.trim().toLowerCase();
+      if (as?.endsWith("@meavo.com")) return as;
+    } catch {
+      // ignore malformed
+    }
+  }
+
   const jar = await cookies();
   const value = jar.get(SIMULATE_COOKIE)?.value?.trim().toLowerCase();
   return value || null;
@@ -63,7 +89,7 @@ export function resolveViewerRole(email: string): ViewerRole {
   return "standard";
 }
 
-function defaultPathForRole(role: ViewerRole): string {
+export function defaultPathForRole(role: ViewerRole): string {
   switch (role) {
     case "admin":
       return "/admin/dashboard";

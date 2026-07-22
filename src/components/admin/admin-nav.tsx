@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+
+import { appendSimulateParam, SIMULATE_QUERY_PARAM } from "@/lib/simulate-as";
 
 export const adminPillClass = (active: boolean) =>
   `inline-flex shrink-0 items-center rounded-full border px-3.5 py-1.5 text-[0.8125rem] font-semibold transition-colors ${
@@ -13,8 +15,11 @@ export const adminPillClass = (active: boolean) =>
 /** Primary admin destinations shown next to the page title. */
 export function AdminNav() {
   const pathname = usePathname() ?? "";
-  const href = "/admin/dashboard";
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const searchParams = useSearchParams();
+  const as = searchParams.get(SIMULATE_QUERY_PARAM);
+  const href = appendSimulateParam("/admin/dashboard", as);
+  const active =
+    pathname === "/admin/dashboard" || pathname.startsWith("/admin/dashboard/");
 
   return (
     <nav className="flex flex-wrap items-center gap-2">

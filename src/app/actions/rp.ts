@@ -22,7 +22,11 @@ import { updateExistingRpEntry } from "@/lib/domain/rp-update";
 import { RP_TOOL_CARD_ID } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { signOut } from "@/lib/auth";
-import { resolveViewerContext, SIMULATE_COOKIE } from "@/lib/viewer-context";
+import {
+  defaultPathForRole,
+  resolveViewerRole,
+  SIMULATE_COOKIE,
+} from "@/lib/viewer-context";
 
 export type ActionResult = {
   error?: string;
@@ -31,6 +35,8 @@ export type ActionResult = {
   photoWarnings?: string[];
   /** After simulate apply/clear — client should navigate here. */
   redirectTo?: string;
+  /** Validated simulate target — client stores per-tab and puts in ?as=. */
+  simulatedEmail?: string;
 };
 
 async function attachPhotos(
@@ -140,9 +146,11 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
   try {
     assertAdmin(session.user?.email);
     const jar = await cookies();
+    // Always clear the legacy shared cookie — simulation is per-tab via ?as=.
+    jar.delete(SIMULATE_COOKIE);
+
     const normalized = normalizeSimulationEmail(email);
     if (!normalized) {
-      jar.delete(SIMULATE_COOKIE);
       revalidatePath("/dashboard");
       revalidatePath("/admin", "layout");
       return { redirectTo: "/admin/dashboard" };
@@ -174,16 +182,14 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
       };
     }
 
-    jar.set(SIMULATE_COOKIE, normalized, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-    });
     revalidatePath("/dashboard");
     revalidatePath("/admin", "layout");
-    const viewer = await resolveViewerContext(session.user!.email!);
-    return { redirectTo: viewer.defaultDashboardPath };
+    const role = resolveViewerRole(normalized);
+    const redirectTo =
+      normalized === "kalin@meavo.com"
+        ? "/dashboard/kalin"
+        : defaultPathForRole(role);
+    return { redirectTo, simulatedEmail: normalized };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Forbidden" };
   }

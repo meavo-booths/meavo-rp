@@ -55,6 +55,7 @@ function toIpCard(row: RpInternalProductionRow): IpDashboardCard {
 
 /** Map an IP row into the shared dashboard card shape (recordType "ip"). */
 export function ipCardToPartCard(ip: IpDashboardCard): DashboardPartCard {
+  const panel = (ip.panel ?? "").trim();
   return {
     id: ip.id,
     recordType: "ip",
@@ -91,7 +92,20 @@ export function ipCardToPartCard(ip: IpDashboardCard): DashboardPartCard {
     canEditWorkshopNote: false,
     canEditDueDate: false,
     canEditPayer: false,
-    items: [],
+    // GAS mapInternalProductionRowToDashboard_: one line item from panel name.
+    items: panel
+      ? [
+          {
+            lineIndex: 0,
+            kind: "panel" as const,
+            panelName: panel,
+            quantity: null,
+            partRpCode: null,
+            partDescription: panel,
+            clarifications: ip.clarification,
+          },
+        ]
+      : [],
   };
 }
 
@@ -152,7 +166,13 @@ export async function getIpDashboardCards(options: {
         return status === "Shipped" || status === "Delivered";
       }
       if (view === "ready") return status === "Ready";
-      return status !== "Shipped" && status !== "Cancelled" && status !== "Delivered";
+      // Match GAS matchesNikolayDashboardView_ / RP reviewer active: Ready is its own tab.
+      return (
+        status !== "Shipped" &&
+        status !== "Cancelled" &&
+        status !== "Delivered" &&
+        status !== "Ready"
+      );
     })
     .map(toIpCard);
 }

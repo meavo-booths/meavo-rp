@@ -6,10 +6,15 @@ import { useState, useTransition } from "react";
 import { setSimulateEmailAction } from "@/app/actions/rp";
 import { adminPillClass } from "@/components/admin/admin-nav";
 import { normalizeSimulationEmail } from "@/lib/domain/authz";
+import {
+  appendSimulateParam,
+  SIMULATE_STORAGE_KEY,
+} from "@/lib/simulate-as";
 
 /**
  * Compact admin persona switcher for the chrome bar.
  * Accepts `anna` or `anna@meavo.com`; Apply navigates to that user's dashboard.
+ * Simulation is per browser tab (URL ?as= + sessionStorage), not a shared cookie.
  */
 export function AdminSimulateBar() {
   const router = useRouter();
@@ -32,8 +37,14 @@ export function AdminSimulateBar() {
       setError(result.error);
       return;
     }
+    const targetEmail = result.simulatedEmail ?? normalized;
+    window.sessionStorage.setItem(SIMULATE_STORAGE_KEY, targetEmail);
+    const path = appendSimulateParam(
+      result.redirectTo ?? "/dashboard",
+      targetEmail,
+    );
     startTransition(() => {
-      router.push(result.redirectTo ?? "/dashboard");
+      router.push(path);
     });
   }
 

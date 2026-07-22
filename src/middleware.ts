@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authConfig } from "@/lib/auth.config";
+import { SIMULATE_HEADER, SIMULATE_QUERY_PARAM } from "@/lib/simulate-as";
 
 /** Edge-safe auth — do not import `@/lib/auth` here (it pulls in Prisma). */
 const { auth } = NextAuth(authConfig);
@@ -21,6 +22,19 @@ export default auth((req) => {
   if (isLoggedIn && isLoginPage) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
+
+  // Per-tab simulation: forward ?as= into a request header so RSC + Server Actions
+  // on this URL see the same persona (cookies are shared across tabs).
+  const as = req.nextUrl.searchParams.get(SIMULATE_QUERY_PARAM)?.trim().toLowerCase();
+  if (as && as.endsWith("@meavo.com")) {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set(SIMULATE_HEADER, as);
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+  }
+
+  return NextResponse.next();
 });
 
 export const config = {

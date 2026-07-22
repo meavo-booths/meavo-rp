@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { cancelRpAction } from "@/app/actions/rp";
@@ -28,6 +28,7 @@ import {
   StandardRegionalScopeBar,
 } from "@/components/dashboard/standard-regional-scope-bar";
 import { pillPrimary, pillSecondary } from "@/components/app-action-bar";
+import { useLoggerModal } from "@/components/logger/logger-modal-context";
 import { Button } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
@@ -49,6 +50,7 @@ import {
   getDashboardUiLabels,
   type DashboardUiLabels,
 } from "@/lib/ui-locale";
+import { SIMULATE_QUERY_PARAM } from "@/lib/simulate-as";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 function isPartLikeItemType(itemType: string | null): boolean {
@@ -93,6 +95,8 @@ export function PartsDashboard({
   ];
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { openRpLogger, openIpLogger } = useLoggerModal();
   const view = initialView;
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<"all" | "rp" | "ip">("all");
@@ -155,6 +159,8 @@ export function PartsDashboard({
     if (filters.sort !== "newest") params.set("sort", filters.sort);
     if (filters.source !== "all") params.set("source", filters.source);
     if (filters.market !== "all") params.set("market", filters.market);
+    const as = searchParams.get(SIMULATE_QUERY_PARAM);
+    if (as) params.set(SIMULATE_QUERY_PARAM, as);
     return `${basePath}?${params.toString()}`;
   }
 
@@ -200,19 +206,19 @@ export function PartsDashboard({
     <div className="space-y-3">
       {/* GAS headerControls row: New Entry + regional + view toggles */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-        <Link href="/log" className={pillPrimary}>
+        <button type="button" onClick={() => openRpLogger()} className={pillPrimary}>
           {labels.logRp}
-        </Link>
+        </button>
         {canLogIp(viewer.sessionEmail) ? (
-          <Link href="/log/ip" className={pillSecondary}>
+          <button type="button" onClick={() => openIpLogger()} className={pillSecondary}>
             {labels.logIp}
-          </Link>
+          </button>
         ) : null}
 
         {showNewRpButton ? (
-          <Link href="/log" className={pillPrimary}>
+          <button type="button" onClick={() => openRpLogger()} className={pillPrimary}>
             {labels.newRp}
-          </Link>
+          </button>
         ) : null}
 
         {regionalButtonDefs.length > 0 ? (
@@ -392,12 +398,13 @@ export function PartsDashboard({
                 {view === "active" && !isIp ? (
                   <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto">
                     {part.canEditRp ? (
-                      <Link
-                        href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
+                      <button
+                        type="button"
+                        onClick={() => openRpLogger({ editRp: part.rpNum })}
                         className={`${standardActionClass} border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}
                       >
                         {labels.cardEdit}
-                      </Link>
+                      </button>
                     ) : (
                       <span
                         title={part.editRpDisabledReason || "Edit unavailable"}
@@ -407,12 +414,15 @@ export function PartsDashboard({
                       </span>
                     )}
                     {canCreateSimilar ? (
-                      <Link
-                        href={`/log?similarRp=${encodeURIComponent(part.rpNum)}`}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openRpLogger({ similarRp: part.rpNum })
+                        }
                         className={`${standardActionClass} border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}
                       >
                         {labels.cardCreateSimilar}
-                      </Link>
+                      </button>
                     ) : null}
                     <button
                       type="button"
@@ -438,14 +448,15 @@ export function PartsDashboard({
             ) : null;
 
           const reviewerActions = !isStandardViewer ? (
-            <div className="flex h-full flex-col gap-2">
+            <div className="flex flex-col justify-center gap-2">
               {!isIp && part.canEditRp ? (
-                <Link
-                  href={`/log?editRp=${encodeURIComponent(part.rpNum)}`}
+                <button
+                  type="button"
+                  onClick={() => openRpLogger({ editRp: part.rpNum })}
                   className={`inline-flex items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 ${actionBtnClass}`}
                 >
                   {labels.cardEdit}
-                </Link>
+                </button>
               ) : null}
               {showLogisticsNotify ? (
                 <Button

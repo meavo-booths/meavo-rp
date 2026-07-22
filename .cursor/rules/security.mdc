@@ -19,7 +19,7 @@ Org standard (see STANDARDS.md §4 in meavo-agent-templates). Deviations for thi
 
 - NextAuth v5 JWT sessions; Google OAuth only, invite-only — the user must already exist in the shared gateway `User` table.
 - Session user carries `id` via `src/types/next-auth.d.ts`.
-- Admin simulation: `boyan@meavo.com` / `todor@meavo.com` may act as any `@meavo.com` user via the `rp_simulate_email` cookie — resolve the effective user through `resolveViewerContext`, never trust the cookie directly.
+- Admin simulation: `boyan@meavo.com` / `todor@meavo.com` may act as any `@meavo.com` user via the per-tab `?as=` query (mirrored in `sessionStorage`) — resolve the effective user through `resolveViewerContext`, never trust the param without the admin session check. Do not use a shared cookie for simulation (tabs would clobber each other).
 
 ## Routes & rendering
 
@@ -42,4 +42,4 @@ Org standard (see STANDARDS.md §4 in meavo-agent-templates). Deviations for thi
 - No Credentials provider: Google OAuth only, so bcrypt password rules and the shared `LoginThrottle` table are N/A here.
 - Session is not extended with `systemRole` / `hrAccess` — roles are derived per-request from email via `viewer-context.ts` / `authz.ts`.
 - `X-Frame-Options` is `DENY` (stricter than the org's `SAMEORIGIN`).
-- Admin simulation cookie (`rp_simulate_email`) is an RP-specific pattern — do not copy into new apps.
+- Admin simulation is per-tab via `?as=` / sessionStorage (RP-specific) — do not copy a shared cookie pattern into new apps.

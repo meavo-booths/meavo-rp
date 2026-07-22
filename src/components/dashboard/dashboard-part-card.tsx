@@ -18,7 +18,8 @@ function shouldShowModel(model: string | null): boolean {
 }
 
 function shouldShowBooth(boothId: string | null, isIp: boolean): boolean {
-  if (isIp) return false;
+  // IP maps batch → boothId; show it when present (GAS shows batch on IP cards).
+  if (isIp) return Boolean(boothId?.trim());
   return Boolean(boothId && boothId.toLowerCase() !== "stock");
 }
 
@@ -234,15 +235,29 @@ export function DashboardPartCardView({
 
             {isIp ? (
               <div className="mt-3.5 space-y-0.5">
-                <DashboardInfoLine label={labels.cardDescription}>
-                  {part.itemType ?? "—"}
-                </DashboardInfoLine>
+                {showBooth ? (
+                  <DashboardInfoLine label={labels.detailBatch} strong>
+                    {part.boothId}
+                  </DashboardInfoLine>
+                ) : null}
+                {showModel ? (
+                  <DashboardInfoLine label={labels.cardModel}>
+                    {part.model}
+                  </DashboardInfoLine>
+                ) : null}
+                {showColor ? (
+                  <DashboardInfoLine label={labels.cardColor}>
+                    {part.color}
+                  </DashboardInfoLine>
+                ) : null}
                 <DashboardInfoLine label={labels.factoryLabel} strong>
                   {part.reviewGroup ?? "—"}
                 </DashboardInfoLine>
-                <DashboardInfoLine label="Status" strong>
-                  {part.status || "Active"}
-                </DashboardInfoLine>
+                {part.status ? (
+                  <DashboardInfoLine label="Status" strong>
+                    {part.status}
+                  </DashboardInfoLine>
+                ) : null}
               </div>
             ) : showBooth || showModel || showColor ? (
               <div className="mt-3.5 space-y-0.5">
@@ -274,16 +289,14 @@ export function DashboardPartCardView({
         </div>
 
         <div
-          className={`flex min-h-0 min-w-0 flex-col border-b border-slate-200 py-3 lg:min-h-[11rem] lg:py-0 ${
-            hideShippingSection ? "" : "lg:border-b-0 lg:border-r lg:px-3"
+          className={`flex min-h-0 min-w-0 flex-col border-b border-slate-200 py-3 lg:min-h-[11rem] lg:border-b-0 lg:px-3 lg:py-0 ${
+            hideShippingSection ? "" : "lg:border-r"
           }`}
         >
           <div className="min-h-0 flex-1">
-            {!isIp ? (
-              <p className="text-[0.68rem] font-bold uppercase tracking-wide text-slate-500">
-                {labels.cardItems}
-              </p>
-            ) : null}
+            <p className="text-[0.68rem] font-bold uppercase tracking-wide text-slate-500">
+              {labels.cardItems}
+            </p>
             <ItemsList items={part.items} />
             {part.clarifications ? (
               <div className="mt-2">
@@ -341,10 +354,10 @@ export function DashboardPartCardView({
 
         {actionsColumn ? (
           <div
-            className="flex min-h-0 min-w-0 flex-col pt-3 lg:min-h-[11rem] lg:justify-center lg:pt-0 lg:pl-2"
+            className="flex min-h-0 min-w-0 flex-col pt-3 lg:min-h-[11rem] lg:justify-center lg:pt-0 lg:pl-3"
             onClick={stopCardClick}
           >
-            <div className="h-full rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+            <div className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5">
               {actionsColumn}
             </div>
           </div>

@@ -44,7 +44,7 @@ export function CatalogueModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 p-4 sm:items-center"
       onClick={onClose}
     >
       <div
