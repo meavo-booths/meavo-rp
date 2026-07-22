@@ -58,7 +58,8 @@ function gridColsForLayout(layout: DashboardPartCardLayout): string {
     case "reviewer":
       return "lg:grid-cols-[minmax(9.5rem,16%)_minmax(0,26%)_minmax(0,41%)_minmax(8.5rem,17%)]";
     case "reviewer-no-ship":
-      return "lg:grid-cols-[minmax(9.5rem,16%)_minmax(0,48%)_minmax(8.5rem,28%)]";
+      // Narrow actions column so "Информирай логистика" sits to the right.
+      return "lg:grid-cols-[minmax(9.5rem,16%)_minmax(0,1fr)_minmax(7.25rem,11rem)]";
   }
 }
 
@@ -235,21 +236,6 @@ export function DashboardPartCardView({
 
             {isIp ? (
               <div className="mt-3.5 space-y-0.5">
-                {showBooth ? (
-                  <DashboardInfoLine label={labels.detailBatch} strong>
-                    {part.boothId}
-                  </DashboardInfoLine>
-                ) : null}
-                {showModel ? (
-                  <DashboardInfoLine label={labels.cardModel}>
-                    {part.model}
-                  </DashboardInfoLine>
-                ) : null}
-                {showColor ? (
-                  <DashboardInfoLine label={labels.cardColor}>
-                    {part.color}
-                  </DashboardInfoLine>
-                ) : null}
                 <DashboardInfoLine label={labels.factoryLabel} strong>
                   {part.reviewGroup ?? "—"}
                 </DashboardInfoLine>
@@ -298,6 +284,25 @@ export function DashboardPartCardView({
               {labels.cardItems}
             </p>
             <ItemsList items={part.items} />
+            {isIp && (showBooth || showModel || showColor) ? (
+              <div className="mt-3 space-y-0.5">
+                {showBooth ? (
+                  <DashboardInfoLine label={labels.detailBatch} strong>
+                    {part.boothId}
+                  </DashboardInfoLine>
+                ) : null}
+                {showModel ? (
+                  <DashboardInfoLine label={labels.cardModel}>
+                    {part.model}
+                  </DashboardInfoLine>
+                ) : null}
+                {showColor ? (
+                  <DashboardInfoLine label={labels.cardColor}>
+                    {part.color}
+                  </DashboardInfoLine>
+                ) : null}
+              </div>
+            ) : null}
             {part.clarifications ? (
               <div className="mt-2">
                 <DashboardInfoLine label={labels.cardClarification}>
@@ -354,10 +359,12 @@ export function DashboardPartCardView({
 
         {actionsColumn ? (
           <div
-            className="flex min-h-0 min-w-0 flex-col pt-3 lg:min-h-[11rem] lg:justify-center lg:pt-0 lg:pl-3"
+            className={`flex min-h-0 min-w-0 flex-col pt-3 lg:min-h-[11rem] lg:justify-center lg:pt-0 ${
+              hideShippingSection ? "lg:pl-2" : "lg:pl-3"
+            }`}
             onClick={stopCardClick}
           >
-            <div className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+            <div className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2">
               {actionsColumn}
             </div>
           </div>

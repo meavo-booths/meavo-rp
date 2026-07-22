@@ -319,6 +319,8 @@ export function PartsDashboard({
             part.status !== "Cancelled";
 
           const actionBtnClass = "min-h-[44px] w-full px-3 py-1.5 text-sm";
+          const compactActionBtnClass =
+            "min-h-[40px] w-full px-2 py-1.5 text-[0.78rem] font-semibold leading-snug";
           const standardActionClass =
             "inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-md border px-2.5 py-1 text-[0.78rem] font-semibold leading-none whitespace-nowrap sm:min-h-[32px]";
 
@@ -461,7 +463,9 @@ export function PartsDashboard({
               {showLogisticsNotify ? (
                 <Button
                   disabled={actionBusy}
-                  className={actionBtnClass}
+                  className={
+                    logisticsButtonOnly ? compactActionBtnClass : actionBtnClass
+                  }
                   onClick={() => void run(() => annaReadyAction(part.rpNum))}
                 >
                   {labels.cardNotifyLogistics}
@@ -470,7 +474,9 @@ export function PartsDashboard({
               {isIp && view === "active" && ipReadyAction ? (
                 <Button
                   disabled={actionBusy}
-                  className={actionBtnClass}
+                  className={
+                    hideShippingSection ? compactActionBtnClass : actionBtnClass
+                  }
                   onClick={() => void run(() => ipReadyAction(part.rpNum))}
                 >
                   {labels.cardIpReady}
