@@ -62,6 +62,12 @@ Individual panels/parts on a multi-line RP.
 | `fulfillment` | `pending` \| `from_stock` \| … (`RpLineItemFulfillment`) |
 | `stockReplacementIpId` | Link to IP used for stock replacement |
 | `sourceLineItemId` | Reverse link from IP created from line |
+| `materialsDeductedAt` | Idempotency for MRP stock deduction (`@meavo/db` ≥ v0.26.0) |
+| `materialsDeductionError` | Last deduct failure message |
+
+### `RpPartMrpMap` / `RpPanelMrpMap`
+
+Bridge tables for Ready-RP material deduction (see [rp-mrp-materials.md](rp-mrp-materials.md)).
 
 ### `RpInternalProductionRow` → `internal_production_rows`
 

@@ -41,6 +41,7 @@ npm run build        # prisma generate + next build
 | Reference data (catalogue, markets, addresses) | `src/lib/reference-data/` |
 | DB schema | `docs/data-model.md` (schema lives in meavo-db) |
 | Match legacy GAS | `legacy-gas/WebAppLogic.js`, `legacy-gas/LoggerLogic.js` |
+| Catalogue / MRP deduct | `docs/rp-mrp-materials.md`, `src/lib/domain/catalogue-mrp.ts`, `/catalogue` |
 
 ## Do NOT
 

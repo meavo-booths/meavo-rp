@@ -98,6 +98,10 @@ Nikolay/Stefan pages use dedicated routes; Anna uses generic `/dashboard` with r
 | Urgent brief / ETA / ready | `rp-mutations.ts` | `briefUrgentPanelAction`, etc. | `urgent-panels-dashboard.tsx` |
 | Stock replacement | `stock-replacement.ts` | `useExistingPanelAction` | Urgent panels |
 | RP photos | `rp-photos.ts` | `createRpAction` | Logger upload |
+| Catalogue / MRP maps | `catalogue-mrp.ts` | `catalogue-mrp.ts` actions | `/catalogue` |
+| Deduct Ready materials | MRP `rp-deductions.ts` via `callMrpDeduct` | `deductMaterialsAction` | `/catalogue` Ready tab |
+
+See also [rp-mrp-materials.md](rp-mrp-materials.md).
 
 ### IP lifecycle
 

@@ -29,6 +29,10 @@ const ServerEnvSchema = z.object({
   RP_SHEET_SYNC_FORCE_OFF: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
+  /** Base URL of mrp.meavo.app for materials deduct API. */
+  MRP_APP_URL: z.string().url().optional(),
+  /** Shared bearer with meavo-mrp POST /api/stock/rp-deduct. */
+  RP_MRP_DEDUCT_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof ServerEnvSchema>;

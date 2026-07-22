@@ -217,6 +217,24 @@ export function canAnnaMarkReady(email: string | null | undefined): boolean {
   return isAdminUser(e) || e === "anna@meavo.com";
 }
 
+const CATALOGUE_EMAILS = new Set([
+  "anna@meavo.com",
+  "nikolay@meavo.com",
+  "stefan@meavo.com",
+  "kalin@meavo.com",
+  "yavor@meavo.com",
+]);
+
+/** Catalogue browse + MRP mapping + materials deduct for Ready RPs. */
+export function canAccessCatalogue(email: string | null | undefined): boolean {
+  const e = normalizeEmail(email);
+  return isAdminUser(e) || CATALOGUE_EMAILS.has(e);
+}
+
+export function canDeductMaterials(email: string | null | undefined): boolean {
+  return canAccessCatalogue(email);
+}
+
 /**
  * GAS normalizeSimulationEmail_: bare local-part → @meavo.com.
  * Returns "" for empty input; otherwise a lowercased address.

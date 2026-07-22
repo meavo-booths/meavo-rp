@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { AdminSimulateBar } from "@/components/admin-simulate-bar";
 import { AdminHeaderActions } from "@/components/admin/admin-header-actions";
-import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminNav, adminPillClass } from "@/components/admin/admin-nav";
 import { SimulationExitButton } from "@/components/admin/simulation-exit-button";
+import { canAccessCatalogue } from "@/lib/domain/authz";
+import { appendSimulateParam, SIMULATE_QUERY_PARAM } from "@/lib/simulate-as";
 import {
   getDashboardUiLabels,
   ownRpsTitleForEmail,
@@ -61,6 +64,9 @@ function titleForPath(
   if (pathname.startsWith("/admin/data")) {
     return "Neon data";
   }
+  if (pathname.startsWith("/catalogue")) {
+    return "Catalogue / MRP maps";
+  }
 
   // Default /dashboard — own RPs for standard + admin
   if (
@@ -90,6 +96,11 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
   const searchParams = useSearchParams();
   const title = titleForPath(pathname, searchParams, viewer);
   const showAdminChrome = viewer.isAdmin && !viewer.isSimulating;
+  const showCatalogueLink =
+    !showAdminChrome && canAccessCatalogue(viewer.effectiveEmail);
+  const as = searchParams.get(SIMULATE_QUERY_PARAM);
+  const catalogueHref = appendSimulateParam("/catalogue", as);
+  const catalogueActive = pathname.startsWith("/catalogue");
   const labels = getDashboardUiLabels(viewer.role, {
     ownLoggedParts: true,
   });
@@ -102,6 +113,11 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
             {title}
           </h1>
           {showAdminChrome ? <AdminNav /> : null}
+          {showCatalogueLink ? (
+            <Link href={catalogueHref} className={adminPillClass(catalogueActive)}>
+              Catalogue
+            </Link>
+          ) : null}
           {viewer.isSimulating ? (
             <p className="text-xs font-medium text-brand-700 sm:text-sm">
               {labels.viewingAs}{" "}

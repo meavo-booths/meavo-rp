@@ -17,14 +17,19 @@ export function AdminNav() {
   const pathname = usePathname() ?? "";
   const searchParams = useSearchParams();
   const as = searchParams.get(SIMULATE_QUERY_PARAM);
-  const href = appendSimulateParam("/admin/dashboard", as);
-  const active =
+  const dashboardHref = appendSimulateParam("/admin/dashboard", as);
+  const catalogueHref = appendSimulateParam("/catalogue", as);
+  const dashboardActive =
     pathname === "/admin/dashboard" || pathname.startsWith("/admin/dashboard/");
+  const catalogueActive = pathname.startsWith("/catalogue");
 
   return (
     <nav className="flex flex-wrap items-center gap-2">
-      <Link href={href} className={adminPillClass(active)}>
+      <Link href={dashboardHref} className={adminPillClass(dashboardActive)}>
         Dashboard
+      </Link>
+      <Link href={catalogueHref} className={adminPillClass(catalogueActive)}>
+        Catalogue
       </Link>
     </nav>
   );
