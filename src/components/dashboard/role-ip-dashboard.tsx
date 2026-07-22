@@ -14,6 +14,7 @@ import { Button, Card, Textarea } from "@/components/ui";
 import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import type { IpDashboardCard } from "@/lib/domain/dashboard-ip";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 
 export function RoleIpDashboard({
   title,
@@ -30,7 +31,9 @@ export function RoleIpDashboard({
   const [pending, startTransition] = useTransition();
   const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
-  const { openDetail, modal: detailModal } = useEntityDetailModal();
+  const labels = getDashboardUiLabels(role);
+  const { openDetail, modal: detailModal, openDetailTitle } =
+    useEntityDetailModal(labels);
 
   async function run(action: () => Promise<{ error?: string }>) {
     const result = await runLocked(action);
@@ -58,7 +61,7 @@ export function RoleIpDashboard({
                 <div
                   role="button"
                   tabIndex={0}
-                  title="Отвори детайли и история"
+                  title={openDetailTitle}
                   onClick={() => openDetail("ip", card.ipNum)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {

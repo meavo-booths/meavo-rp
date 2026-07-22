@@ -6,13 +6,15 @@ import { useState, useTransition } from "react";
 import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { Button, Card, Input } from "@/components/ui";
 import type { NeonSheetPage } from "@/lib/domain/admin-neon-sheet";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 
 export function AdminNeonSheetTable({ data }: { data: NeonSheetPage }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [search, setSearch] = useState(data.search);
-  const { openDetail, modal } = useEntityDetailModal();
+  const labels = getDashboardUiLabels("admin");
+  const { openDetail, modal, openDetailTitle } = useEntityDetailModal(labels);
 
   const numLabel = data.tab === "rp" ? "RP" : "IP";
 
@@ -140,7 +142,7 @@ export function AdminNeonSheetTable({ data }: { data: NeonSheetPage }) {
                   <tr
                     key={row.id}
                     className="cursor-pointer border-b border-slate-100 odd:bg-white even:bg-slate-50/60 hover:bg-brand-50/40"
-                    title={num ? "Отвори детайли и история" : undefined}
+                    title={num ? openDetailTitle : undefined}
                     onClick={() => {
                       if (!num) return;
                       openDetail(data.tab, num);

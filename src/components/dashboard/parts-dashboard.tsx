@@ -99,7 +99,8 @@ export function PartsDashboard({
   const [pending, startTransition] = useTransition();
   const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
-  const { openDetail, modal: detailModal } = useEntityDetailModal();
+  const { openDetail, modal: detailModal, openDetailTitle } =
+    useEntityDetailModal(labels);
 
   const filters = initialFilters ?? {
     market: "all",
@@ -552,6 +553,7 @@ export function PartsDashboard({
               dueDateFooter={dueDateFooter}
               actionsColumn={reviewerActions}
               onOpenDetail={() => openDetail(part.recordType, part.rpNum)}
+              openDetailTitle={openDetailTitle}
             />
           );
         })}

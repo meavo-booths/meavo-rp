@@ -22,13 +22,15 @@ import { updateExistingRpEntry } from "@/lib/domain/rp-update";
 import { RP_TOOL_CARD_ID } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { signOut } from "@/lib/auth";
-import { SIMULATE_COOKIE } from "@/lib/viewer-context";
+import { resolveViewerContext, SIMULATE_COOKIE } from "@/lib/viewer-context";
 
 export type ActionResult = {
   error?: string;
   rpNum?: string;
   rpNums?: string[];
   photoWarnings?: string[];
+  /** After simulate apply/clear — client should navigate here. */
+  redirectTo?: string;
 };
 
 async function attachPhotos(
@@ -143,7 +145,7 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
       jar.delete(SIMULATE_COOKIE);
       revalidatePath("/dashboard");
       revalidatePath("/admin", "layout");
-      return {};
+      return { redirectTo: "/admin/dashboard" };
     }
     if (!isMeavoSimulationEmail(normalized)) {
       return { error: "Simulation email must be a valid @meavo.com address" };
@@ -180,7 +182,8 @@ export async function setSimulateEmailAction(email: string): Promise<ActionResul
     });
     revalidatePath("/dashboard");
     revalidatePath("/admin", "layout");
-    return {};
+    const viewer = await resolveViewerContext(session.user!.email!);
+    return { redirectTo: viewer.defaultDashboardPath };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Forbidden" };
   }

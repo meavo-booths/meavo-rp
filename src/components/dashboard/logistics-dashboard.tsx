@@ -55,7 +55,8 @@ export function LogisticsDashboard({
   const [search, setSearch] = useState("");
   useDashboardRefresh();
   const labels = getDashboardUiLabels("logistics");
-  const { openDetail, modal: detailModal } = useEntityDetailModal();
+  const { openDetail, modal: detailModal, openDetailTitle } =
+    useEntityDetailModal(labels);
 
   const filtered = useMemo(
     () =>
@@ -113,7 +114,7 @@ export function LogisticsDashboard({
               key={part.id}
               role="button"
               tabIndex={0}
-              title="Отвори детайли и история"
+              title={openDetailTitle}
               onClick={() => openDetail("rp", part.rpNum)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {

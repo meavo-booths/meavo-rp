@@ -8,13 +8,16 @@ import type {
   AdminDelayedRow,
   AdminIssueRow,
 } from "@/lib/domain/admin-dashboard";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 
 function IssuesTable({
   rows,
   onOpen,
+  openDetailTitle,
 }: {
   rows: AdminIssueRow[];
   onOpen: (rpNum: string) => void;
+  openDetailTitle: string;
 }) {
   if (!rows.length) {
     return (
@@ -40,7 +43,7 @@ function IssuesTable({
               key={row.rpNum}
               className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
               onClick={() => onOpen(row.rpNum)}
-              title="Отвори детайли и история"
+              title={openDetailTitle}
             >
               <td className="px-3 py-2 font-medium text-brand-700 underline-offset-2 hover:underline">
                 {row.rpNum}
@@ -71,9 +74,11 @@ function IssuesTable({
 function DelayedTable({
   rows,
   onOpen,
+  openDetailTitle,
 }: {
   rows: AdminDelayedRow[];
   onOpen: (recordType: "rp" | "ip", num: string) => void;
+  openDetailTitle: string;
 }) {
   if (!rows.length) {
     return <p className="text-sm text-slate-500">No overdue RPs or IPs.</p>;
@@ -99,7 +104,7 @@ function DelayedTable({
               key={`${row.recordType}:${row.rpNum}`}
               className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
               onClick={() => onOpen(row.recordType, row.rpNum)}
-              title="Отвори детайли и история"
+              title={openDetailTitle}
             >
               <td className="px-3 py-2 font-medium text-brand-700 underline-offset-2 hover:underline">
                 {row.rpNum}
@@ -121,7 +126,8 @@ function DelayedTable({
 }
 
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
-  const { openDetail, modal } = useEntityDetailModal();
+  const labels = getDashboardUiLabels("admin");
+  const { openDetail, modal, openDetailTitle } = useEntityDetailModal(labels);
 
   return (
     <div className="space-y-4">
@@ -130,7 +136,11 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
         <p className="text-sm text-slate-600">
           Active panel RPs without factory, due date, or workshop note (KAZ/VAR).
         </p>
-        <IssuesTable rows={data.issues} onOpen={(rpNum) => openDetail("rp", rpNum)} />
+        <IssuesTable
+          rows={data.issues}
+          openDetailTitle={openDetailTitle}
+          onOpen={(rpNum) => openDetail("rp", rpNum)}
+        />
       </Card>
 
       <Card className="space-y-3">
@@ -140,6 +150,7 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
         </p>
         <DelayedTable
           rows={data.delayed}
+          openDetailTitle={openDetailTitle}
           onOpen={(recordType, num) => openDetail(recordType, num)}
         />
       </Card>

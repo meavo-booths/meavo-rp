@@ -13,23 +13,14 @@ export const adminPillClass = (active: boolean) =>
 /** Primary admin destinations shown next to the page title. */
 export function AdminNav() {
   const pathname = usePathname() ?? "";
-
-  const items = [
-    { href: "/admin/dashboard", label: "Dashboard" },
-    { href: "/admin/simulate", label: "Simulate" },
-  ];
+  const href = "/admin/dashboard";
+  const active = pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <nav className="flex flex-wrap items-center gap-2">
-      {items.map((item) => {
-        const active =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
-        return (
-          <Link key={item.href} href={item.href} className={adminPillClass(active)}>
-            {item.label}
-          </Link>
-        );
-      })}
+      <Link href={href} className={adminPillClass(active)}>
+        Dashboard
+      </Link>
     </nav>
   );
 }

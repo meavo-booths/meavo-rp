@@ -33,26 +33,27 @@ export type RecordLifecycleEventInput = {
   createdAt?: Date;
 };
 
-const EVENT_LABELS_BG: Record<string, string> = {
-  created: "Логнат",
-  status_changed: "Смяна на статус",
-  ready_marked: "Маркиран Ready",
-  ready_reverted: "Върнат от Ready",
-  order_sent: "Поръчка изпратена към завод",
-  shipped: "Изпратен",
-  cancelled: "Отказан",
-  delayed: "Отложен",
-  stock_taken: "Взет от склад",
-  edited: "Редактиран",
-  workshop_note: "Бележка работилница",
-  due_date_changed: "Сменен срок",
-  ship_info_changed: "Данни за доставка",
-  delivered: "Доставен",
-  payer_changed: "Сменен платец",
+const EVENT_LABELS_FALLBACK: Record<string, string> = {
+  created: "Logged",
+  status_changed: "Status changed",
+  ready_marked: "Marked Ready",
+  ready_reverted: "Reverted from Ready",
+  order_sent: "Order sent to factory",
+  shipped: "Shipped",
+  cancelled: "Cancelled",
+  delayed: "Delayed",
+  stock_taken: "Taken from stock",
+  edited: "Edited",
+  workshop_note: "Workshop note",
+  due_date_changed: "Due date changed",
+  ship_info_changed: "Shipping info updated",
+  delivered: "Delivered",
+  payer_changed: "Payer changed",
+  photo: "Photo uploaded",
 };
 
 export function lifecycleEventLabel(eventType: string): string {
-  return EVENT_LABELS_BG[eventType] ?? eventType;
+  return EVENT_LABELS_FALLBACK[eventType] ?? eventType;
 }
 
 export async function recordLifecycleEvent(
@@ -199,7 +200,7 @@ export function inferBestEffortTimeline(source: InferSource): TimelineEntry[] {
       id: inferredId("photo", `${at}:${photo.detail ?? ""}`),
       at,
       eventType: "photo",
-      label: "Качена снимка",
+      label: lifecycleEventLabel("photo"),
       fromStatus: null,
       toStatus: null,
       actorEmail: null,

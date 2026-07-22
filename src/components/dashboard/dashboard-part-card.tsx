@@ -79,6 +79,7 @@ export function DashboardPartCardView({
   actionsColumn,
   shippingFooter,
   onOpenDetail,
+  openDetailTitle,
 }: {
   part: DashboardPartCard;
   labels: DashboardUiLabels;
@@ -97,6 +98,7 @@ export function DashboardPartCardView({
   actionsColumn?: ReactNode;
   shippingFooter?: ReactNode;
   onOpenDetail?: () => void;
+  openDetailTitle?: string;
 }) {
   const isUrgent = part.urgency === "urgent";
   const isArchive = view === "archive";
@@ -198,7 +200,7 @@ export function DashboardPartCardView({
       }
       role={onOpenDetail ? "button" : undefined}
       tabIndex={onOpenDetail ? 0 : undefined}
-      title={onOpenDetail ? "Отвори детайли и история" : undefined}
+      title={onOpenDetail ? openDetailTitle ?? labels.openDetailTitle : undefined}
     >
       <div className={`grid items-stretch gap-0 ${gridCols}`}>
         <div className="flex min-h-0 min-w-0 flex-col border-b border-slate-200 pb-3 lg:min-h-[11rem] lg:border-b-0 lg:border-r lg:pb-0 lg:pr-3">

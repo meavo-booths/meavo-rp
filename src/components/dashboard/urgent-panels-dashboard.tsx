@@ -16,6 +16,7 @@ import { useActionLock } from "@/hooks/use-action-lock";
 import { useDashboardRefresh } from "@/hooks/use-dashboard-refresh";
 import type { DashboardPartCard } from "@/lib/domain/dashboard-parts";
 import type { UrgentPanelView } from "@/lib/domain/dashboard-urgent";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 import type { ViewerContext } from "@/lib/viewer-context";
 
 const TABS: { id: UrgentPanelView; label: string }[] = [
@@ -42,7 +43,9 @@ export function UrgentPanelsDashboard({
   const [pending, startTransition] = useTransition();
   const { busy: actionBusy, runLocked } = useActionLock();
   useDashboardRefresh();
-  const { openDetail, modal: detailModal } = useEntityDetailModal();
+  const labels = getDashboardUiLabels(viewer.role);
+  const { openDetail, modal: detailModal, openDetailTitle } =
+    useEntityDetailModal(labels);
 
   async function run(action: () => Promise<{ error?: string }>) {
     const result = await runLocked(action);
@@ -93,7 +96,7 @@ export function UrgentPanelsDashboard({
             <div
               role="button"
               tabIndex={0}
-              title="Отвори детайли и история"
+              title={openDetailTitle}
               onClick={() => openDetail(part.recordType, part.rpNum)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {

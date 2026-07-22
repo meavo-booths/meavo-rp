@@ -47,7 +47,7 @@ Resolved in `src/lib/viewer-context.ts` (`resolveViewerRole`) and `src/lib/domai
 | **georgi.stoyanov@**, **nikola@** (logistics) | `/dashboard/logistics` | PART/PARTS/STOCK only | **Read-only** in current Next port |
 | **ivan@meavo.com** | `/dashboard/ivan` | All parts views | **Read-only** |
 | **todor.dimitrov@meavo.com** | `/dashboard/todor` | Export schedule + Topoli IP stock | IP delivered at Topoli |
-| **boyan@**, **todor@** (admin) | `/dashboard` (+ simulate bar) | Any persona via simulate cookie | All actions as simulated user |
+| **boyan@**, **todor@** (admin) | `/admin/dashboard` (+ inline simulate) | Any persona via simulate cookie | All actions as simulated user |
 | **Everyone with tool access** | `/log`, `/log/ip` | Logger wizards | Create RP/IP |
 
 ### Reviewer dashboard config

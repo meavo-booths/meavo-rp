@@ -8,6 +8,7 @@ import {
   getTodorTopoliIpCards,
 } from "@/lib/domain/dashboard-todor";
 import { auth } from "@/lib/auth";
+import { getDashboardUiLabels } from "@/lib/ui-locale";
 import { resolveViewerContext } from "@/lib/viewer-context";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ export default async function TodorDashboardPage({
   if (!session?.user?.email) redirect("/login");
   const viewer = await resolveViewerContext(session.user.email);
   if (viewer.role !== "todor" && !viewer.isAdmin) redirect("/dashboard");
+  const labels = getDashboardUiLabels(viewer.role);
 
   const params = await searchParams;
   const sub =
@@ -98,6 +100,7 @@ export default async function TodorDashboardPage({
         />
       ) : (
         <ClickableEntityCards
+          labels={labels}
           rows={rows.map((row) => ({
             key: `${row.source}-${row.rpNum}`,
             recordType: "rp" as const,

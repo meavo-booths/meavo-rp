@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 
+import { AdminSimulateBar } from "@/components/admin-simulate-bar";
 import { AdminHeaderActions } from "@/components/admin/admin-header-actions";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { SimulationExitButton } from "@/components/admin/simulation-exit-button";
@@ -54,9 +55,6 @@ function titleForPath(
   if (pathname.startsWith("/admin/dashboard")) {
     return "Admin dashboard";
   }
-  if (pathname.startsWith("/admin/simulate")) {
-    return "Admin — Simulate";
-  }
   if (pathname.startsWith("/admin/automations")) {
     return "Automations";
   }
@@ -84,6 +82,7 @@ function titleForPath(
 
 /**
  * Compact title strip under MeavoNavBar.
+ * Admins get Dashboard (left) + inline simulate (center) + actions (right).
  * “Viewing as …” only when an admin is simulating another user.
  */
 export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
@@ -97,7 +96,7 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
 
   return (
     <div className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-[1720px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-3 py-1.5 sm:px-4">
+      <div className="mx-auto grid max-w-[1720px] grid-cols-1 items-center gap-x-3 gap-y-1.5 px-3 py-1.5 sm:grid-cols-[1fr_auto_1fr] sm:px-4">
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
           <h1 className="text-sm font-semibold text-slate-900 sm:text-[0.95rem]">
             {title}
@@ -110,8 +109,19 @@ export function AppChromeTitle({ viewer }: { viewer: ViewerContext }) {
             </p>
           ) : null}
         </div>
-        {showAdminChrome ? <AdminHeaderActions /> : null}
-        {viewer.isSimulating ? <SimulationExitButton /> : null}
+
+        {showAdminChrome ? (
+          <div className="justify-self-stretch sm:justify-self-center">
+            <AdminSimulateBar />
+          </div>
+        ) : (
+          <div className="hidden sm:block" />
+        )}
+
+        <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
+          {showAdminChrome ? <AdminHeaderActions /> : null}
+          {viewer.isSimulating ? <SimulationExitButton /> : null}
+        </div>
       </div>
     </div>
   );

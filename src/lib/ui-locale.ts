@@ -88,6 +88,50 @@ export type DashboardUiLabels = {
   promptDueDateReason: string;
   promptShipMethod: string;
   promptTracking: string;
+  /** Detail modal + click-to-open affordance. */
+  openDetailTitle: string;
+  detailClose: string;
+  detailLoading: string;
+  detailSubtitleRp: string;
+  detailSubtitleIp: string;
+  detailHistory: string;
+  detailHistoryEmpty: string;
+  detailInferred: string;
+  detailFrom: string;
+  detailLines: string;
+  detailPhotos: string;
+  detailLineFallback: string;
+  detailStockTaken: string;
+  detailStatus: string;
+  detailUrgency: string;
+  detailLogged: string;
+  detailOwner: string;
+  detailIssueType: string;
+  detailBatch: string;
+  detailPanel: string;
+  detailItem: string;
+  detailQuantity: string;
+  detailCode: string;
+  detailWarehouse: string;
+  detailSourceRp: string;
+  detailOrderSent: string;
+  detailReadyAt: string;
+  detailEventCreated: string;
+  detailEventStatusChanged: string;
+  detailEventReadyMarked: string;
+  detailEventReadyReverted: string;
+  detailEventOrderSent: string;
+  detailEventShipped: string;
+  detailEventCancelled: string;
+  detailEventDelayed: string;
+  detailEventStockTaken: string;
+  detailEventEdited: string;
+  detailEventWorkshopNote: string;
+  detailEventDueDateChanged: string;
+  detailEventShipInfoChanged: string;
+  detailEventDelivered: string;
+  detailEventPayerChanged: string;
+  detailEventPhoto: string;
 };
 
 const EN: DashboardUiLabels = {
@@ -161,6 +205,49 @@ const EN: DashboardUiLabels = {
   promptDueDateReason: "Reason for change",
   promptShipMethod: "Ship method",
   promptTracking: "Tracking",
+  openDetailTitle: "Open details and history",
+  detailClose: "Close",
+  detailLoading: "Loading…",
+  detailSubtitleRp: "Replacement Part — details & history",
+  detailSubtitleIp: "Internal Production — details & history",
+  detailHistory: "History",
+  detailHistoryEmpty: "No history recorded.",
+  detailInferred: "approximate",
+  detailFrom: "from",
+  detailLines: "Line items",
+  detailPhotos: "Photos",
+  detailLineFallback: "Line {n}",
+  detailStockTaken: "Stock",
+  detailStatus: "Status",
+  detailUrgency: "Urgency",
+  detailLogged: "Logged",
+  detailOwner: "Owner",
+  detailIssueType: "Issue type",
+  detailBatch: "Batch",
+  detailPanel: "Panel",
+  detailItem: "Item",
+  detailQuantity: "Quantity",
+  detailCode: "Code",
+  detailWarehouse: "Warehouse",
+  detailSourceRp: "Source RP",
+  detailOrderSent: "Order sent",
+  detailReadyAt: "Ready",
+  detailEventCreated: "Logged",
+  detailEventStatusChanged: "Status changed",
+  detailEventReadyMarked: "Marked Ready",
+  detailEventReadyReverted: "Reverted from Ready",
+  detailEventOrderSent: "Order sent to factory",
+  detailEventShipped: "Shipped",
+  detailEventCancelled: "Cancelled",
+  detailEventDelayed: "Delayed",
+  detailEventStockTaken: "Taken from stock",
+  detailEventEdited: "Edited",
+  detailEventWorkshopNote: "Workshop note",
+  detailEventDueDateChanged: "Due date changed",
+  detailEventShipInfoChanged: "Shipping info updated",
+  detailEventDelivered: "Delivered",
+  detailEventPayerChanged: "Payer changed",
+  detailEventPhoto: "Photo uploaded",
 };
 
 const BG: DashboardUiLabels = {
@@ -234,6 +321,49 @@ const BG: DashboardUiLabels = {
   promptDueDateReason: "Причина за промяна",
   promptShipMethod: "Метод на изпращане",
   promptTracking: "Тракинг номер",
+  openDetailTitle: "Отвори детайли и история",
+  detailClose: "Затвори",
+  detailLoading: "Зареждане…",
+  detailSubtitleRp: "Replacement Part — детайли и история",
+  detailSubtitleIp: "Internal Production — детайли и история",
+  detailHistory: "История",
+  detailHistoryEmpty: "Няма записана история.",
+  detailInferred: "приблизително",
+  detailFrom: "от",
+  detailLines: "Редове",
+  detailPhotos: "Снимки",
+  detailLineFallback: "Ред {n}",
+  detailStockTaken: "Склад",
+  detailStatus: "Статус",
+  detailUrgency: "Спешност",
+  detailLogged: "Логнат",
+  detailOwner: "Собственик",
+  detailIssueType: "Тип",
+  detailBatch: "Партида",
+  detailPanel: "Панел",
+  detailItem: "Артикул",
+  detailQuantity: "Количество",
+  detailCode: "Код",
+  detailWarehouse: "Склад",
+  detailSourceRp: "Източник RP",
+  detailOrderSent: "Поръчка изпратена",
+  detailReadyAt: "Ready",
+  detailEventCreated: "Логнат",
+  detailEventStatusChanged: "Смяна на статус",
+  detailEventReadyMarked: "Маркиран Ready",
+  detailEventReadyReverted: "Върнат от Ready",
+  detailEventOrderSent: "Поръчка изпратена към завод",
+  detailEventShipped: "Изпратен",
+  detailEventCancelled: "Отказан",
+  detailEventDelayed: "Отложен",
+  detailEventStockTaken: "Взет от склад",
+  detailEventEdited: "Редактиран",
+  detailEventWorkshopNote: "Бележка работилница",
+  detailEventDueDateChanged: "Сменен срок",
+  detailEventShipInfoChanged: "Данни за доставка",
+  detailEventDelivered: "Доставен",
+  detailEventPayerChanged: "Сменен платец",
+  detailEventPhoto: "Качена снимка",
 };
 
 /** Roles that use Bulgarian UI (factory / warehouse dashboards). */
@@ -266,6 +396,49 @@ export function getDashboardUiLabelsForViewer(
   options?: { ownLoggedParts?: boolean },
 ): DashboardUiLabels {
   return getDashboardUiLabels(viewer.role, options);
+}
+
+/** Localized timeline / lifecycle event title for the detail modal. */
+export function detailEventLabel(
+  labels: DashboardUiLabels,
+  eventType: string,
+): string {
+  switch (eventType) {
+    case "created":
+      return labels.detailEventCreated;
+    case "status_changed":
+      return labels.detailEventStatusChanged;
+    case "ready_marked":
+      return labels.detailEventReadyMarked;
+    case "ready_reverted":
+      return labels.detailEventReadyReverted;
+    case "order_sent":
+      return labels.detailEventOrderSent;
+    case "shipped":
+      return labels.detailEventShipped;
+    case "cancelled":
+      return labels.detailEventCancelled;
+    case "delayed":
+      return labels.detailEventDelayed;
+    case "stock_taken":
+      return labels.detailEventStockTaken;
+    case "edited":
+      return labels.detailEventEdited;
+    case "workshop_note":
+      return labels.detailEventWorkshopNote;
+    case "due_date_changed":
+      return labels.detailEventDueDateChanged;
+    case "ship_info_changed":
+      return labels.detailEventShipInfoChanged;
+    case "delivered":
+      return labels.detailEventDelivered;
+    case "payer_changed":
+      return labels.detailEventPayerChanged;
+    case "photo":
+      return labels.detailEventPhoto;
+    default:
+      return eventType;
+  }
 }
 
 export function ownRpsTitleForEmail(email: string): string {

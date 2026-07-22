@@ -5,6 +5,10 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getEntityDetailAction } from "@/app/actions/entity-detail";
 import type { EntityDetail } from "@/lib/domain/entity-detail";
 import type { LifecycleEntityType } from "@/lib/domain/lifecycle-events";
+import {
+  detailEventLabel,
+  type DashboardUiLabels,
+} from "@/lib/ui-locale";
 
 function formatTs(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -28,54 +32,78 @@ function DetailRow({ label, value }: { label: string; value: string | null | und
   );
 }
 
-function EntityDetailBody({ detail }: { detail: EntityDetail }) {
+function EntityDetailBody({
+  detail,
+  labels,
+}: {
+  detail: EntityDetail;
+  labels: DashboardUiLabels;
+}) {
   const isIp = detail.recordType === "ip";
   return (
     <div className="space-y-5">
       <section className="grid gap-2 sm:grid-cols-2">
-        <DetailRow label="Статус" value={detail.status} />
-        <DetailRow label="Спешност" value={detail.urgency} />
-        <DetailRow label="Логнат" value={formatTs(detail.entryDate)} />
-        <DetailRow label="Срок" value={formatTs(detail.dueDate)} />
-        <DetailRow label="Собственик" value={detail.ownerEmail} />
-        <DetailRow label="Пазар" value={detail.market} />
-        <DetailRow label="Тип" value={detail.issueType} />
-        <DetailRow label="Модел" value={detail.model} />
-        <DetailRow label={isIp ? "Партида" : "Кабина"} value={detail.boothId} />
-        <DetailRow label="Цвят" value={detail.color} />
-        <DetailRow label={isIp ? "Панел" : "Артикул"} value={detail.itemType} />
-        <DetailRow label="Количество" value={detail.quantity} />
-        <DetailRow label="Код" value={detail.partRpCode} />
-        <DetailRow label="Описание" value={detail.partDescription} />
-        <DetailRow label="Уточнения" value={detail.clarifications} />
-        <DetailRow label="Завод" value={detail.factory ?? detail.reviewGroup} />
-        <DetailRow label="Склад" value={detail.warehouse} />
-        <DetailRow label="Източник RP" value={detail.sourceRpNum} />
-        <DetailRow label="Платец" value={detail.payer} />
-        <DetailRow label="Доставка" value={detail.shipMethod} />
-        <DetailRow label="Tracking" value={detail.tracking} />
-        <DetailRow label="Поръчка изпратена" value={formatTs(detail.orderSentAt)} />
-        <DetailRow label="Ready" value={formatTs(detail.readyMarkedAt)} />
-        <DetailRow label="Бележка работилница" value={detail.workshopNote} />
+        <DetailRow label={labels.detailStatus} value={detail.status} />
+        <DetailRow label={labels.detailUrgency} value={detail.urgency} />
+        <DetailRow label={labels.detailLogged} value={formatTs(detail.entryDate)} />
+        <DetailRow
+          label={labels.cardProductionDeadline}
+          value={formatTs(detail.dueDate)}
+        />
+        <DetailRow label={labels.detailOwner} value={detail.ownerEmail} />
+        <DetailRow label={labels.cardMarket} value={detail.market} />
+        <DetailRow label={labels.detailIssueType} value={detail.issueType} />
+        <DetailRow label={labels.cardModel} value={detail.model} />
+        <DetailRow
+          label={isIp ? labels.detailBatch : labels.cardBooth}
+          value={detail.boothId}
+        />
+        <DetailRow label={labels.cardColor} value={detail.color} />
+        <DetailRow
+          label={isIp ? labels.detailPanel : labels.detailItem}
+          value={detail.itemType}
+        />
+        <DetailRow label={labels.detailQuantity} value={detail.quantity} />
+        <DetailRow label={labels.detailCode} value={detail.partRpCode} />
+        <DetailRow label={labels.cardDescription} value={detail.partDescription} />
+        <DetailRow label={labels.cardClarification} value={detail.clarifications} />
+        <DetailRow
+          label={labels.factoryLabel}
+          value={detail.factory ?? detail.reviewGroup}
+        />
+        <DetailRow label={labels.detailWarehouse} value={detail.warehouse} />
+        <DetailRow label={labels.detailSourceRp} value={detail.sourceRpNum} />
+        <DetailRow label={labels.cardPayer} value={detail.payer} />
+        <DetailRow label={labels.cardShipping} value={detail.shipMethod} />
+        <DetailRow label={labels.cardTracking} value={detail.tracking} />
+        <DetailRow
+          label={labels.detailOrderSent}
+          value={formatTs(detail.orderSentAt)}
+        />
+        <DetailRow
+          label={labels.detailReadyAt}
+          value={formatTs(detail.readyMarkedAt)}
+        />
+        <DetailRow label={labels.cardWorkshopNote} value={detail.workshopNote} />
       </section>
 
       {(detail.client || detail.recipient || detail.address) && (
         <section className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-3">
           <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-            Доставка
+            {labels.cardShipping}
           </h4>
-          <DetailRow label="Клиент" value={detail.client} />
-          <DetailRow label="Получател" value={detail.recipient} />
-          <DetailRow label="Адрес" value={detail.address} />
-          <DetailRow label="Телефон" value={detail.phone} />
-          <DetailRow label="Имейл" value={detail.email} />
+          <DetailRow label={labels.cardClient} value={detail.client} />
+          <DetailRow label={labels.cardRecipient} value={detail.recipient} />
+          <DetailRow label={labels.cardAddress} value={detail.address} />
+          <DetailRow label={labels.cardPhone} value={detail.phone} />
+          <DetailRow label={labels.cardEmail} value={detail.email} />
         </section>
       )}
 
       {detail.notes ? (
         <section>
           <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-            Бележки
+            {labels.cardNotes}
           </h4>
           <p className="mt-1 text-sm text-slate-800">{detail.notes}</p>
         </section>
@@ -84,7 +112,7 @@ function EntityDetailBody({ detail }: { detail: EntityDetail }) {
       {detail.lineItems.length > 0 ? (
         <section>
           <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-            Редове
+            {labels.detailLines}
           </h4>
           <ul className="mt-2 space-y-2">
             {detail.lineItems.map((li) => (
@@ -93,7 +121,12 @@ function EntityDetailBody({ detail }: { detail: EntityDetail }) {
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               >
                 <div className="font-medium text-slate-900">
-                  {li.panelName || li.partDescription || `Ред ${li.lineIndex + 1}`}
+                  {li.panelName ||
+                    li.partDescription ||
+                    labels.detailLineFallback.replace(
+                      "{n}",
+                      String(li.lineIndex + 1),
+                    )}
                 </div>
                 <div className="text-slate-600">
                   {li.kind}
@@ -102,7 +135,7 @@ function EntityDetailBody({ detail }: { detail: EntityDetail }) {
                 </div>
                 {li.takenFromStockAt ? (
                   <div className="text-xs text-slate-500">
-                    Склад: {formatTs(li.takenFromStockAt)}
+                    {labels.detailStockTaken}: {formatTs(li.takenFromStockAt)}
                     {li.takenFromStockBy ? ` (${li.takenFromStockBy})` : ""}
                   </div>
                 ) : null}
@@ -115,7 +148,7 @@ function EntityDetailBody({ detail }: { detail: EntityDetail }) {
       {detail.photos.length > 0 ? (
         <section>
           <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-            Снимки
+            {labels.detailPhotos}
           </h4>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {detail.photos.map((photo) => (
@@ -141,17 +174,17 @@ function EntityDetailBody({ detail }: { detail: EntityDetail }) {
 
       <section>
         <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-          История
+          {labels.detailHistory}
         </h4>
         {detail.timeline.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">Няма записана история.</p>
+          <p className="mt-2 text-sm text-slate-500">{labels.detailHistoryEmpty}</p>
         ) : (
           <ol className="mt-3 space-y-3 border-l-2 border-slate-200 pl-4">
             {detail.timeline.map((entry) => (
               <li key={entry.id} className="relative">
                 <span className="absolute -left-[1.35rem] top-1.5 h-2.5 w-2.5 rounded-full bg-brand-600" />
                 <div className="text-sm font-semibold text-slate-900">
-                  {entry.label}
+                  {detailEventLabel(labels, entry.eventType)}
                   {entry.toStatus ? (
                     <span className="ml-1 font-normal text-slate-600">
                       → {entry.toStatus}
@@ -161,14 +194,16 @@ function EntityDetailBody({ detail }: { detail: EntityDetail }) {
                 <div className="text-xs text-slate-500">
                   {formatTs(entry.at)}
                   {entry.actorEmail ? ` · ${entry.actorEmail}` : ""}
-                  {entry.source === "inferred" ? " · приблизително" : ""}
+                  {entry.source === "inferred"
+                    ? ` · ${labels.detailInferred}`
+                    : ""}
                 </div>
                 {entry.detail ? (
                   <p className="mt-0.5 text-sm text-slate-700">{entry.detail}</p>
                 ) : null}
                 {entry.fromStatus && entry.fromStatus !== entry.toStatus ? (
                   <p className="text-xs text-slate-500">
-                    от {entry.fromStatus}
+                    {labels.detailFrom} {entry.fromStatus}
                   </p>
                 ) : null}
               </li>
@@ -185,11 +220,13 @@ export function EntityDetailModal({
   recordNum,
   open,
   onClose,
+  labels,
 }: {
   recordType: LifecycleEntityType | null;
   recordNum: string | null;
   open: boolean;
   onClose: () => void;
+  labels: DashboardUiLabels;
 }) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -247,7 +284,9 @@ export function EntityDetailModal({
               {recordNum}
             </h3>
             <p className="text-sm text-slate-500">
-              {recordType === "ip" ? "Internal Production" : "Replacement Part"} — детайли и история
+              {recordType === "ip"
+                ? labels.detailSubtitleIp
+                : labels.detailSubtitleRp}
             </p>
           </div>
           <button
@@ -256,16 +295,16 @@ export function EntityDetailModal({
             className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             onClick={onClose}
           >
-            Затвори
+            {labels.detailClose}
           </button>
         </div>
         <div className="overflow-y-auto px-4 py-4">
           {loading ? (
-            <p className="text-sm text-slate-500">Зареждане…</p>
+            <p className="text-sm text-slate-500">{labels.detailLoading}</p>
           ) : error ? (
             <p className="text-sm text-red-600">{error}</p>
           ) : detail ? (
-            <EntityDetailBody detail={detail} />
+            <EntityDetailBody detail={detail} labels={labels} />
           ) : null}
         </div>
       </div>
@@ -273,7 +312,7 @@ export function EntityDetailModal({
   );
 }
 
-export function useEntityDetailModal() {
+export function useEntityDetailModal(labels: DashboardUiLabels) {
   const [target, setTarget] = useState<{
     recordType: LifecycleEntityType;
     recordNum: string;
@@ -294,8 +333,9 @@ export function useEntityDetailModal() {
       recordType={target?.recordType ?? null}
       recordNum={target?.recordNum ?? null}
       onClose={closeDetail}
+      labels={labels}
     />
   );
 
-  return { openDetail, closeDetail, modal };
+  return { openDetail, closeDetail, modal, openDetailTitle: labels.openDetailTitle };
 }

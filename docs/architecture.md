@@ -78,7 +78,7 @@ Google OAuth → NextAuth session → requireRpAccess()
   → resolveViewerContext() → role + default dashboard path
 ```
 
-Admins can set cookie `rp_simulate_email` to act as another `@meavo.com` user (`AdminSimulateBar`).
+Admins can set cookie `rp_simulate_email` to act as another `@meavo.com` user (inline simulate in the admin chrome bar).
 
 ## GAS port reference
 

@@ -18,8 +18,14 @@ export function SimulationExitButton() {
       disabled={pending}
       className={btnClass}
       onClick={() => {
-        void setSimulateEmailAction("").then(() => {
-          startTransition(() => router.refresh());
+        void setSimulateEmailAction("").then((result) => {
+          startTransition(() => {
+            if (result.redirectTo) {
+              router.push(result.redirectTo);
+            } else {
+              router.refresh();
+            }
+          });
         });
       }}
     >

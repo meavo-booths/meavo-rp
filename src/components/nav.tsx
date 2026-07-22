@@ -24,7 +24,7 @@ function resolveRpToolId(
   return byName?.id ?? "gateway";
 }
 
-/** Shared Meavo chrome only — app CTAs live in AppActionBar, not as nav links. */
+/** Shared Meavo chrome only — app CTAs live in page toolbars / admin header actions. */
 export async function Nav() {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) return null;

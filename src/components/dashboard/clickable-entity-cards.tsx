@@ -3,9 +3,11 @@
 import { useEntityDetailModal } from "@/components/dashboard/entity-detail-modal";
 import { Card } from "@/components/ui";
 import type { LifecycleEntityType } from "@/lib/domain/lifecycle-events";
+import type { DashboardUiLabels } from "@/lib/ui-locale";
 
 export function ClickableEntityCards({
   rows,
+  labels,
 }: {
   rows: {
     key: string;
@@ -13,11 +15,12 @@ export function ClickableEntityCards({
     num: string;
     subtitle: string;
   }[];
+  labels: DashboardUiLabels;
 }) {
-  const { openDetail, modal } = useEntityDetailModal();
+  const { openDetail, modal, openDetailTitle } = useEntityDetailModal(labels);
 
   if (rows.length === 0) {
-    return <p className="text-sm text-slate-500">Няма записи за този изглед.</p>;
+    return <p className="text-sm text-slate-500">{labels.emptyView}</p>;
   }
 
   return (
@@ -31,7 +34,7 @@ export function ClickableEntityCards({
             <div
               role="button"
               tabIndex={0}
-              title="Отвори детайли и история"
+              title={openDetailTitle}
               onClick={() => openDetail(row.recordType, row.num)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
