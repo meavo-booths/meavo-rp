@@ -74,8 +74,14 @@ function normalizePartCode(raw: string | null | undefined): string {
 }
 
 export async function listCatalogueParts(): Promise<CataloguePartRow[]> {
-  const [categories, maps, materialsByCode] = await Promise.all([
-    getCatalogueData(),
+  let categories;
+  try {
+    categories = await getCatalogueData();
+  } catch (error) {
+    console.error("[catalogue-mrp] parts list:", error);
+    return [];
+  }
+  const [maps, materialsByCode] = await Promise.all([
     prisma.rpPartMrpMap.findMany({
       select: {
         partRpCode: true,

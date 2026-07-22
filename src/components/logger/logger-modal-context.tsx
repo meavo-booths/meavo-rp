@@ -110,6 +110,7 @@ export function LoggerModalProvider({
         addressBook: boot.addressBook,
         panelOptions: boot.panelOptions,
         catalogueCategories: boot.catalogueCategories,
+        catalogueError: boot.catalogueError,
       },
       initialForm: prefill.initialForm,
       loadError: boot.error ?? prefill.error,
@@ -218,6 +219,7 @@ export function LoggerModalProvider({
               addressBook={session.bootstrap.addressBook}
               panelOptions={session.bootstrap.panelOptions}
               catalogueCategories={session.bootstrap.catalogueCategories}
+              catalogueError={session.bootstrap.catalogueError}
               initialForm={session.initialForm}
               editRpNum={session.editRp}
               similarRpNum={session.similarRp}

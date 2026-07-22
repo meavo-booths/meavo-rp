@@ -81,7 +81,9 @@ export function AdminHeaderActions() {
   const myPartsActive = pathname === "/dashboard" && own;
   const settingsActive =
     pathname.startsWith("/admin/automations") ||
-    pathname.startsWith("/admin/data");
+    pathname.startsWith("/admin/data") ||
+    pathname.startsWith("/admin/catalogue") ||
+    pathname.startsWith("/catalogue");
   const as = searchParams.get(SIMULATE_QUERY_PARAM);
 
   return (
@@ -118,6 +120,9 @@ export function AdminHeaderActions() {
         </DropdownItem>
         <DropdownItem href={appendSimulateParam("/admin/data", as)}>
           Neon data
+        </DropdownItem>
+        <DropdownItem href={appendSimulateParam("/admin/catalogue", as)}>
+          Catalogue / MRP maps
         </DropdownItem>
       </DropdownPill>
     </div>

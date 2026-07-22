@@ -26,6 +26,7 @@ export type CatalogueActionResult = {
 };
 
 function revalidateCatalogue() {
+  revalidatePath("/admin/catalogue");
   revalidatePath("/catalogue");
 }
 

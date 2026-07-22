@@ -117,6 +117,7 @@ export function LoggerWizard({
   addressBook,
   panelOptions,
   catalogueCategories,
+  catalogueError,
   initialForm,
   editRpNum,
   similarRpNum,
@@ -127,6 +128,7 @@ export function LoggerWizard({
   addressBook: AddressBookEntry[];
   panelOptions: PanelOptionsPayload;
   catalogueCategories: CatalogueCategory[];
+  catalogueError?: string;
   initialForm?: LoggerFormInput & { rpNum?: string };
   editRpNum?: string;
   similarRpNum?: string;
@@ -850,6 +852,7 @@ export function LoggerWizard({
 
       <CatalogueModal
         categories={catalogueCategories}
+        loadError={catalogueError}
         open={catalogueOpen}
         onClose={() => setCatalogueOpen(false)}
         onSelect={(code, description, standardPartner) => {

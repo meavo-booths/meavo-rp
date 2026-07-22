@@ -7,10 +7,10 @@ materials / booth-element recipes, and deduct stock for **Ready** RPs.
 
 | App | Role |
 |-----|------|
-| **rp.meavo.app** `/catalogue` | Parts list, panels list, mapping CRUD, Ready deduct queue |
+| **rp.meavo.app** `/admin/catalogue` (Settings) | Parts list, panels list, mapping CRUD, Ready deduct queue |
 | **mrp.meavo.app** `POST /api/stock/rp-deduct` | Resolves maps / BOMs and posts `production_out` movements |
 
-Access on RP: admins + Anna, Nikolay, Stefan, Kalin, Yavor.
+Access on RP: **admins only** (`boyan@` / `todor@`), via **Settings → Catalogue / MRP maps**.
 
 ## Mapping
 

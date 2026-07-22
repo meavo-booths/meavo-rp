@@ -20,6 +20,7 @@ export type LoggerBootstrapPayload = {
   addressBook: AddressBookEntry[];
   panelOptions: PanelOptionsPayload;
   catalogueCategories: CatalogueCategory[];
+  catalogueError?: string;
 };
 
 export async function getLoggerBootstrapAction(): Promise<
@@ -27,12 +28,28 @@ export async function getLoggerBootstrapAction(): Promise<
 > {
   await requireActionSession();
   try {
-    const [addressBook, panelOptions, catalogueCategories] = await Promise.all([
+    const [addressBook, panelOptions, catalogueResult] = await Promise.all([
       getAddressBookEntries(),
       getPanelOptionsByBoothModel(),
-      getCatalogueData(),
+      getCatalogueData()
+        .then((catalogueCategories) => ({ catalogueCategories }))
+        .catch((error: unknown) => ({
+          catalogueCategories: [] as CatalogueCategory[],
+          catalogueError:
+            error instanceof Error
+              ? error.message
+              : "Failed to load spare parts catalogue",
+        })),
     ]);
-    return { addressBook, panelOptions, catalogueCategories };
+    return {
+      addressBook,
+      panelOptions,
+      catalogueCategories: catalogueResult.catalogueCategories,
+      catalogueError:
+        "catalogueError" in catalogueResult
+          ? catalogueResult.catalogueError
+          : undefined,
+    };
   } catch (error) {
     return {
       addressBook: [],

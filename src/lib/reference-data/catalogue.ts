@@ -117,8 +117,13 @@ export async function getCatalogueData(): Promise<CatalogueCategory[]> {
         valueRenderOption: "FORMULA",
       }),
     ]);
-  } catch {
-    return SHEET_NAMES.map((category) => ({ category, rows: [] }));
+  } catch (error) {
+    console.error("[catalogue] failed to load from Google Sheets", error);
+    const detail =
+      error instanceof Error ? error.message : "Google Sheets request failed";
+    throw new Error(
+      `Spare parts catalogue unavailable (${detail}). Share the catalogue spreadsheet with the app service account as Viewer.`,
+    );
   }
 
   const categories: CatalogueCategory[] = [];

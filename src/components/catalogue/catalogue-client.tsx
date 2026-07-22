@@ -87,7 +87,7 @@ export function CatalogueClient(props: Props) {
   }, [props.panels, q]);
 
   function setTab(next: CatalogueTab) {
-    router.push(`/catalogue?tab=${next}`);
+    router.push(`/admin/catalogue?tab=${next}`);
   }
 
   function run(

@@ -217,22 +217,13 @@ export function canAnnaMarkReady(email: string | null | undefined): boolean {
   return isAdminUser(e) || e === "anna@meavo.com";
 }
 
-const CATALOGUE_EMAILS = new Set([
-  "anna@meavo.com",
-  "nikolay@meavo.com",
-  "stefan@meavo.com",
-  "kalin@meavo.com",
-  "yavor@meavo.com",
-]);
-
-/** Catalogue browse + MRP mapping + materials deduct for Ready RPs. */
+/** Admin-only MRP catalogue / materials mapping / Ready deduct. */
 export function canAccessCatalogue(email: string | null | undefined): boolean {
-  const e = normalizeEmail(email);
-  return isAdminUser(e) || CATALOGUE_EMAILS.has(e);
+  return isAdminUser(email);
 }
 
 export function canDeductMaterials(email: string | null | undefined): boolean {
-  return canAccessCatalogue(email);
+  return isAdminUser(email);
 }
 
 /**

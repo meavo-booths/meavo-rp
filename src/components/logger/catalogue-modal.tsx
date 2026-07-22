@@ -13,11 +13,13 @@ function isStandardPartnerYes(value: string | undefined): boolean {
 
 export function CatalogueModal({
   categories,
+  loadError,
   open,
   onClose,
   onSelect,
 }: {
   categories: CatalogueCategory[];
+  loadError?: string;
   open: boolean;
   onClose: () => void;
   onSelect: (code: string, description: string, standardPartner: boolean) => void;
@@ -84,7 +86,9 @@ export function CatalogueModal({
           ))}
         </div>
         <div className="overflow-y-auto p-4">
-          {filtered.length === 0 ? (
+          {loadError ? (
+            <p className="text-sm text-red-600">{loadError}</p>
+          ) : filtered.length === 0 ? (
             <p className="text-sm text-slate-500">No items match.</p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
