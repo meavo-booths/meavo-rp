@@ -27,27 +27,33 @@ async function getAuthSheets() {
 }
 
 export async function getAddressBookEntries(): Promise<AddressBookEntry[]> {
-  const sheets = await getAuthSheets();
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: ADDRESS_BOOK_SPREADSHEET_ID,
-    range: "Addresses!A2:D",
-  });
-  const seen = new Set<string>();
-  const out: AddressBookEntry[] = [];
-  for (const row of res.data.values ?? []) {
-    const address = (row[0] ?? "").trim();
-    if (!address) continue;
-    const key = address.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({
-      address,
-      recipient: (row[1] ?? "").trim(),
-      phone: (row[2] ?? "").trim(),
-      email: (row[3] ?? "").trim(),
+  try {
+    const sheets = await getAuthSheets();
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: ADDRESS_BOOK_SPREADSHEET_ID,
+      range: "Addresses!A2:D",
     });
+    const seen = new Set<string>();
+    const out: AddressBookEntry[] = [];
+    for (const row of res.data.values ?? []) {
+      const address = (row[0] ?? "").trim();
+      if (!address) continue;
+      const key = address.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        address,
+        recipient: (row[1] ?? "").trim(),
+        phone: (row[2] ?? "").trim(),
+        email: (row[3] ?? "").trim(),
+      });
+    }
+    return out;
+  } catch (error) {
+    // Sheet share / API failures must not crash Log RP — address is typed manually.
+    console.error("[address-book] failed to load from Google Sheets", error);
+    return [];
   }
-  return out;
 }
 
 export type PanelOptionsPayload = {
@@ -62,40 +68,46 @@ function normalizePanelModelKey(value: string): string {
 }
 
 export async function getPanelOptionsByBoothModel(): Promise<PanelOptionsPayload> {
-  const sheets = await getAuthSheets();
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: PANEL_OPTIONS_SPREADSHEET_ID,
-    range: "Panels",
-  });
-  const values = res.data.values ?? [];
-  if (values.length < 2) return { modelOptions: {}, allOptions: [] };
+  try {
+    const sheets = await getAuthSheets();
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: PANEL_OPTIONS_SPREADSHEET_ID,
+      range: "Panels",
+    });
+    const values = res.data.values ?? [];
+    if (values.length < 2) return { modelOptions: {}, allOptions: [] };
 
-  const headers = values[0] ?? [];
-  const modelOptions: Record<string, string[]> = {};
-  const allOptions: string[] = [];
-  const allSeen = new Set<string>();
+    const headers = values[0] ?? [];
+    const modelOptions: Record<string, string[]> = {};
+    const allOptions: string[] = [];
+    const allSeen = new Set<string>();
 
-  for (let col = 0; col < headers.length; col++) {
-    const header = String(headers[col] ?? "").trim();
-    if (!header) continue;
-    const modelKey = normalizePanelModelKey(header);
-    if (!modelKey) continue;
-    const options: string[] = [];
-    const seen = new Set<string>();
-    for (let row = 1; row < values.length; row++) {
-      const option = String(values[row]?.[col] ?? "").trim();
-      if (!option || seen.has(option)) continue;
-      seen.add(option);
-      options.push(option);
-      if (!allSeen.has(option)) {
-        allSeen.add(option);
-        allOptions.push(option);
+    for (let col = 0; col < headers.length; col++) {
+      const header = String(headers[col] ?? "").trim();
+      if (!header) continue;
+      const modelKey = normalizePanelModelKey(header);
+      if (!modelKey) continue;
+      const options: string[] = [];
+      const seen = new Set<string>();
+      for (let row = 1; row < values.length; row++) {
+        const option = String(values[row]?.[col] ?? "").trim();
+        if (!option || seen.has(option)) continue;
+        seen.add(option);
+        options.push(option);
+        if (!allSeen.has(option)) {
+          allSeen.add(option);
+          allOptions.push(option);
+        }
       }
+      if (options.length) modelOptions[modelKey] = options;
     }
-    if (options.length) modelOptions[modelKey] = options;
-  }
 
-  return { modelOptions, allOptions };
+    return { modelOptions, allOptions };
+  } catch (error) {
+    // Sheet share / API failures must not crash Log RP / Log IP.
+    console.error("[panel-options] failed to load from Google Sheets", error);
+    return { modelOptions: {}, allOptions: [] };
+  }
 }
 
 export async function lookupSparePartFromRepSheet(
